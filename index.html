@@ -1138,7 +1138,7 @@ return '<button class="nb" onclick="'+click+'" style="color:'+color+'">' +
 '<span class="nbi">'+t.icon+'</span>'+t.lbl+
 (t.badge&&t.badge>0?'<span class="nbd">'+t.badge+'</span>':'')+
 '</button>';
-}).join('')+'</nav>';
+}).join('')+'<button class="nb" onclick="doLogout()"><span class="nbi">🚪</span>Logout</button></nav>';
 }
 
 function renderWorkout() {

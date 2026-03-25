@@ -65,25 +65,33 @@ DB._fb.ref('ahmedpt/' + k).remove().catch(function(){});
 
 function syncFromFirebase(callback) {
 try {
-if (!window.firebase) { callback(); return; }
+if (!window.firebase) { toast('Offline mode - no sync', 'info'); callback(); return; }
 if (!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
 DB._fb = firebase.database();
 var done = false;
 var timer = setTimeout(function() {
-if (!done) { done = true; callback(); }
+if (!done) { done = true; toast('Sync timed out - offline mode', 'err'); callback(); }
 }, 6000);
 DB._fb.ref('ahmedpt').once('value').then(function(snap) {
 if (done) return;
 done = true; clearTimeout(timer);
 var data = snap.val() || {};
+var count = Object.keys(data).length;
 Object.keys(data).forEach(function(k) {
 if (FB_LOCAL_ONLY.indexOf(k) === -1) {
 try { localStorage.setItem(k, JSON.stringify(data[k])); } catch(e) {}
 }
 });
+toast(count > 0 ? 'Synced from cloud (' + count + ' items)' : 'Connected - no cloud data yet', 'ok');
 callback();
-}).catch(function() { if (!done) { done = true; clearTimeout(timer); callback(); } });
-} catch(e) { callback(); }
+}).catch(function(err) {
+if (!done) {
+done = true; clearTimeout(timer);
+toast('Firebase error: ' + (err.message || err.code || 'check rules'), 'err');
+callback();
+}
+});
+} catch(e) { toast('Firebase init error: ' + e.message, 'err'); callback(); }
 }
 
 var S = {

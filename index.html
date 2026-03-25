@@ -27,11 +27,139 @@
 'use strict';
 
 var PROG = {
-"mens":{"name":"Elite Protocol - 4 Day","days":[]},
-"womens":{"name":"Women&#39;s Protocol - 3 Day","days":[]}
+"mens":{"name":"Elite Protocol - 4 Day","days":[
+{"tag":"Push","title":"Upper Push","sub":"Chest / Shoulders / Triceps","accent":"#ef4444","coach":"Focus on controlled eccentrics. 2 sec down every rep.","ex":[
+{"n":"Barbell Bench Press","t":"Compound","m":"Chest, Front Delts, Triceps","sets":4,"r":"6-10","rest":"3min","note":"Retract scapula, slight arch, bar to lower chest. Drive through heels.","alt":["Dumbbell Bench Press","Machine Chest Press"]},
+{"n":"Incline Dumbbell Press","t":"Compound","m":"Upper Chest, Front Delts","sets":3,"r":"8-12","rest":"2min","note":"30-45 degree incline. Control the descent, full stretch at bottom.","alt":["Incline Barbell Press","Cable Incline Press"]},
+{"n":"Overhead Press","t":"Compound","m":"Front Delts, Side Delts, Triceps","sets":4,"r":"6-10","rest":"3min","note":"Bar from chin to lockout overhead. Core braced, no excessive lean.","alt":["Dumbbell Shoulder Press","Arnold Press"]},
+{"n":"Lateral Raise","t":"Isolation","m":"Side Delts","sets":4,"r":"12-20","rest":"60s","note":"Lead with elbows, slight forward lean. No swinging.","alt":["Cable Lateral Raise","Machine Lateral Raise"]},
+{"n":"Tricep Pushdown","t":"Isolation","m":"Triceps","sets":3,"r":"12-15","rest":"60s","note":"Elbows pinned at sides throughout. Full extension at bottom.","alt":["Overhead Tricep Extension","Rope Pushdown"]},
+{"n":"Skull Crusher","t":"Isolation","m":"Triceps","sets":3,"r":"10-12","rest":"90s","note":"Bar to forehead, elbows stay vertical. Controlled lowering.","alt":["Dumbbell Skull Crusher","EZ Bar Skull Crusher"]}
+]},
+{"tag":"Legs","title":"Lower Body","sub":"Quads / Hamstrings / Glutes","accent":"#10b981","coach":"Full depth squats. Drive knees out. Stay tight throughout.","ex":[
+{"n":"Barbell Back Squat","t":"Compound","m":"Quads, Glutes, Hamstrings","sets":4,"r":"6-10","rest":"3min","note":"Hip crease below parallel. Knees track toes, chest up.","alt":["Hack Squat","Leg Press","Goblet Squat"]},
+{"n":"Romanian Deadlift","t":"Compound","m":"Hamstrings, Glutes, Lower Back","sets":4,"r":"8-12","rest":"2min","note":"Hinge at the hip. Slight knee bend, bar close to legs, feel hamstring stretch.","alt":["Dumbbell RDL","Single Leg RDL"]},
+{"n":"Leg Press","t":"Compound","m":"Quads, Glutes","sets":3,"r":"10-15","rest":"2min","note":"Feet shoulder width, press through full range. Do not lock out fully.","alt":["Hack Squat","Bulgarian Split Squat"]},
+{"n":"Leg Curl","t":"Isolation","m":"Hamstrings","sets":3,"r":"10-15","rest":"60s","note":"Control the eccentric. Do not let hips rise off the pad.","alt":["Nordic Curl","Swiss Ball Curl"]},
+{"n":"Leg Extension","t":"Isolation","m":"Quads","sets":3,"r":"12-15","rest":"60s","note":"Pause 1 second at the top. Slow controlled descent.","alt":["Terminal Knee Extension"]},
+{"n":"Calf Raise","t":"Isolation","m":"Calves","sets":4,"r":"15-20","rest":"60s","note":"Full range of motion. Pause at the top and bottom. Do not bounce.","alt":["Seated Calf Raise","Leg Press Calf Raise"]}
+]},
+{"tag":"Pull","title":"Upper Pull","sub":"Back / Biceps / Rear Delts","accent":"#3b82f6","coach":"Initiate every pull with the lats, not the biceps. Full stretch at the top.","ex":[
+{"n":"Barbell Deadlift","t":"Compound","m":"Back, Glutes, Hamstrings","sets":4,"r":"4-6","rest":"4min","note":"Neutral spine, bar over mid-foot. Push the floor away, bar close to body.","alt":["Trap Bar Deadlift","Sumo Deadlift"]},
+{"n":"Pull-Up","t":"Compound","m":"Lats, Biceps, Rear Delts","sets":4,"r":"6-10","rest":"2min","note":"Dead hang at bottom, chin over bar at top. Control the descent.","alt":["Lat Pulldown","Assisted Pull-Up"]},
+{"n":"Seated Cable Row","t":"Compound","m":"Mid Back, Rear Delts, Biceps","sets":4,"r":"8-12","rest":"90s","note":"Sit tall, drive elbows back. Squeeze shoulder blades at the end position.","alt":["Dumbbell Row","T-Bar Row"]},
+{"n":"Face Pull","t":"Isolation","m":"Rear Delts, Rotator Cuff","sets":3,"r":"15-20","rest":"60s","note":"Pull to forehead level. External rotation at the end. High rep, light weight.","alt":["Rear Delt Fly","Band Pull Apart"]},
+{"n":"Barbell Curl","t":"Isolation","m":"Biceps","sets":3,"r":"8-12","rest":"90s","note":"No swinging. Full extension at the bottom. Squeeze at the top.","alt":["EZ Bar Curl","Cable Curl"]},
+{"n":"Hammer Curl","t":"Isolation","m":"Biceps, Brachialis","sets":3,"r":"10-12","rest":"60s","note":"Neutral grip throughout. Controlled tempo.","alt":["Cross Body Curl","Incline Dumbbell Curl"]}
+]},
+{"tag":"Full","title":"Full Body","sub":"Compound Focus / Athletic","accent":"#a855f7","coach":"Heavier compounds today. Push to 0-1 RIR on main lifts.","ex":[
+{"n":"Hip Thrust","t":"Isolation","m":"Glutes","sets":4,"r":"10-15","rest":"90s","note":"Drive through heels, upper back on bench. Squeeze glutes hard at the top.","alt":["Glute Bridge","Cable Pull Through"]},
+{"n":"Bulgarian Split Squat","t":"Unilateral","m":"Quads, Glutes","sets":3,"r":"8-12","rest":"2min","note":"Front foot far enough forward to keep shin vertical. Controlled descent.","alt":["Reverse Lunge","Step Up"]},
+{"n":"Dumbbell Row","t":"Compound","m":"Lats, Rear Delts, Biceps","sets":4,"r":"10-12","rest":"90s","note":"Brace on bench, row to hip. Full stretch at the bottom.","alt":["Cable Row","Machine Row"]},
+{"n":"Dumbbell Shoulder Press","t":"Compound","m":"Front Delts, Side Delts","sets":3,"r":"10-12","rest":"90s","note":"Full range, controlled. Do not let the elbows flare excessively.","alt":["Machine Shoulder Press","Arnold Press"]},
+{"n":"Cable Crunch","t":"Abs","m":"Abs","sets":3,"r":"15-20","rest":"60s","note":"Crunch down, not pull down. Focus on contracting the abs.","alt":["Decline Crunch","Ab Wheel Rollout"]},
+{"n":"Plank","t":"Abs","m":"Core","sets":3,"r":"30-60s","rest":"60s","note":"Hips level, core braced. Do not hold breath.","alt":["Dead Bug","Hollow Hold"]}
+]}
+]},
+"womens":{"name":"Women's Protocol - 3 Day","days":[
+{"tag":"Lower","title":"Lower Body + Glutes","sub":"Glutes / Hamstrings / Quads","accent":"#ec4899","coach":"Mind-muscle connection on every glute exercise. Squeeze at the top.","ex":[
+{"n":"Hip Thrust","t":"Isolation","m":"Glutes","sets":4,"r":"10-15","rest":"90s","note":"Drive through heels. Squeeze glutes hard at the top, hold 1 second.","alt":["Glute Bridge","Cable Pull Through"]},
+{"n":"Romanian Deadlift","t":"Compound","m":"Hamstrings, Glutes, Lower Back","sets":4,"r":"8-12","rest":"2min","note":"Feel the hamstring stretch. Bar close to legs throughout the movement.","alt":["Dumbbell RDL","Single Leg RDL"]},
+{"n":"Bulgarian Split Squat","t":"Unilateral","m":"Quads, Glutes","sets":3,"r":"10-12","rest":"2min","note":"Front foot placed far enough forward. Keep chest upright.","alt":["Reverse Lunge","Step Up"]},
+{"n":"Leg Press","t":"Compound","m":"Quads, Glutes","sets":3,"r":"12-15","rest":"2min","note":"Higher foot position targets glutes more. Full range of motion.","alt":["Hack Squat","Goblet Squat"]},
+{"n":"Leg Curl","t":"Isolation","m":"Hamstrings","sets":3,"r":"12-15","rest":"60s","note":"Slow and controlled. Do not let hips lift off the pad.","alt":["Nordic Curl"]},
+{"n":"Glute Kickback","t":"Isolation","m":"Glutes","sets":3,"r":"15-20","rest":"60s","note":"Cable or machine. Full extension, squeeze at the top. Do not swing.","alt":["Donkey Kick","Cable Kickback"]},
+{"n":"Calf Raise","t":"Isolation","m":"Calves","sets":3,"r":"15-20","rest":"60s","note":"Full range. Pause at top and bottom.","alt":["Seated Calf Raise"]}
+]},
+{"tag":"Upper","title":"Upper Body + Core","sub":"Back / Shoulders / Arms / Abs","accent":"#6366f1","coach":"Focus on scapular retraction on all pulling movements.","ex":[
+{"n":"Lat Pulldown","t":"Compound","m":"Lats, Biceps","sets":4,"r":"8-12","rest":"90s","note":"Lean slightly back, pull to upper chest. Full stretch at the top.","alt":["Pull-Up","Assisted Pull-Up"]},
+{"n":"Seated Cable Row","t":"Compound","m":"Mid Back, Rear Delts","sets":3,"r":"10-12","rest":"90s","note":"Sit tall, drive elbows back. Squeeze shoulder blades together.","alt":["Dumbbell Row","Machine Row"]},
+{"n":"Dumbbell Shoulder Press","t":"Compound","m":"Front Delts, Side Delts","sets":3,"r":"10-12","rest":"90s","note":"Controlled press overhead. Full range of motion.","alt":["Machine Shoulder Press","Arnold Press"]},
+{"n":"Lateral Raise","t":"Isolation","m":"Side Delts","sets":3,"r":"12-20","rest":"60s","note":"Lead with elbows. Light weight, high rep. No swinging.","alt":["Cable Lateral Raise"]},
+{"n":"Dumbbell Curl","t":"Isolation","m":"Biceps","sets":3,"r":"10-12","rest":"60s","note":"No swinging. Squeeze at the top.","alt":["Hammer Curl","Cable Curl"]},
+{"n":"Tricep Pushdown","t":"Isolation","m":"Triceps","sets":3,"r":"12-15","rest":"60s","note":"Elbows pinned at sides. Full extension.","alt":["Overhead Tricep Extension"]},
+{"n":"Cable Crunch","t":"Abs","m":"Abs","sets":3,"r":"15-20","rest":"60s","note":"Contract the abs, not a pulldown. Controlled movement.","alt":["Decline Crunch","Hanging Leg Raise"]}
+]},
+{"tag":"Full","title":"Full Body Compound","sub":"Strength / Power / Core","accent":"#10b981","coach":"Heavier weights today. Push yourself on the big compound movements.","ex":[
+{"n":"Goblet Squat","t":"Compound","m":"Quads, Glutes, Core","sets":4,"r":"10-15","rest":"90s","note":"Dumbbell or kettlebell at chest. Deep squat, chest up.","alt":["Barbell Back Squat","Leg Press"]},
+{"n":"Dumbbell Row","t":"Compound","m":"Lats, Rear Delts, Biceps","sets":4,"r":"10-12","rest":"90s","note":"Brace on bench. Row to hip, full stretch at the bottom.","alt":["Seated Cable Row","Machine Row"]},
+{"n":"Incline Dumbbell Press","t":"Compound","m":"Upper Chest, Front Delts","sets":3,"r":"10-12","rest":"2min","note":"Controlled descent. Full stretch at the bottom.","alt":["Dumbbell Bench Press","Cable Chest Press"]},
+{"n":"Walking Lunges","t":"Unilateral","m":"Quads, Glutes, Hamstrings","sets":3,"r":"10-12 each","rest":"90s","note":"Long stride, upright torso. Control the knee on the way down.","alt":["Reverse Lunge","Step Up"]},
+{"n":"Face Pull","t":"Isolation","m":"Rear Delts, Rotator Cuff","sets":3,"r":"15-20","rest":"60s","note":"Pull to forehead. External rotation at the end.","alt":["Rear Delt Fly","Band Pull Apart"]},
+{"n":"Plank","t":"Abs","m":"Core","sets":3,"r":"30-45s","rest":"60s","note":"Hips level, core tight. Do not hold your breath.","alt":["Dead Bug","Side Plank"]}
+]}
+]}
 };
 var WK = {"1":{"l":"FOUNDATION","c":"#60a5fa","n":"2-3 RIR. Establish patterns. Full ROM."},"2":{"l":"VOLUME","c":"#34d399","n":"+1 set on compounds. +2.5-5kg where form is solid."},"3":{"l":"INTENSITY","c":"#f59e0b","n":"+5% load. 3-second eccentric every rep."},"4":{"l":"OVERLOAD","c":"#f87171","n":"Drop set last isolation. 0-1 RIR. Deload next week."}};
 var CURRENCIES = ["GBP", "USD", "EUR", "AED", "SAR", "CHF", "CAD", "AUD"];
+var EX_LIB = [
+{n:"Barbell Bench Press",m:"Chest, Front Delts, Triceps",t:"Compound",sets:4,r:"6-10",rest:"3min",note:"Retract scapula, slight arch, bar to lower chest."},
+{n:"Incline Dumbbell Press",m:"Upper Chest, Front Delts",t:"Compound",sets:3,r:"8-12",rest:"2min",note:"30-45 degree incline. Control the descent."},
+{n:"Incline Barbell Press",m:"Upper Chest, Front Delts",t:"Compound",sets:4,r:"6-10",rest:"3min",note:""},
+{n:"Dumbbell Bench Press",m:"Chest, Front Delts, Triceps",t:"Compound",sets:3,r:"8-12",rest:"2min",note:""},
+{n:"Cable Fly",m:"Chest",t:"Isolation",sets:3,r:"12-15",rest:"90s",note:"Slight bend in elbows, squeeze at the top."},
+{n:"Pec Deck",m:"Chest",t:"Isolation",sets:3,r:"12-15",rest:"60s",note:""},
+{n:"Dips",m:"Lower Chest, Triceps",t:"Compound",sets:3,r:"8-12",rest:"2min",note:"Lean forward for more chest emphasis."},
+{n:"Push-Up",m:"Chest, Triceps, Front Delts",t:"Compound",sets:3,r:"15-20",rest:"60s",note:""},
+{n:"Barbell Deadlift",m:"Back, Glutes, Hamstrings",t:"Compound",sets:4,r:"4-6",rest:"4min",note:"Neutral spine, push floor away, bar close to body."},
+{n:"Sumo Deadlift",m:"Inner Thighs, Glutes, Hamstrings",t:"Compound",sets:4,r:"6-10",rest:"3min",note:"Wide stance, toes turned out 45 degrees."},
+{n:"Trap Bar Deadlift",m:"Back, Glutes, Hamstrings, Quads",t:"Compound",sets:4,r:"5-8",rest:"3min",note:""},
+{n:"Pull-Up",m:"Lats, Biceps, Rear Delts",t:"Compound",sets:4,r:"6-10",rest:"2min",note:"Dead hang at bottom, chin over bar at top."},
+{n:"Lat Pulldown",m:"Lats, Biceps",t:"Compound",sets:4,r:"8-12",rest:"90s",note:"Lean slightly back, pull to upper chest."},
+{n:"Seated Cable Row",m:"Mid Back, Rear Delts, Biceps",t:"Compound",sets:4,r:"8-12",rest:"90s",note:"Sit tall, drive elbows back, squeeze at end."},
+{n:"Dumbbell Row",m:"Lats, Rear Delts, Biceps",t:"Compound",sets:3,r:"10-12",rest:"90s",note:"Brace on bench, row to hip."},
+{n:"T-Bar Row",m:"Mid Back, Lats",t:"Compound",sets:4,r:"8-10",rest:"2min",note:""},
+{n:"Face Pull",m:"Rear Delts, Rotator Cuff",t:"Isolation",sets:3,r:"15-20",rest:"60s",note:"Pull to forehead, external rotation at end."},
+{n:"Straight Arm Pulldown",m:"Lats",t:"Isolation",sets:3,r:"12-15",rest:"60s",note:""},
+{n:"Rear Delt Fly",m:"Rear Delts",t:"Isolation",sets:3,r:"12-20",rest:"60s",note:""},
+{n:"Barbell Back Squat",m:"Quads, Glutes, Hamstrings",t:"Compound",sets:4,r:"6-10",rest:"3min",note:"Hip crease below parallel, knees track toes."},
+{n:"Hack Squat",m:"Quads, Glutes",t:"Compound",sets:3,r:"8-12",rest:"2min",note:""},
+{n:"Goblet Squat",m:"Quads, Glutes, Core",t:"Compound",sets:3,r:"12-15",rest:"90s",note:"Dumbbell at chest, deep squat."},
+{n:"Leg Press",m:"Quads, Glutes, Hamstrings",t:"Compound",sets:4,r:"10-15",rest:"2min",note:""},
+{n:"Romanian Deadlift",m:"Hamstrings, Glutes, Lower Back",t:"Compound",sets:4,r:"8-12",rest:"2min",note:"Hinge at hip, slight knee bend, bar close to legs."},
+{n:"Bulgarian Split Squat",m:"Quads, Glutes",t:"Unilateral",sets:3,r:"8-12",rest:"2min",note:"Front foot far enough forward to keep shin vertical."},
+{n:"Walking Lunges",m:"Quads, Glutes, Hamstrings",t:"Unilateral",sets:3,r:"10-12 each",rest:"90s",note:""},
+{n:"Reverse Lunge",m:"Quads, Glutes",t:"Unilateral",sets:3,r:"10-12 each",rest:"90s",note:""},
+{n:"Step Up",m:"Quads, Glutes",t:"Unilateral",sets:3,r:"10-12 each",rest:"90s",note:""},
+{n:"Hip Thrust",m:"Glutes",t:"Isolation",sets:4,r:"10-15",rest:"90s",note:"Drive through heels, squeeze glutes at top."},
+{n:"Glute Bridge",m:"Glutes, Hamstrings",t:"Isolation",sets:3,r:"15-20",rest:"60s",note:""},
+{n:"Glute Kickback",m:"Glutes",t:"Isolation",sets:3,r:"15-20",rest:"60s",note:"Full extension, squeeze at the top."},
+{n:"Leg Extension",m:"Quads",t:"Isolation",sets:3,r:"12-15",rest:"60s",note:"Pause at top, control the descent."},
+{n:"Leg Curl",m:"Hamstrings",t:"Isolation",sets:3,r:"10-15",rest:"60s",note:""},
+{n:"Nordic Curl",m:"Hamstrings",t:"Isolation",sets:3,r:"5-8",rest:"2min",note:"Eccentric only. Very challenging."},
+{n:"Calf Raise",m:"Calves",t:"Isolation",sets:4,r:"15-20",rest:"60s",note:"Full range of motion, pause at top and bottom."},
+{n:"Seated Calf Raise",m:"Soleus",t:"Isolation",sets:3,r:"15-20",rest:"60s",note:""},
+{n:"Overhead Press",m:"Front Delts, Side Delts, Triceps",t:"Compound",sets:4,r:"6-10",rest:"3min",note:"Bar from chin to lockout, core tight."},
+{n:"Dumbbell Shoulder Press",m:"Front Delts, Side Delts, Triceps",t:"Compound",sets:3,r:"8-12",rest:"2min",note:""},
+{n:"Arnold Press",m:"Front Delts, Side Delts",t:"Compound",sets:3,r:"10-12",rest:"90s",note:""},
+{n:"Lateral Raise",m:"Side Delts",t:"Isolation",sets:4,r:"12-20",rest:"60s",note:"Slight forward lean, lead with elbows."},
+{n:"Cable Lateral Raise",m:"Side Delts",t:"Isolation",sets:3,r:"15-20",rest:"60s",note:""},
+{n:"Upright Row",m:"Side Delts, Traps",t:"Compound",sets:3,r:"10-12",rest:"90s",note:""},
+{n:"Barbell Curl",m:"Biceps",t:"Isolation",sets:3,r:"8-12",rest:"90s",note:"No swinging, full extension at bottom."},
+{n:"Dumbbell Curl",m:"Biceps",t:"Isolation",sets:3,r:"10-12",rest:"60s",note:""},
+{n:"Hammer Curl",m:"Biceps, Brachialis",t:"Isolation",sets:3,r:"10-12",rest:"60s",note:""},
+{n:"Incline Dumbbell Curl",m:"Biceps",t:"Isolation",sets:3,r:"10-12",rest:"90s",note:""},
+{n:"Cable Curl",m:"Biceps",t:"Isolation",sets:3,r:"12-15",rest:"60s",note:""},
+{n:"Preacher Curl",m:"Biceps",t:"Isolation",sets:3,r:"10-12",rest:"90s",note:""},
+{n:"EZ Bar Curl",m:"Biceps",t:"Isolation",sets:3,r:"8-12",rest:"90s",note:""},
+{n:"Tricep Pushdown",m:"Triceps",t:"Isolation",sets:3,r:"12-15",rest:"60s",note:"Elbows pinned at sides."},
+{n:"Rope Pushdown",m:"Triceps",t:"Isolation",sets:3,r:"12-15",rest:"60s",note:""},
+{n:"Skull Crusher",m:"Triceps",t:"Isolation",sets:3,r:"10-12",rest:"90s",note:"Bar to forehead, elbows stay vertical."},
+{n:"Overhead Tricep Extension",m:"Triceps",t:"Isolation",sets:3,r:"10-12",rest:"90s",note:""},
+{n:"Close Grip Bench Press",m:"Triceps, Chest",t:"Compound",sets:3,r:"8-12",rest:"2min",note:""},
+{n:"Plank",m:"Core",t:"Abs",sets:3,r:"30-60s",rest:"60s",note:"Hips level, core braced."},
+{n:"Cable Crunch",m:"Abs",t:"Abs",sets:3,r:"15-20",rest:"60s",note:"Contract the abs, not a pulldown."},
+{n:"Hanging Leg Raise",m:"Lower Abs, Hip Flexors",t:"Abs",sets:3,r:"12-15",rest:"60s",note:""},
+{n:"Ab Wheel Rollout",m:"Core, Abs",t:"Abs",sets:3,r:"10-12",rest:"90s",note:""},
+{n:"Russian Twist",m:"Obliques, Abs",t:"Abs",sets:3,r:"20",rest:"60s",note:""},
+{n:"Decline Crunch",m:"Abs",t:"Abs",sets:3,r:"15-20",rest:"60s",note:""},
+{n:"Side Plank",m:"Obliques, Core",t:"Abs",sets:3,r:"30-45s each",rest:"60s",note:""},
+{n:"Dead Bug",m:"Core",t:"Abs",sets:3,r:"10 each",rest:"60s",note:""},
+{n:"Kettlebell Swing",m:"Hamstrings, Glutes, Core",t:"Compound",sets:4,r:"15-20",rest:"60s",note:"Hip hinge, not a squat. Explosive hip drive."},
+{n:"Box Jump",m:"Quads, Glutes, Calves",t:"Finisher",sets:3,r:"5-8",rest:"90s",note:""},
+{n:"Battle Ropes",m:"Full Body",t:"Finisher",sets:3,r:"30s",rest:"30s",note:""},
+{n:"Sled Push",m:"Quads, Glutes, Calves",t:"Finisher",sets:4,r:"20m",rest:"90s",note:""}
+];
 
 var FB_CONFIG = {
 apiKey: "AIzaSyBdCybj28adk2cmfFkMsmNwsKRWuOE3Bcc",
@@ -709,7 +837,7 @@ var balBar = '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px
 '</div>';
 var progBar = progs.length>0?'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center">' +
 '<span style="font-size:10px;color:var(--m2);font-weight:700">PROGRAM:</span>' +
-progs.map(function(p){ var on=p.id===curPid; return '<button onclick="switchProg(\''+cid+'\',\''+p.id+'\')" style="padding:4px 10px;border-radius:12px;border:1px solid '+(on?'var(--acc)':'var(--bdr)')+';background:'+(on?'rgba(99,102,241,.12)':'transparent')+';color:'+(on?'var(--acc)':'var(--m1)')+';font-size:10px;font-weight:700;cursor:pointer">'+p.name+'</button>'; }).join('') +
+progs.map(function(p){ var on=p.id===curPid; var bc=on?'var(--acc)':'var(--bdr)'; var bg=on?'rgba(99,102,241,.12)':'transparent'; var co=on?'var(--acc)':'var(--m1)'; return '<span style="display:inline-flex;align-items:center"><button onclick="switchProg(\''+cid+'\',\''+p.id+'\')" style="padding:4px 10px;border-radius:12px 0 0 12px;border:1px solid '+bc+';border-right:none;background:'+bg+';color:'+co+';font-size:10px;font-weight:700;cursor:pointer">'+p.name+'</button><button onclick="editProg(\''+cid+'\',\''+p.id+'\')" title="Edit program" style="padding:4px 8px;border-radius:0 12px 12px 0;border:1px solid '+bc+';background:'+bg+';color:'+co+';font-size:10px;cursor:pointer;line-height:1">✎</button></span>'; }).join('') +
 '<button onclick="openAddProg(\''+cid+'\')" style="padding:4px 10px;border-radius:12px;border:1px dashed var(--bdr);background:transparent;color:var(--m2);font-size:10px;font-weight:700;cursor:pointer">+ Program</button>' +
 '</div>':
 '<button onclick="openAddProg(\''+cid+'\')" style="width:100%;padding:9px;border-radius:10px;border:1px dashed var(--acc);background:rgba(99,102,241,.05);color:var(--acc);font-size:12px;font-weight:700;cursor:pointer;margin-bottom:12px">+ Add Program for '+c.name+'</button>';
@@ -943,19 +1071,39 @@ showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" o
 '<div class="row"><div class="lbl">Client</div><select class="sel" id="bs_c">'+cs.map(function(e){return '<option value="'+e[0]+'"'+(cid&&cid===e[0]?' selected':'')+'>'+e[1].name+'</option>';}).join('')+'</select></div>' +
 '<div class="row"><div class="lbl">Date</div><input class="inp" id="bs_d" type="date" value="'+today()+'"></div>' +
 '<div class="row"><div class="lbl">Time</div><input class="inp" id="bs_t" type="time" value="10:00"></div>' +
+'<div class="row"><div class="lbl">Repeat</div><select class="sel" id="bs_rpt" onchange="togRecur()"><option value="none">No Repeat</option><option value="7">Weekly</option><option value="14">Every 2 Weeks</option><option value="30">Monthly</option></select></div>' +
+'<div id="bs_rpt_row" style="display:none" class="row"><div class="lbl">Number of Sessions</div><input class="inp" id="bs_cnt" type="number" value="4" min="2" max="52" inputmode="numeric"></div>' +
 '<div class="row"><div class="lbl">Note (optional)</div><input class="inp" id="bs_n" placeholder="e.g. Legs day"></div>' +
 '<button class="btn btn-pink" style="background:var(--pink)" onclick="doBookSess()">BOOK →</button>' +
 '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
 '</div></div>');
+}
+function togRecur() {
+var v=(document.getElementById('bs_rpt')||{}).value;
+var row=document.getElementById('bs_rpt_row');
+if(row)row.style.display=(v&&v!=='none')?'block':'none';
 }
 function doBookSess() {
 var cid=(document.getElementById('bs_c')||{}).value;
 var date=(document.getElementById('bs_d')||{}).value;
 var time=(document.getElementById('bs_t')||{}).value;
 var note=((document.getElementById('bs_n')||{}).value||'').trim();
+var rpt=(document.getElementById('bs_rpt')||{}).value||'none';
+var cnt=parseInt((document.getElementById('bs_cnt')||{}).value)||4;
 if(!cid||!date){toast('Select client and date','err');return;}
 var c=S.clients[cid]||{};
+if(rpt==='none'){
 bookSess(cid,{date:date,time:time,type:c.type||'inperson',note:note});
+}else{
+var days=parseInt(rpt);
+var d=new Date(date+'T12:00:00');
+for(var i=0;i<cnt;i++){
+var ds=d.toISOString().split('T')[0];
+bookSess(cid,{date:ds,time:time,type:c.type||'inperson',note:note});
+d.setDate(d.getDate()+days);
+}
+toast(cnt+' sessions booked','ok');
+}
 closeModal(); R();
 }
 function confirmDone(cid, sessId) {
@@ -1034,8 +1182,14 @@ var progs=getProgs(cid);
 for(var i=0;i<progs.length;i++){if(progs[i].id===pid)return progs[i];}
 return null;
 }
+function editProg(cid,pid) {
+var prog=getProgById(pid,cid);
+if(!prog){toast('Program not found','err');return;}
+_bp.cid=cid; _bp.prog=JSON.parse(JSON.stringify(prog)); _bp.editId=pid;
+showBuilder();
+}
 
-var _bp={cid:null,prog:null}, _bpDay=0;
+var _bp={cid:null,prog:null,editId:null}, _bpDay=0;
 function startBuilder(cid) {
 var name=((document.getElementById('np_name')||{}).value||'').trim();
 if(!name){toast('Enter a program name first','err');return;}
@@ -1075,18 +1229,43 @@ showBuilder();
 }
 function removeDay(di){_bp.prog.days.splice(di,1);_bp.prog.days.forEach(function(d,i){d.tag='Day '+(i+1);});showBuilder();}
 function removeEx(di,ei){_bp.prog.days[di].ex.splice(ei,1);showBuilder();}
+function filterEx(val) {
+var q=(val||'').toLowerCase().trim();
+var box=document.getElementById('ae_suggestions');
+if(!box)return;
+if(!q){box.innerHTML='';box.style.display='none';return;}
+var matches=EX_LIB.filter(function(e){return e.n.toLowerCase().indexOf(q)===0;}).slice(0,8);
+if(!matches.length){box.innerHTML='';box.style.display='none';return;}
+box.innerHTML=matches.map(function(e){
+var safe=e.n.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+return '<button onclick="pickEx(\''+safe+'\')" style="display:block;width:100%;text-align:left;padding:9px 12px;background:var(--c2);border:none;border-bottom:1px solid var(--bdr);color:var(--tx);font-size:13px;font-weight:600;cursor:pointer">'+e.n+'<span style="font-size:10px;color:var(--m1);margin-left:6px">'+e.m+'</span></button>';
+}).join('');
+box.style.display='block';
+}
+function pickEx(name) {
+var ex=null;
+for(var i=0;i<EX_LIB.length;i++){if(EX_LIB[i].n===name){ex=EX_LIB[i];break;}}
+if(!ex)return;
+var f=function(id,v){var el=document.getElementById(id);if(el)el.value=v;};
+f('ae_n',ex.n);f('ae_s',ex.sets);f('ae_r',ex.r);f('ae_m',ex.m);f('ae_rest',ex.rest);f('ae_note',ex.note||'');
+var t=document.getElementById('ae_t');
+if(t){var opts=['Compound','Isolation','Unilateral','Abs','Finisher'];for(var j=0;j<opts.length;j++){if(opts[j]===ex.t){t.selectedIndex=j;break;}}}
+var box=document.getElementById('ae_suggestions');if(box){box.innerHTML='';box.style.display='none';}
+}
 function openAddEx(di) {
 _bpDay=di;
 showModal('<div class="modal-bg"><div class="modal-box">' +
 '<div class="modal-title">Add Exercise - Day '+(di+1)+'</div>' +
-'<div class="row"><div class="lbl">Exercise Name</div><input class="inp" id="ae_n" placeholder="e.g. Barbell Back Squat"></div>' +
+'<div class="row"><div class="lbl">Exercise Name — type to search library</div>' +
+'<input class="inp" id="ae_n" placeholder="e.g. Barbell Back Squat" oninput="filterEx(this.value)" autocomplete="off">' +
+'<div id="ae_suggestions" style="display:none;border:1px solid var(--bdr);border-radius:0 0 10px 10px;overflow:hidden;margin-top:-2px;max-height:220px;overflow-y:auto"></div></div>' +
 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
 '<div><div class="lbl">Sets</div><input class="inp" id="ae_s" type="number" value="3" inputmode="numeric" style="margin-bottom:0"></div>' +
 '<div><div class="lbl">Rep Range</div><input class="inp" id="ae_r" placeholder="8-12" style="margin-bottom:0"></div>' +
 '</div>' +
 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
 '<div><div class="lbl">Type</div><select class="sel" id="ae_t"><option>Compound</option><option>Isolation</option><option>Unilateral</option><option>Abs</option><option>Finisher</option></select></div>' +
-'<div><div class="lbl">Muscle Group</div><input class="inp" id="ae_m" placeholder="e.g. Quads" style="margin-bottom:0"></div>' +
+'<div><div class="lbl">Muscle Group</div><input class="inp" id="ae_m" placeholder="auto-filled from library" style="margin-bottom:0"></div>' +
 '</div>' +
 '<div class="row"><div class="lbl">Rest</div><input class="inp" id="ae_rest" placeholder="e.g. 90s"></div>' +
 '<div class="row"><div class="lbl">Coaching Cue (optional)</div><textarea class="inp" id="ae_note" rows="2" placeholder="Form tip..."></textarea></div>' +
@@ -1112,7 +1291,16 @@ showBuilder();
 function doSaveBuilder() {
 var prog=_bp.prog, cid=_bp.cid;
 if(!prog.days.length){toast('Add at least one training day','err');return;}
-var progs=getProgs(cid); progs.push(prog);
+var progs=getProgs(cid);
+if(_bp.editId){
+var idx=-1;
+for(var i=0;i<progs.length;i++){if(progs[i].id===_bp.editId){idx=i;break;}}
+if(idx>=0)progs[idx]=prog;else progs.push(prog);
+_bp.editId=null;
+DB.set('progs_'+cid,progs);
+closeModal(); toast(prog.name+' updated!','ok'); R();
+}else{
+progs.push(prog);
 DB.set('progs_'+cid,progs);
 var cp=DB.get('cp_'+cid)||{}; cp.currentProgId=prog.id;
 DB.set('cp_'+cid,cp);
@@ -1120,6 +1308,7 @@ var templates=DB.get('prog_templates')||[];
 templates.push(JSON.parse(JSON.stringify(prog)));
 DB.set('prog_templates',templates);
 closeModal(); toast(prog.name+' saved as template!','ok'); R();
+}
 }
 
 function renderClient() {

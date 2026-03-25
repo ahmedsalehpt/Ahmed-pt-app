@@ -22,14 +22,14 @@
 </div>
 <script>
 
-‘use strict’;
+'use strict';
 
 var PROG = {
-“mens”:{“name”:“Elite Protocol - 4 Day”,“days”:[]},
-“womens”:{“name”:“Women’s Protocol - 3 Day”,“days”:[]}
+"mens":{"name":"Elite Protocol - 4 Day","days":[]},
+"womens":{"name":"Women&#39;s Protocol - 3 Day","days":[]}
 };
-var WK = {“1”:{“l”:“FOUNDATION”,“c”:”#60a5fa”,“n”:“2-3 RIR. Establish patterns. Full ROM.”},“2”:{“l”:“VOLUME”,“c”:”#34d399”,“n”:”+1 set on compounds. +2.5-5kg where form is solid.”},“3”:{“l”:“INTENSITY”,“c”:”#f59e0b”,“n”:”+5% load. 3-second eccentric every rep.”},“4”:{“l”:“OVERLOAD”,“c”:”#f87171”,“n”:“Drop set last isolation. 0-1 RIR. Deload next week.”}};
-var CURRENCIES = [“GBP”, “USD”, “EUR”, “AED”, “SAR”, “CHF”, “CAD”, “AUD”];
+var WK = {"1":{"l":"FOUNDATION","c":"#60a5fa","n":"2-3 RIR. Establish patterns. Full ROM."},"2":{"l":"VOLUME","c":"#34d399","n":"+1 set on compounds. +2.5-5kg where form is solid."},"3":{"l":"INTENSITY","c":"#f59e0b","n":"+5% load. 3-second eccentric every rep."},"4":{"l":"OVERLOAD","c":"#f87171","n":"Drop set last isolation. 0-1 RIR. Deload next week."}};
+var CURRENCIES = ["GBP", "USD", "EUR", "AED", "SAR", "CHF", "CAD", "AUD"];
 
 var DB = {
 get: function(k) {
@@ -44,11 +44,11 @@ try { localStorage.removeItem(k); } catch(e) {}
 };
 
 var S = {
-scr: ‘login’,
-role: null, cid: null, lRole: ‘trainer’,
-tTab: ‘dash’, vCli: null, cliTab: ‘log’,
-cTab: ‘workout’,
-day: 0, week: 1, unit: ‘kg’,
+scr: 'login',
+role: null, cid: null, lRole: 'trainer',
+tTab: 'dash', vCli: null, cliTab: 'log',
+cTab: 'workout',
+day: 0, week: 1, unit: 'kg',
 aSet: null, xNote: -1, xAlt: -1, rpe: null, swaps: {},
 logs: {}, exN: {}, sN: {}, msgs: [], streak: {cur:0,best:0,lastDate:null}, prs: {},
 clients: {}, unread: 0, expS: {}, cliData: {}
@@ -56,66 +56,66 @@ clients: {}, unread: 0, expS: {}, cliData: {}
 
 var _toastT = null;
 function toast(msg, type) {
-var el = document.getElementById(‘toast’);
+var el = document.getElementById('toast');
 if (!el) return;
 el.textContent = msg;
-el.className = ‘toast-bar t-’ + (type || ‘ok’);
-el.style.display = ‘block’;
+el.className = 'toast-bar t-' + (type || 'ok');
+el.style.display = 'block';
 clearTimeout(_toastT);
-_toastT = setTimeout(function() { el.style.display = ‘none’; }, 3000);
+_toastT = setTimeout(function() { el.style.display = 'none'; }, 3000);
 }
 
 function showModal(html) {
-var m = document.getElementById(‘modal’);
+var m = document.getElementById('modal');
 if (m) m.innerHTML = html;
 }
 function closeModal() {
-var m = document.getElementById(‘modal’);
-if (m) m.innerHTML = ‘’;
+var m = document.getElementById('modal');
+if (m) m.innerHTML = '';
 }
 
-function today() { return new Date().toISOString().split(‘T’)[0]; }
+function today() { return new Date().toISOString().split('T')[0]; }
 function fmtD(d) {
-if (!d) return ‘’;
-try { return new Date(d + ‘T12:00:00’).toLocaleDateString(‘en-GB’, {weekday:‘short’, day:‘numeric’, month:‘short’}); }
+if (!d) return '';
+try { return new Date(d + 'T12:00:00').toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short'}); }
 catch(e) { return d; }
 }
 function fmtT(ts) {
-if (!ts) return ‘’;
-return new Date(ts).toLocaleTimeString(‘en-GB’, {hour:‘2-digit’, minute:‘2-digit’});
+if (!ts) return '';
+return new Date(ts).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
 }
 function fmtMon(d) {
-if (!d) return ‘’;
-try { return new Date(d + ‘T12:00:00’).toLocaleDateString(‘en-GB’, {month:‘long’, year:‘numeric’}); }
+if (!d) return '';
+try { return new Date(d + 'T12:00:00').toLocaleDateString('en-GB', {month:'long', year:'numeric'}); }
 catch(e) { return d; }
 }
 function rpeC(r) {
-if (!r) return ‘#4a5568’;
-if (r <= 5) return ‘#10b981’;
-if (r <= 7) return ‘#d97706’;
-if (r === 8) return ‘#ea580c’;
-return ‘#dc2626’;
+if (!r) return '#4a5568';
+if (r <= 5) return '#10b981';
+if (r <= 7) return '#d97706';
+if (r === 8) return '#ea580c';
+return '#dc2626';
 }
 function rpeN(r) {
-if (!r) return ‘’;
-var names = [’’,‘Easy’,‘Easy’,‘Easy’,‘Easy’,‘Easy’,‘Moderate’,‘Hard’,‘V.Hard’,‘Near Max’,‘MAX’];
-return names[r] || ‘’;
+if (!r) return '';
+var names = ['','Easy','Easy','Easy','Easy','Easy','Moderate','Hard','V.Hard','Near Max','MAX'];
+return names[r] || '';
 }
 
 function getCurr(cid) {
 var id = cid || S.vCli || S.cid;
-if (!id) return ‘GBP’;
+if (!id) return 'GBP';
 var c = S.clients[id] || {};
-return c.currency || ‘GBP’;
+return c.currency || 'GBP';
 }
 function currSym(cid) {
 var c = getCurr(cid);
-return c.split(’ ’)[1] || c;
+return c.split(' ')[1] || c;
 }
 
 function getProg(cid) {
 var id = cid || S.cid;
-var cp = id ? DB.get(‘cp_’ + id) : null;
+var cp = id ? DB.get('cp_' + id) : null;
 var pid = cp ? cp.currentProgId : null;
 var progs = getProgs(id);
 if (pid) {
@@ -125,21 +125,21 @@ return progs[0] || null;
 }
 function getProgs(cid) {
 var id = cid || S.cid;
-return DB.get(‘progs_’ + id) || [];
+return DB.get('progs_' + id) || [];
 }
 function getDays(cid) { var p = getProg(cid); return p ? p.days || [] : []; }
 function getDay() { return getDays()[S.day] || null; }
 function getEx(ei) {
 var d = getDay(); if (!d) return null;
 var ex = d.ex[ei]; if (!ex) return null;
-var sw = S.swaps[S.day + ‘_’ + ei];
+var sw = S.swaps[S.day + '_' + ei];
 if (sw !== undefined && ex.alt && ex.alt[sw]) {
 return {n:ex.alt[sw], t:ex.t, m:ex.m, sets:ex.sets, r:ex.r, rest:ex.rest, note:ex.note, alt:ex.alt, swapped:true, orig:ex.n};
 }
 return ex;
 }
-function lk(w,d,e,s) { return ‘w’+w+’_d’+d+’_e’+e+’_s’+s; }
-function ek(w,d,e) { return ‘w’+w+’_d’+d+’_e’+e; }
+function lk(w,d,e,s) { return 'w'+w+'_d'+d+'_e'+e+'_s'+s; }
+function ek(w,d,e) { return 'w'+w+'_d'+d+'_e'+e; }
 function sk(w,d) { return 'w'+w+'_d'+d; }
 function getL(w,d,e,s) { return S.logs[lk(w,d,e,s)] || null; }
 function sessP() {
@@ -155,13 +155,13 @@ function updStreak() {
 var t = today(), s = S.streak;
 if (s.lastDate === t) return;
 var y = new Date(); y.setDate(y.getDate() - 1);
-var ys = y.toISOString().split(‘T’)[0];
+var ys = y.toISOString().split('T')[0];
 var cur = s.lastDate === ys ? (s.cur || 0) + 1 : 1;
 S.streak = {cur:cur, best:Math.max(cur, s.best||0), lastDate:t};
 }
 function chkPR(ei, weight, reps) {
 var ex = getEx(ei); if (!ex || !weight) return;
-var k = ex.n.replace(/[^a-zA-Z0-9]/g, ’*’);
+var k = ex.n.replace(/[^a-zA-Z0-9]/g, '*');
 var wt = parseFloat(weight) || 0, rp = parseInt(reps) || 0;
 var est = wt * (1 + rp / 30);
 var x = S.prs[k];
@@ -171,14 +171,14 @@ function get14() {
 var days = [];
 for (var i = 13; i >= 0; i--) {
 var dt = new Date(); dt.setDate(dt.getDate() - i);
-days.push(dt.toISOString().split(‘T’)[0]);
+days.push(dt.toISOString().split('T')[0]);
 }
 return days;
 }
 function hadSess(d) {
 return Object.keys(S.logs).some(function(k) {
 var l = S.logs[k];
-return l && l.done && l.ts && new Date(l.ts).toISOString().split(‘T’)[0] === d;
+return l && l.done && l.ts && new Date(l.ts).toISOString().split('T')[0] === d;
 });
 }
 
@@ -189,110 +189,110 @@ var key = lk(S.week, S.day, ei, si);
 S.logs[key] = data;
 chkPR(ei, weight, reps);
 updStreak();
-DB.set(‘logs_’ + S.cid, S.logs);
-DB.set(‘streak_’ + S.cid, S.streak);
-DB.set(‘prs_’ + S.cid, S.prs);
+DB.set('logs_' + S.cid, S.logs);
+DB.set('streak_' + S.cid, S.streak);
+DB.set('prs_' + S.cid, S.prs);
 }
 function delLog(ei, si) {
 var key = lk(S.week, S.day, ei, si);
 delete S.logs[key];
-DB.set(‘logs_’ + S.cid, S.logs);
+DB.set('logs_' + S.cid, S.logs);
 }
 function saveExNote(ei, text, from) {
 var key = ek(S.week, S.day, ei);
 S.exN[key] = S.exN[key] || {};
 S.exN[key][from] = text;
-DB.set(‘exnotes_’ + S.cid, S.exN);
+DB.set('exnotes_' + S.cid, S.exN);
 }
 function saveSessNote(text, from) {
 var key = sk(S.week, S.day);
 S.sN[key] = S.sN[key] || {};
 S.sN[key][from] = text;
-DB.set(‘sessnotes_’ + S.cid, S.sN);
+DB.set('sessnotes_' + S.cid, S.sN);
 }
 function sendMsg(text, from, tCid) {
 var cid = tCid || S.cid;
-var msg = {id:‘m’+Date.now(), text:text.trim(), from:from, ts:Date.now(), read:false};
-var msgs = DB.get(‘msgs_’ + cid) || [];
+var msg = {id:'m'+Date.now(), text:text.trim(), from:from, ts:Date.now(), read:false};
+var msgs = DB.get('msgs_' + cid) || [];
 msgs.push(msg);
-DB.set(‘msgs_’ + cid, msgs);
-if (from === ‘client’ && cid === S.cid) S.msgs = msgs;
-if (from === ‘trainer’ && S.cliData[cid]) {
+DB.set('msgs_' + cid, msgs);
+if (from === 'client' && cid === S.cid) S.msgs = msgs;
+if (from === 'trainer' && S.cliData[cid]) {
 S.cliData[cid].messages = S.cliData[cid].messages || {};
 S.cliData[cid].messages[msg.id] = msg;
 }
 }
 function readMsgs(cid, role) {
-var other = role === ‘trainer’ ? ‘client’ : ‘trainer’;
-var msgs = DB.get(‘msgs_’ + cid) || [];
+var other = role === 'trainer' ? 'client' : 'trainer';
+var msgs = DB.get('msgs_' + cid) || [];
 var chg = false;
 msgs.forEach(function(m) { if (m.from === other && !m.read) { m.read = true; chg = true; } });
-if (chg) DB.set(‘msgs_’ + cid, msgs);
-if (role === ‘client’) S.unread = msgs.filter(function(m){ return m.from === ‘trainer’ && !m.read; }).length;
+if (chg) DB.set('msgs_' + cid, msgs);
+if (role === 'client') S.unread = msgs.filter(function(m){ return m.from === 'trainer' && !m.read; }).length;
 }
 function bookSess(cid, data) {
-var id = ‘s’ + Date.now();
-var sess = {id:id, status:‘upcoming’, created:Date.now()};
+var id = 's' + Date.now();
+var sess = {id:id, status:'upcoming', created:Date.now()};
 Object.keys(data).forEach(function(k){ sess[k] = data[k]; });
-var local = DB.get(‘sessions_’ + cid) || {};
+var local = DB.get('sessions_' + cid) || {};
 local[id] = sess;
-DB.set(‘sessions_’ + cid, local);
+DB.set('sessions_' + cid, local);
 if (!S.clients[cid]) S.clients[cid] = {};
 if (!S.clients[cid].sessions) S.clients[cid].sessions = {};
 S.clients[cid].sessions[id] = sess;
-toast(‘Session booked’, ‘ok’);
+toast('Session booked', 'ok');
 }
 function completeSess(cid, sessId) {
-var local = DB.get(‘sessions_’ + cid) || {};
-if (local[sessId]) local[sessId].status = ‘done’;
-DB.set(‘sessions_’ + cid, local);
+var local = DB.get('sessions_' + cid) || {};
+if (local[sessId]) local[sessId].status = 'done';
+DB.set('sessions_' + cid, local);
 var bal = Math.max(0, (S.clients[cid] ? S.clients[cid].balance || 0 : 0) - 1);
 if (S.clients[cid]) S.clients[cid].balance = bal;
 if (S.clients[cid] && S.clients[cid].sessions && S.clients[cid].sessions[sessId]) {
-S.clients[cid].sessions[sessId].status = ‘done’;
+S.clients[cid].sessions[sessId].status = 'done';
 }
-DB.set(‘tc’, S.clients);
-toast(‘Session completed - 1 session deducted’, ‘ok’);
+DB.set('tc', S.clients);
+toast('Session completed - 1 session deducted', 'ok');
 }
 function logPay(cid, amount, note) {
 var c = S.clients[cid] || {};
 var rate = c.rate || 0;
 var sessions = rate > 0 ? Math.round(amount / rate) : 0;
-var pay = {id:‘p’+Date.now(), amount:amount, sessions:sessions, date:today(), ts:Date.now(), note:note||’’};
-var pays = DB.get(‘payments_’ + cid) || {};
+var pay = {id:'p'+Date.now(), amount:amount, sessions:sessions, date:today(), ts:Date.now(), note:note||''};
+var pays = DB.get('payments_' + cid) || {};
 pays[pay.id] = pay;
-DB.set(‘payments_’ + cid, pays);
+DB.set('payments_' + cid, pays);
 if (!S.clients[cid]) S.clients[cid] = {};
 S.clients[cid].balance = (S.clients[cid].balance || 0) + sessions;
 if (!S.clients[cid].payments) S.clients[cid].payments = {};
 S.clients[cid].payments[pay.id] = pay;
-DB.set(‘tc’, S.clients);
-toast(‘Payment logged - +’ + sessions + ’ sessions added’, ‘ok’);
+DB.set('tc', S.clients);
+toast('Payment logged - +' + sessions + ' sessions added', 'ok');
 R();
 }
 
 function loadAll() {
-S.clients = DB.get(‘tc’) || {};
+S.clients = DB.get('tc') || {};
 Object.keys(S.clients).forEach(function(cid) {
 var c = S.clients[cid];
-c.sessions = DB.get(‘sessions_’ + cid) || {};
-c.payments = DB.get(‘payments_’ + cid) || {};
-var msgs = DB.get(‘msgs_’ + cid) || [];
-c.msgCount = msgs.filter(function(m){ return m.from === ‘client’ && !m.read; }).length;
+c.sessions = DB.get('sessions_' + cid) || {};
+c.payments = DB.get('payments_' + cid) || {};
+var msgs = DB.get('msgs_' + cid) || [];
+c.msgCount = msgs.filter(function(m){ return m.from === 'client' && !m.read; }).length;
 });
 }
 function loadCliDetail(cid) {
-var msgs = DB.get(‘msgs_’ + cid) || [];
+var msgs = DB.get('msgs_' + cid) || [];
 var msgsObj = {};
-msgs.forEach(function(m){ msgsObj[m.id || (‘m’+m.ts)] = m; });
+msgs.forEach(function(m){ msgsObj[m.id || ('m'+m.ts)] = m; });
 S.cliData[cid] = {
-logs: DB.get(‘logs_’ + cid) || {},
-prs: DB.get(‘prs_’ + cid) || {},
-streak: DB.get(‘streak_’ + cid) || {},
-sessNotes: DB.get(‘sessnotes_’ + cid) || {},
-exNotes: DB.get(‘exnotes_’ + cid) || {},
-sessions: DB.get(‘sessions_’ + cid) || {},
-payments: DB.get(‘payments_’ + cid) || {},
+logs: DB.get('logs_' + cid) || {},
+prs: DB.get('prs_' + cid) || {},
+streak: DB.get('streak_' + cid) || {},
+sessNotes: DB.get('sessnotes_' + cid) || {},
+exNotes: DB.get('exnotes_' + cid) || {},
+sessions: DB.get('sessions_' + cid) || {},
+payments: DB.get('payments_' + cid) || {},
 messages: msgsObj
 };
 if (S.clients[cid]) {
@@ -302,146 +302,146 @@ S.clients[cid].payments = S.cliData[cid].payments;
 }
 
 function R() {
-var app = document.getElementById(‘app’);
+var app = document.getElementById('app');
 if (!app) return;
 try {
-var html = ‘’;
-if (S.scr === ‘login’) html = renderLogin();
-else if (S.scr === ‘trainer’) html = renderTrainer();
-else if (S.scr === ‘client’) html = renderClient();
+var html = '';
+if (S.scr === 'login') html = renderLogin();
+else if (S.scr === 'trainer') html = renderTrainer();
+else if (S.scr === 'client') html = renderClient();
 app.innerHTML = html;
-var ml = document.getElementById(‘msgList’);
+var ml = document.getElementById('msgList');
 if (ml) setTimeout(function(){ ml.scrollTop = ml.scrollHeight; }, 50);
 var d = getDay();
-if (d && d.accent) document.documentElement.style.setProperty(‘--acc’, d.accent);
-if (S.scr === ‘client’) {
-if (S.cTab === ‘sessions’) setTimeout(renderMySessData, 50);
-if (S.cTab === ‘account’) setTimeout(renderMyAcctData, 50);
+if (d && d.accent) document.documentElement.style.setProperty('--acc', d.accent);
+if (S.scr === 'client') {
+if (S.cTab === 'sessions') setTimeout(renderMySessData, 50);
+if (S.cTab === 'account') setTimeout(renderMyAcctData, 50);
 }
 } catch(e) {
-app.innerHTML = ‘<div style="padding:20px;color:#f87171;background:#07070e;min-height:100vh;font-family:monospace">’ +
-‘<div style="font-size:16px;font-weight:700;margin-bottom:8px">Error</div>’ +
-‘<div style="font-size:12px;word-break:break-all">’ + (e.message || String(e)) + ‘</div>’ +
-‘<button onclick="location.reload()" style="margin-top:16px;padding:10px 20px;background:#6366f1;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">Reload</button></div>’;
+app.innerHTML = '<div style="padding:20px;color:#f87171;background:#07070e;min-height:100vh;font-family:monospace">' +
+'<div style="font-size:16px;font-weight:700;margin-bottom:8px">Error</div>' +
+'<div style="font-size:12px;word-break:break-all">' + (e.message || String(e)) + '</div>' +
+'<button onclick="location.reload()" style="margin-top:16px;padding:10px 20px;background:#6366f1;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px">Reload</button></div>';
 }
 }
 
 function renderLogin() {
-var isT = S.lRole === ‘trainer’;
-var hasAcct = !!DB.get(‘trainer’);
-return ‘<div class="login-wrap"><div class="login-box">’ +
-‘<div class="login-logo">’ +
-‘<div style="font-size:52px;margin-bottom:12px">🏋</div>’ +
-‘<div style="font-size:9px;letter-spacing:3px;color:#ec4899;font-weight:700;margin-bottom:6px">AHMED PERSONAL TRAINING</div>’ +
-‘<div style="font-size:28px;font-weight:800;color:#fff;letter-spacing:-.5px">Welcome</div>’ +
-‘</div>’ +
-‘<div class="role-grid">’ +
-‘<div class="role-card' + (isT?' on':'') + '" onclick="S.lRole=\'trainer\';R()">’ +
-‘<div style="font-size:28px;margin-bottom:6px">🏋</div>’ +
-‘<div style="font-size:13px;font-weight:700;color:#fff">Trainer</div>’ +
-‘<div style="font-size:10px;color:var(--m1);margin-top:2px">Ahmed's login</div></div>’ +
-‘<div class="role-card' + (!isT?' on':'') + '" onclick="S.lRole=\'client\';R()">’ +
-‘<div style="font-size:28px;margin-bottom:6px">💪</div>’ +
-‘<div style="font-size:13px;font-weight:700;color:#fff">Client</div>’ +
-‘<div style="font-size:10px;color:var(--m1);margin-top:2px">Your training</div></div>’ +
-‘</div>’ +
+var isT = S.lRole === 'trainer';
+var hasAcct = !!DB.get('trainer');
+return '<div class="login-wrap"><div class="login-box">' +
+'<div class="login-logo">' +
+'<div style="font-size:52px;margin-bottom:12px">🏋</div>' +
+'<div style="font-size:9px;letter-spacing:3px;color:#ec4899;font-weight:700;margin-bottom:6px">AHMED PERSONAL TRAINING</div>' +
+'<div style="font-size:28px;font-weight:800;color:#fff;letter-spacing:-.5px">Welcome</div>' +
+'</div>' +
+'<div class="role-grid">' +
+'<div class="role-card' + (isT?' on':'') + '" onclick="S.lRole=\'trainer\';R()">' +
+'<div style="font-size:28px;margin-bottom:6px">🏋</div>' +
+'<div style="font-size:13px;font-weight:700;color:#fff">Trainer</div>' +
+'<div style="font-size:10px;color:var(--m1);margin-top:2px">Ahmed&#39;s login</div></div>' +
+'<div class="role-card' + (!isT?' on':'') + '" onclick="S.lRole=\'client\';R()">' +
+'<div style="font-size:28px;margin-bottom:6px">💪</div>' +
+'<div style="font-size:13px;font-weight:700;color:#fff">Client</div>' +
+'<div style="font-size:10px;color:var(--m1);margin-top:2px">Your training</div></div>' +
+'</div>' +
 (isT ? renderTrainerLogin(hasAcct) : renderClientLogin()) +
-‘</div></div>’;
+'</div></div>';
 }
 function renderTrainerLogin(hasAcct) {
-return ‘<div class="row"><div class="lbl">PIN</div>’ +
-‘<input class="inp" id="tpin" type="tel" maxlength="4" placeholder="4-digit PIN" inputmode="numeric"></div>’ +
-‘<div id="tlogin_err"></div>’ +
-‘<button class="btn btn-acc" onclick="doTLogin()">LOGIN →</button>’ +
-(!hasAcct ? ‘<div style="padding-top:16px;border-top:1px solid var(--bdr);margin-top:4px">’ +
-‘<div style="font-size:11px;color:var(--m2);margin-bottom:12px;font-weight:600">FIRST TIME - CREATE ACCOUNT</div>’ +
-‘<div class="row"><div class="lbl">Your Name</div><input class="inp" id="tname" placeholder="e.g. Ahmed"></div>’ +
-‘<div class="row"><div class="lbl">Create PIN (4 digits)</div><input class="inp" id="tnewpin" type="tel" maxlength="4" placeholder="Choose a PIN" inputmode="numeric"></div>’ +
-‘<div id="tcreate_err"></div>’ +
-‘<button class="btn btn-green" onclick="doTCreate()">CREATE ACCOUNT →</button></div>’ : ‘’);
+return '<div class="row"><div class="lbl">PIN</div>' +
+'<input class="inp" id="tpin" type="tel" maxlength="4" placeholder="4-digit PIN" inputmode="numeric"></div>' +
+'<div id="tlogin_err"></div>' +
+'<button class="btn btn-acc" onclick="doTLogin()">LOGIN →</button>' +
+(!hasAcct ? '<div style="padding-top:16px;border-top:1px solid var(--bdr);margin-top:4px">' +
+'<div style="font-size:11px;color:var(--m2);margin-bottom:12px;font-weight:600">FIRST TIME - CREATE ACCOUNT</div>' +
+'<div class="row"><div class="lbl">Your Name</div><input class="inp" id="tname" placeholder="e.g. Ahmed"></div>' +
+'<div class="row"><div class="lbl">Create PIN (4 digits)</div><input class="inp" id="tnewpin" type="tel" maxlength="4" placeholder="Choose a PIN" inputmode="numeric"></div>' +
+'<div id="tcreate_err"></div>' +
+'<button class="btn btn-green" onclick="doTCreate()">CREATE ACCOUNT →</button></div>' : '');
 }
 function renderClientLogin() {
-return ‘<div class="row"><div class="lbl">Your Name</div>’ +
-‘<input class="inp" id="cname" placeholder="e.g. Sarah"></div>’ +
-‘<div class="row"><div class="lbl">PIN (given by Ahmed)</div>’ +
-‘<input class="inp" id="cpin" type="tel" maxlength="4" placeholder="4-digit PIN" inputmode="numeric"></div>’ +
-‘<div id="clogin_err"></div>’ +
-‘<button class="btn" style="background:var(--pink)" onclick="doCLogin()">START TRAINING →</button>’;
+return '<div class="row"><div class="lbl">Your Name</div>' +
+'<input class="inp" id="cname" placeholder="e.g. Sarah"></div>' +
+'<div class="row"><div class="lbl">PIN (given by Ahmed)</div>' +
+'<input class="inp" id="cpin" type="tel" maxlength="4" placeholder="4-digit PIN" inputmode="numeric"></div>' +
+'<div id="clogin_err"></div>' +
+'<button class="btn" style="background:var(--pink)" onclick="doCLogin()">START TRAINING →</button>';
 }
 
 function doTCreate() {
-var name = (document.getElementById(‘tname’) || {}).value || ‘’;
-var pin = (document.getElementById(‘tnewpin’) || {}).value || ‘’;
+var name = (document.getElementById('tname') || {}).value || '';
+var pin = (document.getElementById('tnewpin') || {}).value || '';
 name = name.trim(); pin = pin.trim();
-var err = document.getElementById(‘tcreate_err’);
-if (!name) { if(err) err.innerHTML=’<div class="err-msg">Enter your name</div>’; return; }
-if (pin.length < 4) { if(err) err.innerHTML=’<div class="err-msg">PIN must be 4 digits</div>’; return; }
-DB.set(‘trainer’, {name:name, pin:pin});
+var err = document.getElementById('tcreate_err');
+if (!name) { if(err) err.innerHTML='<div class="err-msg">Enter your name</div>'; return; }
+if (pin.length < 4) { if(err) err.innerHTML='<div class="err-msg">PIN must be 4 digits</div>'; return; }
+DB.set('trainer', {name:name, pin:pin});
 enterTrainer();
 }
 function doTLogin() {
-var pin = ((document.getElementById(‘tpin’)||{}).value||’’).trim();
-var st = DB.get(‘trainer’);
-var err = document.getElementById(‘tlogin_err’);
-if (!st) { if(err) err.innerHTML=’<div class="err-msg">No account yet - create one below</div>’; return; }
-if (st.pin !== pin) { if(err) err.innerHTML=’<div class="err-msg">Incorrect PIN</div>’; return; }
+var pin = ((document.getElementById('tpin')||{}).value||'').trim();
+var st = DB.get('trainer');
+var err = document.getElementById('tlogin_err');
+if (!st) { if(err) err.innerHTML='<div class="err-msg">No account yet - create one below</div>'; return; }
+if (st.pin !== pin) { if(err) err.innerHTML='<div class="err-msg">Incorrect PIN</div>'; return; }
 enterTrainer();
 }
 function enterTrainer() {
-S.role=‘trainer’; S.scr=‘trainer’; S.tTab=‘dash’;
-DB.set(‘sess’, {role:‘trainer’});
+S.role='trainer'; S.scr='trainer'; S.tTab='dash';
+DB.set('sess', {role:'trainer'});
 loadAll();
 R();
 }
 function doCLogin() {
-var name = ((document.getElementById(‘cname’)||{}).value||’’).trim().toLowerCase();
-var pin = ((document.getElementById(‘cpin’)||{}).value||’’).trim();
-var err = document.getElementById(‘clogin_err’);
-if (!name) { if(err) err.innerHTML=’<div class="err-msg">Enter your name</div>’; return; }
-if (!pin) { if(err) err.innerHTML=’<div class="err-msg">Enter your PIN</div>’; return; }
-var keys = Object.keys(localStorage).filter(function(k){ return k.startsWith(‘cp_’); });
+var name = ((document.getElementById('cname')||{}).value||'').trim().toLowerCase();
+var pin = ((document.getElementById('cpin')||{}).value||'').trim();
+var err = document.getElementById('clogin_err');
+if (!name) { if(err) err.innerHTML='<div class="err-msg">Enter your name</div>'; return; }
+if (!pin) { if(err) err.innerHTML='<div class="err-msg">Enter your PIN</div>'; return; }
+var keys = Object.keys(localStorage).filter(function(k){ return k.startsWith('cp_'); });
 var match = null;
 for (var i = 0; i < keys.length; i++) {
 var c = DB.get(keys[i]);
-if (c && c.name && c.name.toLowerCase() === name && c.pin === pin) { match = keys[i].replace(‘cp_’,’’); break; }
+if (c && c.name && c.name.toLowerCase() === name && c.pin === pin) { match = keys[i].replace('cp_',''); break; }
 }
-if (!match) { if(err) err.innerHTML=’<div class="err-msg">Not found. Ask Ahmed to set you up on this device.</div>’; return; }
+if (!match) { if(err) err.innerHTML='<div class="err-msg">Not found. Ask Ahmed to set you up on this device.</div>'; return; }
 enterClient(match);
 }
 function enterClient(cid) {
-var cp = DB.get(‘cp_’ + cid) || {};
-S.role=‘client’; S.scr=‘client’; S.cid=cid; S.cTab=‘workout’;
-S.unit=cp.unit||‘kg’; S.week=cp.week||1;
-S.logs=DB.get(‘logs_’+cid)||{};
-S.exN=DB.get(‘exnotes_’+cid)||{};
-S.sN=DB.get(‘sessnotes_’+cid)||{};
-S.msgs=DB.get(‘msgs_’+cid)||[];
-S.streak=DB.get(‘streak_’+cid)||{cur:0,best:0,lastDate:null};
-S.prs=DB.get(‘prs_’+cid)||{};
-S.unread=S.msgs.filter(function(m){return m.from===‘trainer’&&!m.read;}).length;
-DB.set(‘sess’, {role:‘client’, cid:cid});
+var cp = DB.get('cp_' + cid) || {};
+S.role='client'; S.scr='client'; S.cid=cid; S.cTab='workout';
+S.unit=cp.unit||'kg'; S.week=cp.week||1;
+S.logs=DB.get('logs_'+cid)||{};
+S.exN=DB.get('exnotes_'+cid)||{};
+S.sN=DB.get('sessnotes_'+cid)||{};
+S.msgs=DB.get('msgs_'+cid)||[];
+S.streak=DB.get('streak_'+cid)||{cur:0,best:0,lastDate:null};
+S.prs=DB.get('prs_'+cid)||{};
+S.unread=S.msgs.filter(function(m){return m.from==='trainer'&&!m.read;}).length;
+DB.set('sess', {role:'client', cid:cid});
 R();
 }
 function doLogout() {
-S.role=null; S.scr=‘login’; S.cid=null; S.vCli=null;
+S.role=null; S.scr='login'; S.cid=null; S.vCli=null;
 S.logs={}; S.msgs=[]; S.streak={cur:0,best:0,lastDate:null}; S.prs={};
-DB.del(‘sess’); R();
+DB.del('sess'); R();
 }
 
 function renderTrainer() {
 if (S.vCli) return renderCliDetail();
-if (S.tTab === ‘dash’) return renderDash();
-if (S.tTab === ‘clients’) return renderClients();
-if (S.tTab === ‘sched’) return renderSched();
-if (S.tTab === ‘finance’) return renderFinance();
+if (S.tTab === 'dash') return renderDash();
+if (S.tTab === 'clients') return renderClients();
+if (S.tTab === 'sched') return renderSched();
+if (S.tTab === 'finance') return renderFinance();
 return renderDash();
 }
 function trNav() {
-var tabs = [{id:‘dash’,icon:’📊’,lbl:‘Overview’},{id:‘clients’,icon:’👥’,lbl:‘Clients’},{id:‘sched’,icon:’📅’,lbl:‘Schedule’},{id:‘finance’,icon:’💰’,lbl:‘Finance’}];
-return ‘<nav class="bnav">’ + tabs.map(function(t){
+var tabs = [{id:'dash',icon:'📊',lbl:'Overview'},{id:'clients',icon:'👥',lbl:'Clients'},{id:'sched',icon:'📅',lbl:'Schedule'},{id:'finance',icon:'💰',lbl:'Finance'}];
+return '<nav class="bnav">' + tabs.map(function(t){
 var on = S.tTab===t.id && !S.vCli;
-return ‘<button class="nb'+(on?' on':'')+'" onclick="S.tTab=\''+t.id+'\';S.vCli=null;R()"><span class="nbi">’+t.icon+’</span>’+t.lbl+’</button>’;
-}).join(’’) + ‘<button class="nb" onclick="doLogout()"><span class="nbi">🚪</span>Logout</button></nav>’;
+return '<button class="nb'+(on?' on':'')+'" onclick="S.tTab=\''+t.id+'\';S.vCli=null;R()"><span class="nbi">'+t.icon+'</span>'+t.lbl+'</button>';
+}).join('') + '<button class="nb" onclick="doLogout()"><span class="nbi">🚪</span>Logout</button></nav>';
 }
 
 function getUpcoming() {
@@ -449,26 +449,26 @@ var all = [];
 Object.keys(S.clients).forEach(function(cid) {
 var c = S.clients[cid];
 Object.values(c.sessions||{}).forEach(function(s){
-if (s.status===‘upcoming’) {
-var item = {clientId:cid, clientName:c.name, clientType:c.type||‘inperson’};
+if (s.status==='upcoming') {
+var item = {clientId:cid, clientName:c.name, clientType:c.type||'inperson'};
 Object.keys(s).forEach(function(k){ item[k]=s[k]; });
 all.push(item);
 }
 });
 });
-return all.sort(function(a,b){ return ((a.date||’’)+(a.time||’’)).localeCompare((b.date||’’)+(b.time||’’)); });
+return all.sort(function(a,b){ return ((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')); });
 }
 function monthStats() {
 var now = new Date();
-var mn = now.getFullYear() + ‘-’ + String(now.getMonth()+1).padStart(2,‘0’);
+var mn = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
 var rev = 0, sessDone = 0, needPay = 0, alerts = [];
 Object.keys(S.clients).forEach(function(cid) {
 var c = S.clients[cid];
 Object.values(c.payments||{}).forEach(function(p){ if(p.date&&p.date.startsWith(mn)) rev+=p.amount||0; });
-Object.values(c.sessions||{}).forEach(function(s){ if(s.status===‘done’&&s.doneAt&&new Date(s.doneAt).toISOString().startsWith(mn)) sessDone++; });
+Object.values(c.sessions||{}).forEach(function(s){ if(s.status==='done'&&s.doneAt&&new Date(s.doneAt).toISOString().startsWith(mn)) sessDone++; });
 var bal = c.balance||0;
-if (bal===0) { needPay++; alerts.push({cid:cid,name:c.name,type:‘zero’,msg:‘No sessions left - needs payment’}); }
-else if (bal<=2) alerts.push({cid:cid,name:c.name,type:‘low’,msg:‘Only ‘+bal+’ session’+(bal===1?’’:‘s’)+’ remaining’});
+if (bal===0) { needPay++; alerts.push({cid:cid,name:c.name,type:'zero',msg:'No sessions left - needs payment'}); }
+else if (bal<=2) alerts.push({cid:cid,name:c.name,type:'low',msg:'Only '+bal+' session'+(bal===1?'':'s')+' remaining'});
 });
 return {rev:rev, sessDone:sessDone, needPay:needPay, alerts:alerts};
 }
@@ -476,86 +476,86 @@ return {rev:rev, sessDone:sessDone, needPay:needPay, alerts:alerts};
 function renderDash() {
 var ms = monthStats();
 var up = getUpcoming().slice(0,5);
-return ‘<div class="hdr"><div class="hdr-top">’ +
-‘<div><div class="hdr-sub">Trainer</div><div class="hdr-title">Ahmed PT</div></div>’ +
-‘<div style="font-size:11px;color:var(--m1);font-weight:600">’+fmtMon(today())+’</div>’ +
-‘</div></div>’ +
-‘<div class="page">’ +
-‘<div class="sgrid">’ +
-‘<div class="scard"><div class="sv" style="color:var(--green)">’+currSym()+ms.rev.toLocaleString()+’</div><div class="sl">This Month</div><div class="ss">’+Object.keys(S.clients).length+’ clients</div></div>’ +
-‘<div class="scard"><div class="sv" style="color:var(--blue)">’+ms.sessDone+’</div><div class="sl">Sessions Done</div><div class="ss">This month</div></div>’ +
-‘<div class="scard" onclick="S.tTab=\'sched\';R()"><div class="sv" style="color:var(--amber)">’+getUpcoming().length+’</div><div class="sl">Upcoming</div><div class="ss">Tap to view</div></div>’ +
-‘<div class="scard" onclick="S.tTab=\'clients\';R()"><div class="sv" style="color:var(--red)">’+ms.needPay+’</div><div class="sl">Need Payment</div><div class="ss">Tap to view</div></div>’ +
-‘</div>’ +
+return '<div class="hdr"><div class="hdr-top">' +
+'<div><div class="hdr-sub">Trainer</div><div class="hdr-title">Ahmed PT</div></div>' +
+'<div style="font-size:11px;color:var(--m1);font-weight:600">'+fmtMon(today())+'</div>' +
+'</div></div>' +
+'<div class="page">' +
+'<div class="sgrid">' +
+'<div class="scard"><div class="sv" style="color:var(--green)">'+currSym()+ms.rev.toLocaleString()+'</div><div class="sl">This Month</div><div class="ss">'+Object.keys(S.clients).length+' clients</div></div>' +
+'<div class="scard"><div class="sv" style="color:var(--blue)">'+ms.sessDone+'</div><div class="sl">Sessions Done</div><div class="ss">This month</div></div>' +
+'<div class="scard" onclick="S.tTab=\'sched\';R()"><div class="sv" style="color:var(--amber)">'+getUpcoming().length+'</div><div class="sl">Upcoming</div><div class="ss">Tap to view</div></div>' +
+'<div class="scard" onclick="S.tTab=\'clients\';R()"><div class="sv" style="color:var(--red)">'+ms.needPay+'</div><div class="sl">Need Payment</div><div class="ss">Tap to view</div></div>' +
+'</div>' +
 ms.alerts.map(function(a){
-return ‘<div class="alert alert-'+(a.type==='zero'?'red':'amber')+'" onclick="openCli(\''+a.cid+'\')">’ +
-‘<div style="font-size:20px">’+(a.type===‘zero’?’🚨’:’⚠️’)+’</div>’ +
-‘<div style="flex:1"><div style="font-weight:700;font-size:13px;color:#fff">’+a.name+’</div><div style="font-size:11px;color:var(--m1)">’+a.msg+’</div></div>’ +
-‘<div style="font-size:12px;color:var(--m2)">→</div></div>’;
-}).join(’’) +
-(up.length>0?’<div class="sect">TODAY'S SESSIONS</div><div class="card"><div class="card-p">’+
-up.map(function(s){return sessRow(s);}).join(’’)+’</div></div>’:’<div class="empty">No upcoming sessions.<br>Book from a client profile.</div>’) +
-‘</div>’ + trNav();
+return '<div class="alert alert-'+(a.type==='zero'?'red':'amber')+'" onclick="openCli(\''+a.cid+'\')">' +
+'<div style="font-size:20px">'+(a.type==='zero'?'🚨':'⚠️')+'</div>' +
+'<div style="flex:1"><div style="font-weight:700;font-size:13px;color:#fff">'+a.name+'</div><div style="font-size:11px;color:var(--m1)">'+a.msg+'</div></div>' +
+'<div style="font-size:12px;color:var(--m2)">→</div></div>';
+}).join('') +
+(up.length>0?'<div class="sect">TODAY&#39;S SESSIONS</div><div class="card"><div class="card-p">'+
+up.map(function(s){return sessRow(s);}).join('')+'</div></div>':'<div class="empty">No upcoming sessions.<br>Book from a client profile.</div>') +
+'</div>' + trNav();
 }
 function sessRow(s) {
-return ‘<div class="si">’ +
-‘<div class="si-time"><div class="si-th">’+(s.time||’–:–’)+’</div><div class="si-td">’+fmtD(s.date)+’</div></div>’ +
-‘<div class="si-dot" style="background:'+(s.clientType==='online'?'#6366f1':'#10b981')+'"></div>’ +
-‘<div class="si-info"><div class="si-name">’+(s.clientName||’’)+’</div>’ +
-‘<div class="si-meta">’+(s.clientType===‘online’?‘Online’:‘In Person’)+(s.note?’ - ‘+s.note:’’)+’</div></div>’ +
-‘<button class="btn-sm" style="background:var(--green)" onclick="confirmDone(\''+s.clientId+'\',\''+s.id+'\')">Done ✓</button></div>’;
+return '<div class="si">' +
+'<div class="si-time"><div class="si-th">'+(s.time||'–:–')+'</div><div class="si-td">'+fmtD(s.date)+'</div></div>' +
+'<div class="si-dot" style="background:'+(s.clientType==='online'?'#6366f1':'#10b981')+'"></div>' +
+'<div class="si-info"><div class="si-name">'+(s.clientName||'')+'</div>' +
+'<div class="si-meta">'+(s.clientType==='online'?'Online':'In Person')+(s.note?' - '+s.note:'')+'</div></div>' +
+'<button class="btn-sm" style="background:var(--green)" onclick="confirmDone(\''+s.clientId+'\',\''+s.id+'\')">Done ✓</button></div>';
 }
 
 function renderClients() {
 var cs = Object.entries(S.clients);
-return ‘<div class="hdr"><div class="hdr-top">’ +
-‘<div><div class="hdr-sub">All Clients</div><div class="hdr-title">Clients</div></div>’ +
-‘<button class="btn-sm btn-green" onclick="openAddClient()">+ Add</button>’ +
-‘</div></div>’ +
-‘<div class="page">’ +
-‘<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">’ +
-‘<span class="pill p-gray">’+cs.length+’ total</span>’ +
-‘<span class="pill p-blue">Online: ‘+cs.filter(function(x){return x[1].type===‘online’;}).length+’</span>’ +
-‘<span class="pill p-green">In-Person: ‘+cs.filter(function(x){return x[1].type===‘inperson’;}).length+’</span>’ +
-‘</div>’ +
-(cs.length===0?’<div class="empty">No clients yet.<br>Tap + Add to get started.</div>’:’’) +
+return '<div class="hdr"><div class="hdr-top">' +
+'<div><div class="hdr-sub">All Clients</div><div class="hdr-title">Clients</div></div>' +
+'<button class="btn-sm btn-green" onclick="openAddClient()">+ Add</button>' +
+'</div></div>' +
+'<div class="page">' +
+'<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">' +
+'<span class="pill p-gray">'+cs.length+' total</span>' +
+'<span class="pill p-blue">Online: '+cs.filter(function(x){return x[1].type==='online';}).length+'</span>' +
+'<span class="pill p-green">In-Person: '+cs.filter(function(x){return x[1].type==='inperson';}).length+'</span>' +
+'</div>' +
+(cs.length===0?'<div class="empty">No clients yet.<br>Tap + Add to get started.</div>':'') +
 cs.map(function(e){ var cid=e[0],c=e[1];
 var bal=c.balance||0;
-var pc=bal===0?‘p-red’:bal<=2?‘p-amber’:‘p-green’;
-var pt=bal===0?‘NO SESSIONS’:bal+’ sessions left’;
-return ‘<div class="ccard" onclick="openCli(\''+cid+'\')">’ +
-‘<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">’ +
-‘<div class="cname">’+c.name+’</div>’ +
-‘<div style="display:flex;gap:5px">’+(c.msgCount>0?’<span class="pill p-red">💬 ‘+c.msgCount+’</span>’:’’)+
-‘<span class="pill '+pc+'">’+pt+’</span></div></div>’ +
-‘<div class="cmeta">’ +
-‘<span class="pill '+(c.type==='online'?'p-blue':'p-green')+'">’+(c.type===‘online’?‘Online’:‘In Person’)+’</span>’ +
-(c.rate?’<span>’+currSym(cid)+c.rate+’/sess</span>’:’’) +
-‘<span>Last: ‘+(c.lastActive?fmtD(c.lastActive):‘Never’)+’</span>’ +
-(c.streak&&c.streak.cur>0?’<span style="color:var(--amber)">🔥 ‘+c.streak.cur+’</span>’:’’) +
-‘</div></div>’;
-}).join(’’) + ‘</div>’ + trNav();
+var pc=bal===0?'p-red':bal<=2?'p-amber':'p-green';
+var pt=bal===0?'NO SESSIONS':bal+' sessions left';
+return '<div class="ccard" onclick="openCli(\''+cid+'\')">' +
+'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">' +
+'<div class="cname">'+c.name+'</div>' +
+'<div style="display:flex;gap:5px">'+(c.msgCount>0?'<span class="pill p-red">💬 '+c.msgCount+'</span>':'')+
+'<span class="pill '+pc+'">'+pt+'</span></div></div>' +
+'<div class="cmeta">' +
+'<span class="pill '+(c.type==='online'?'p-blue':'p-green')+'">'+(c.type==='online'?'Online':'In Person')+'</span>' +
+(c.rate?'<span>'+currSym(cid)+c.rate+'/sess</span>':'') +
+'<span>Last: '+(c.lastActive?fmtD(c.lastActive):'Never')+'</span>' +
+(c.streak&&c.streak.cur>0?'<span style="color:var(--amber)">🔥 '+c.streak.cur+'</span>':'') +
+'</div></div>';
+}).join('') + '</div>' + trNav();
 }
 
 function renderSched() {
 var all = getUpcoming();
 var td = all.filter(function(s){return s.date===today();});
 var fut = all.filter(function(s){return s.date>today();});
-return ‘<div class="hdr"><div class="hdr-top">’ +
-‘<div><div class="hdr-sub">Schedule</div><div class="hdr-title">Sessions</div></div>’ +
-‘<button class="btn-sm" style="background:var(--pink)" onclick="openBookSess(null)">+ Book</button>’ +
-‘</div></div><div class="page">’ +
-(td.length>0?’<div class="sect">TODAY - ‘+fmtD(today())+’</div><div class="card"><div class="card-p">’+td.map(sessRow).join(’’)+’</div></div>’:’’) +
-‘<div class="sect">UPCOMING</div>’ +
-(all.length===0?’<div class="empty">No sessions scheduled.</div>’:’’) +
-fut.map(function(s){return ‘<div class="card" style="margin-bottom:8px"><div class="card-p">’+sessRow(s)+’</div></div>’;}).join(’’) +
-‘</div>’ + trNav();
+return '<div class="hdr"><div class="hdr-top">' +
+'<div><div class="hdr-sub">Schedule</div><div class="hdr-title">Sessions</div></div>' +
+'<button class="btn-sm" style="background:var(--pink)" onclick="openBookSess(null)">+ Book</button>' +
+'</div></div><div class="page">' +
+(td.length>0?'<div class="sect">TODAY - '+fmtD(today())+'</div><div class="card"><div class="card-p">'+td.map(sessRow).join('')+'</div></div>':'') +
+'<div class="sect">UPCOMING</div>' +
+(all.length===0?'<div class="empty">No sessions scheduled.</div>':'') +
+fut.map(function(s){return '<div class="card" style="margin-bottom:8px"><div class="card-p">'+sessRow(s)+'</div></div>';}).join('') +
+'</div>' + trNav();
 }
 
 function renderFinance() {
 var cs = Object.entries(S.clients);
 var now = new Date();
-var mn = now.getFullYear() + ‘-’ + String(now.getMonth()+1).padStart(2,‘0’);
+var mn = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
 var totalRev = 0, allRev = 0;
 var rows = cs.map(function(e){ var cid=e[0],c=e[1];
 var rev=0;
@@ -563,71 +563,71 @@ Object.values(c.payments||{}).forEach(function(p){if(p.date&&p.date.startsWith(m
 totalRev+=rev;
 return {cid:cid, name:c.name, type:c.type, rate:c.rate||0, rev:rev, balance:c.balance||0};
 });
-return ‘<div class="hdr"><div class="hdr-top">’ +
-‘<div><div class="hdr-sub">Finance</div><div class="hdr-title">Money</div></div>’ +
-‘<div style="font-size:11px;color:var(--m1);font-weight:600">’+fmtMon(today())+’</div>’ +
-‘</div></div><div class="page">’ +
-‘<div class="sgrid">’ +
-‘<div class="scard"><div class="sv" style="color:var(--green)">’+totalRev.toLocaleString()+’</div><div class="sl">This Month</div></div>’ +
-‘<div class="scard"><div class="sv" style="color:var(--amber)">’+allRev.toLocaleString()+’</div><div class="sl">All Time</div></div>’ +
-‘<div class="scard"><div class="sv" style="color:var(--blue)">’+cs.length+’</div><div class="sl">Clients</div></div>’ +
-‘<div class="scard"><div class="sv" style="color:var(--red)">’+rows.filter(function(c){return c.balance<=0;}).length+’</div><div class="sl">Owe Payment</div></div>’ +
-‘</div>’ +
-‘<div class="sect">PER CLIENT - ‘+fmtMon(today())+’</div>’ +
-(rows.length===0?’<div class="empty">Add clients to see breakdown.</div>’:’’) +
-rows.map(function(c){ return ‘<div class="ccard" onclick="openCli(\''+c.cid+'\')">’ +
-‘<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">’ +
-‘<div class="cname">’+c.name+’</div>’ +
-‘<div style="font-size:16px;font-weight:800;color:var(--green)">’+c.rev.toLocaleString()+’</div></div>’ +
-‘<div class="cmeta"><span>Rate: ‘+(c.rate?currSym(c.cid)+c.rate+’/sess’:‘not set’)+’</span>’ +
-‘<span class="pill '+(c.balance===0?'p-red':c.balance<=2?'p-amber':'p-green')+'">’+c.balance+’ remaining</span></div></div>’; }).join(’’) +
-‘<div class="sect">LOG PAYMENT</div><div class="card"><div class="card-p">’ +
-‘<div class="row"><div class="lbl">Client</div><select class="sel" id="fp_cli">’+cs.map(function(e){return ‘<option value="'+e[0]+'">’+e[1].name+’</option>’;}).join(’’)+’</select></div>’ +
-‘<div class="row"><div class="lbl">Amount</div><input class="inp" id="fp_amt" type="number" placeholder="e.g. 240" inputmode="decimal"></div>’ +
-‘<button class="btn btn-green" onclick="doFinPay()">LOG PAYMENT ✓</button>’ +
-‘</div></div></div>’ + trNav();
+return '<div class="hdr"><div class="hdr-top">' +
+'<div><div class="hdr-sub">Finance</div><div class="hdr-title">Money</div></div>' +
+'<div style="font-size:11px;color:var(--m1);font-weight:600">'+fmtMon(today())+'</div>' +
+'</div></div><div class="page">' +
+'<div class="sgrid">' +
+'<div class="scard"><div class="sv" style="color:var(--green)">'+totalRev.toLocaleString()+'</div><div class="sl">This Month</div></div>' +
+'<div class="scard"><div class="sv" style="color:var(--amber)">'+allRev.toLocaleString()+'</div><div class="sl">All Time</div></div>' +
+'<div class="scard"><div class="sv" style="color:var(--blue)">'+cs.length+'</div><div class="sl">Clients</div></div>' +
+'<div class="scard"><div class="sv" style="color:var(--red)">'+rows.filter(function(c){return c.balance<=0;}).length+'</div><div class="sl">Owe Payment</div></div>' +
+'</div>' +
+'<div class="sect">PER CLIENT - '+fmtMon(today())+'</div>' +
+(rows.length===0?'<div class="empty">Add clients to see breakdown.</div>':'') +
+rows.map(function(c){ return '<div class="ccard" onclick="openCli(\''+c.cid+'\')">' +
+'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">' +
+'<div class="cname">'+c.name+'</div>' +
+'<div style="font-size:16px;font-weight:800;color:var(--green)">'+c.rev.toLocaleString()+'</div></div>' +
+'<div class="cmeta"><span>Rate: '+(c.rate?currSym(c.cid)+c.rate+'/sess':'not set')+'</span>' +
+'<span class="pill '+(c.balance===0?'p-red':c.balance<=2?'p-amber':'p-green')+'">'+c.balance+' remaining</span></div></div>'; }).join('') +
+'<div class="sect">LOG PAYMENT</div><div class="card"><div class="card-p">' +
+'<div class="row"><div class="lbl">Client</div><select class="sel" id="fp_cli">'+cs.map(function(e){return '<option value="'+e[0]+'">'+e[1].name+'</option>';}).join('')+'</select></div>' +
+'<div class="row"><div class="lbl">Amount</div><input class="inp" id="fp_amt" type="number" placeholder="e.g. 240" inputmode="decimal"></div>' +
+'<button class="btn btn-green" onclick="doFinPay()">LOG PAYMENT ✓</button>' +
+'</div></div></div>' + trNav();
 }
 
 function openAddClient() {
-showModal(’<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">’ +
-‘<div class="modal-title">Add Client <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">×</button></div>’ +
-‘<div class="row"><div class="lbl">Name</div><input class="inp" id="nc_n" placeholder="e.g. Sarah"></div>’ +
-‘<div class="row"><div class="lbl">Type</div><select class="sel" id="nc_t"><option value="inperson">In-Person</option><option value="online">Online</option></select></div>’ +
-‘<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">’ +
-‘<div><div class="lbl">Currency</div><select class="sel" id="nc_c" style="margin-bottom:0">’+CURRENCIES.map(function(c){return ‘<option>’+c+’</option>’;}).join(’’)+’</select></div>’ +
-‘<div><div class="lbl">Rate per session</div><input class="inp" id="nc_r" type="number" placeholder="e.g. 60" inputmode="decimal" style="margin-bottom:0"></div>’ +
-‘</div>’ +
-‘<div class="row"><div class="lbl">PIN (4 digits)</div><input class="inp" id="nc_p" type="tel" maxlength="4" placeholder="e.g. 1234" inputmode="numeric"></div>’ +
-‘<div id="nc_err"></div>’ +
-‘<button class="btn btn-green" onclick="doAddClient()">ADD CLIENT →</button>’ +
-‘<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>’ +
-‘</div></div>’);
+showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
+'<div class="modal-title">Add Client <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">×</button></div>' +
+'<div class="row"><div class="lbl">Name</div><input class="inp" id="nc_n" placeholder="e.g. Sarah"></div>' +
+'<div class="row"><div class="lbl">Type</div><select class="sel" id="nc_t"><option value="inperson">In-Person</option><option value="online">Online</option></select></div>' +
+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
+'<div><div class="lbl">Currency</div><select class="sel" id="nc_c" style="margin-bottom:0">'+CURRENCIES.map(function(c){return '<option>'+c+'</option>';}).join('')+'</select></div>' +
+'<div><div class="lbl">Rate per session</div><input class="inp" id="nc_r" type="number" placeholder="e.g. 60" inputmode="decimal" style="margin-bottom:0"></div>' +
+'</div>' +
+'<div class="row"><div class="lbl">PIN (4 digits)</div><input class="inp" id="nc_p" type="tel" maxlength="4" placeholder="e.g. 1234" inputmode="numeric"></div>' +
+'<div id="nc_err"></div>' +
+'<button class="btn btn-green" onclick="doAddClient()">ADD CLIENT →</button>' +
+'<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
+'</div></div>');
 }
 function doAddClient() {
-var name = ((document.getElementById(‘nc_n’)||{}).value||’’).trim();
-var type = (document.getElementById(‘nc_t’)||{}).value||‘inperson’;
-var curr = (document.getElementById(‘nc_c’)||{}).value||‘GBP’;
-var rate = parseFloat((document.getElementById(‘nc_r’)||{}).value||‘0’)||0;
-var pin = ((document.getElementById(‘nc_p’)||{}).value||’’).trim();
-var err = document.getElementById(‘nc_err’);
-if (!name) { if(err) err.innerHTML=’<div class="err-msg">Enter client name</div>’; return; }
-if (pin.length<4) { if(err) err.innerHTML=’<div class="err-msg">PIN must be 4 digits</div>’; return; }
-var cid = name.toLowerCase().replace(/[^a-z0-9]/g,’*’) + ’*’ + Date.now();
-var data = {name:name, type:type, currency:curr, rate:rate, pin:pin, unit:‘kg’, week:1, currentProgId:null};
-DB.set(‘cp_’+cid, data);
+var name = ((document.getElementById('nc_n')||{}).value||'').trim();
+var type = (document.getElementById('nc_t')||{}).value||'inperson';
+var curr = (document.getElementById('nc_c')||{}).value||'GBP';
+var rate = parseFloat((document.getElementById('nc_r')||{}).value||'0')||0;
+var pin = ((document.getElementById('nc_p')||{}).value||'').trim();
+var err = document.getElementById('nc_err');
+if (!name) { if(err) err.innerHTML='<div class="err-msg">Enter client name</div>'; return; }
+if (pin.length<4) { if(err) err.innerHTML='<div class="err-msg">PIN must be 4 digits</div>'; return; }
+var cid = name.toLowerCase().replace(/[^a-z0-9]/g,'*') + '*' + Date.now();
+var data = {name:name, type:type, currency:curr, rate:rate, pin:pin, unit:'kg', week:1, currentProgId:null};
+DB.set('cp_'+cid, data);
 S.clients[cid] = {name:name, type:type, currency:curr, rate:rate, balance:0, streak:{cur:0}, msgCount:0, sessions:{}, payments:{}};
-DB.set(‘tc’, S.clients);
-DB.set(‘sessions_’+cid, {});
-DB.set(‘payments_’+cid, {});
-DB.set(‘msgs_’+cid, []);
+DB.set('tc', S.clients);
+DB.set('sessions_'+cid, {});
+DB.set('payments_'+cid, {});
+DB.set('msgs_'+cid, []);
 closeModal();
-toast(name+’ added! PIN: ’+pin, ‘ok’);
+toast(name+' added! PIN: '+pin, 'ok');
 setTimeout(function(){ openAddProg(cid); }, 400);
 R();
 }
 
 function openCli(cid) {
-S.vCli=cid; S.cliTab=‘log’;
+S.vCli=cid; S.cliTab='log';
 loadCliDetail(cid);
 R();
 }
@@ -638,48 +638,48 @@ var c = S.clients[cid]; if (!c) { S.vCli=null; return renderClients(); }
 var cd = S.cliData[cid] || {};
 var bal = c.balance||0;
 var progs = getProgs(cid);
-var curPid = (DB.get(‘cp_’+cid)||{}).currentProgId;
-var tabs = [{id:‘log’,icon:’📋’,lbl:‘Log’},{id:‘prog’,icon:’💪’,lbl:‘Progress’},{id:‘sess’,icon:’📅’,lbl:‘Sessions’},{id:‘pay’,icon:’💰’,lbl:‘Payments’},{id:‘chat’,icon:’💬’,lbl:‘Chat’}];
-var hdr = ‘<div class="hdr"><div class="hdr-top">’ +
-‘<button onclick="S.vCli=null;R()" style="font-size:13px;color:var(--m1);font-weight:600">← Back</button>’ +
-‘<div style="text-align:right">’ +
-‘<div style="font-size:18px;font-weight:800;color:#fff">’+c.name+’</div>’ +
-‘<div style="font-size:10px;color:var(--m1)">’+currSym(cid)+(c.rate||0)+’/sess - ‘+(c.type===‘online’?‘Online’:‘In Person’)+’</div></div>’ +
-‘</div>’ +
-‘<div class="dtabs">’+tabs.map(function(t){
+var curPid = (DB.get('cp_'+cid)||{}).currentProgId;
+var tabs = [{id:'log',icon:'📋',lbl:'Log'},{id:'prog',icon:'💪',lbl:'Progress'},{id:'sess',icon:'📅',lbl:'Sessions'},{id:'pay',icon:'💰',lbl:'Payments'},{id:'chat',icon:'💬',lbl:'Chat'}];
+var hdr = '<div class="hdr"><div class="hdr-top">' +
+'<button onclick="S.vCli=null;R()" style="font-size:13px;color:var(--m1);font-weight:600">← Back</button>' +
+'<div style="text-align:right">' +
+'<div style="font-size:18px;font-weight:800;color:#fff">'+c.name+'</div>' +
+'<div style="font-size:10px;color:var(--m1)">'+currSym(cid)+(c.rate||0)+'/sess - '+(c.type==='online'?'Online':'In Person')+'</div></div>' +
+'</div>' +
+'<div class="dtabs">'+tabs.map(function(t){
 var on = S.cliTab===t.id;
-var ud = t.id===‘chat’&&c.msgCount>0;
-return ‘<button class="dtab'+(on?' on':'')+'" onclick="S.cliTab=\''+t.id+'\';R()">’+t.icon+’ ‘+t.lbl+(ud?’<span class="nbd">’+c.msgCount+’</span>’:’’)+’</button>’;
-}).join(’’)+’</div></div>’;
-var balBar = ‘<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;align-items:center">’ +
-‘<span class="pill '+(bal===0?'p-red':bal<=2?'p-amber':'p-green')+'" style="font-size:12px;padding:4px 11px">💳 ‘+bal+’ session’+(bal===1?’’:‘s’)+’ left</span>’ +
-(c.streak&&c.streak.cur>0?’<span class="pill p-amber">🔥 ‘+c.streak.cur+’</span>’:’’) +
-(c.lastActive?’<span class="pill p-gray">Last: ‘+fmtD(c.lastActive)+’</span>’:’’) +
-‘</div>’;
-var progBar = progs.length>0?’<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center">’ +
-‘<span style="font-size:10px;color:var(--m2);font-weight:700">PROGRAM:</span>’ +
-progs.map(function(p){ var on=p.id===curPid; return ‘<button onclick="switchProg(\''+cid+'\',\''+p.id+'\')" style="padding:4px 10px;border-radius:12px;border:1px solid '+(on?'var(--acc)':'var(--bdr)')+';background:'+(on?'rgba(99,102,241,.12)':'transparent')+';color:'+(on?'var(--acc)':'var(--m1)')+';font-size:10px;font-weight:700;cursor:pointer">’+p.name+’</button>’; }).join(’’) +
-‘<button onclick="openAddProg(\''+cid+'\')" style="padding:4px 10px;border-radius:12px;border:1px dashed var(--bdr);background:transparent;color:var(--m2);font-size:10px;font-weight:700;cursor:pointer">+ Program</button>’ +
-‘</div>’:
-‘<button onclick="openAddProg(\''+cid+'\')" style="width:100%;padding:9px;border-radius:10px;border:1px dashed var(--acc);background:rgba(99,102,241,.05);color:var(--acc);font-size:12px;font-weight:700;cursor:pointer;margin-bottom:12px">+ Add Program for ‘+c.name+’</button>’;
-var body = ‘’;
-if (S.cliTab===‘log’) body = renderCliLog(cid,cd,c);
-else if (S.cliTab===‘prog’) body = renderCliProg(cid,cd,c);
-else if (S.cliTab===‘sess’) body = renderCliSess(cid,cd,c);
-else if (S.cliTab===‘pay’) body = renderCliPay(cid,cd,c);
-else if (S.cliTab===‘chat’) body = renderCliChat(cid,cd,c);
-var nav = ‘<nav class="bnav"><button class="nb" onclick="S.vCli=null;R()"><span class="nbi">←</span>Back</button>’ +
-tabs.map(function(t){ return ‘<button class="nb'+(S.cliTab===t.id?' on':'')+'" onclick="S.cliTab=\''+t.id+'\';R()"><span class="nbi">’+t.icon+’</span>’+t.lbl+’</button>’; }).join(’’) + ‘</nav>’;
-return hdr + ‘<div class="page">’ + balBar + progBar + body + ‘</div>’ + nav;
+var ud = t.id==='chat'&&c.msgCount>0;
+return '<button class="dtab'+(on?' on':'')+'" onclick="S.cliTab=\''+t.id+'\';R()">'+t.icon+' '+t.lbl+(ud?'<span class="nbd">'+c.msgCount+'</span>':'')+'</button>';
+}).join('')+'</div></div>';
+var balBar = '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;align-items:center">' +
+'<span class="pill '+(bal===0?'p-red':bal<=2?'p-amber':'p-green')+'" style="font-size:12px;padding:4px 11px">💳 '+bal+' session'+(bal===1?'':'s')+' left</span>' +
+(c.streak&&c.streak.cur>0?'<span class="pill p-amber">🔥 '+c.streak.cur+'</span>':'') +
+(c.lastActive?'<span class="pill p-gray">Last: '+fmtD(c.lastActive)+'</span>':'') +
+'</div>';
+var progBar = progs.length>0?'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center">' +
+'<span style="font-size:10px;color:var(--m2);font-weight:700">PROGRAM:</span>' +
+progs.map(function(p){ var on=p.id===curPid; return '<button onclick="switchProg(\''+cid+'\',\''+p.id+'\')" style="padding:4px 10px;border-radius:12px;border:1px solid '+(on?'var(--acc)':'var(--bdr)')+';background:'+(on?'rgba(99,102,241,.12)':'transparent')+';color:'+(on?'var(--acc)':'var(--m1)')+';font-size:10px;font-weight:700;cursor:pointer">'+p.name+'</button>'; }).join('') +
+'<button onclick="openAddProg(\''+cid+'\')" style="padding:4px 10px;border-radius:12px;border:1px dashed var(--bdr);background:transparent;color:var(--m2);font-size:10px;font-weight:700;cursor:pointer">+ Program</button>' +
+'</div>':
+'<button onclick="openAddProg(\''+cid+'\')" style="width:100%;padding:9px;border-radius:10px;border:1px dashed var(--acc);background:rgba(99,102,241,.05);color:var(--acc);font-size:12px;font-weight:700;cursor:pointer;margin-bottom:12px">+ Add Program for '+c.name+'</button>';
+var body = '';
+if (S.cliTab==='log') body = renderCliLog(cid,cd,c);
+else if (S.cliTab==='prog') body = renderCliProg(cid,cd,c);
+else if (S.cliTab==='sess') body = renderCliSess(cid,cd,c);
+else if (S.cliTab==='pay') body = renderCliPay(cid,cd,c);
+else if (S.cliTab==='chat') body = renderCliChat(cid,cd,c);
+var nav = '<nav class="bnav"><button class="nb" onclick="S.vCli=null;R()"><span class="nbi">←</span>Back</button>' +
+tabs.map(function(t){ return '<button class="nb'+(S.cliTab===t.id?' on':'')+'" onclick="S.cliTab=\''+t.id+'\';R()"><span class="nbi">'+t.icon+'</span>'+t.lbl+'</button>'; }).join('') + '</nav>';
+return hdr + '<div class="page">' + balBar + progBar + body + '</div>' + nav;
 }
 
 function buildSessLog(logs, cid) {
 var sess = {}, progs = getProgs(cid), cp = getProg(cid);
 Object.keys(logs).forEach(function(key) {
 var l = logs[key]; if (!l||!l.done) return;
-var p = key.split(’_’);
-var w=parseInt(p[0].replace(‘w’,’’)),d=parseInt(p[1].replace(‘d’,’’)),ei=parseInt(p[2].replace(‘e’,’’)),si=parseInt(p[3].replace(‘s’,’’));
-var k2=‘w’+w+’_d’+d;
+var p = key.split('_');
+var w=parseInt(p[0].replace('w','')),d=parseInt(p[1].replace('d','')),ei=parseInt(p[2].replace('e','')),si=parseInt(p[3].replace('s',''));
+var k2='w'+w+'_d'+d;
 var day = cp && cp.days ? cp.days[d] : null;
 if (!sess[k2]) sess[k2]={w:w,d:d,day:day,exLogs:{},sk:k2,ts:l.ts||0};
 if (!sess[k2].exLogs[ei]) sess[k2].exLogs[ei]={ex:day&&day.ex?day.ex[ei]:null,sets:{}};
@@ -691,80 +691,80 @@ return Object.values(sess).sort(function(a,b){return b.ts-a.ts;});
 
 function renderCliLog(cid, cd, c) {
 var sessions = buildSessLog(cd.logs||{}, cid);
-return (sessions.length===0?’<div class="empty">No workouts logged yet.<br>Data appears here as ‘+c.name+’ trains.</div>’:
-sessions.map(function(s){ return renderSessCard(s,cid,cd); }).join(’’)) +
-‘<div class="sect">COACHING NOTE</div><div class="card"><div class="card-p">’ +
-‘<div class="lbl" style="margin-bottom:6px">Feedback - saved to ‘+c.name+’</div>’ +
-‘<textarea class="inp" id="tr_note" rows="3" placeholder="Training notes, form cues, next steps..." style="min-height:70px;margin-bottom:8px">’+getLatTrNote(cid,cd)+’</textarea>’ +
-‘<button class="btn-sm btn-acc" onclick="saveTrNote(\''+cid+'\')">Send to Client ✓</button>’ +
-‘</div></div>’;
+return (sessions.length===0?'<div class="empty">No workouts logged yet.<br>Data appears here as '+c.name+' trains.</div>':
+sessions.map(function(s){ return renderSessCard(s,cid,cd); }).join('')) +
+'<div class="sect">COACHING NOTE</div><div class="card"><div class="card-p">' +
+'<div class="lbl" style="margin-bottom:6px">Feedback - saved to '+c.name+'</div>' +
+'<textarea class="inp" id="tr_note" rows="3" placeholder="Training notes, form cues, next steps..." style="min-height:70px;margin-bottom:8px">'+getLatTrNote(cid,cd)+'</textarea>' +
+'<button class="btn-sm btn-acc" onclick="saveTrNote(\''+cid+'\')">Send to Client ✓</button>' +
+'</div></div>';
 }
 function getLatTrNote(cid, cd) {
 var sn = cd.sessNotes || {};
-var notes = Object.values(sn).map(function(n){return n.trainer||’’;}).filter(Boolean);
-return notes.length ? notes[notes.length-1] : ‘’;
+var notes = Object.values(sn).map(function(n){return n.trainer||'';}).filter(Boolean);
+return notes.length ? notes[notes.length-1] : '';
 }
 function saveTrNote(cid) {
-var ta = document.getElementById(‘tr_note’); if (!ta||!ta.value.trim()) return;
-var sn = DB.get(‘sessnotes_’+cid) || {};
+var ta = document.getElementById('tr_note'); if (!ta||!ta.value.trim()) return;
+var sn = DB.get('sessnotes_'+cid) || {};
 var keys = Object.keys(sn).sort();
-var key = keys.length ? keys[keys.length-1] : ‘w1_d0’;
+var key = keys.length ? keys[keys.length-1] : 'w1_d0';
 sn[key] = sn[key]||{}; sn[key].trainer=ta.value; sn[key].trainerTs=Date.now();
-DB.set(‘sessnotes_’+cid, sn);
+DB.set('sessnotes_'+cid, sn);
 if (S.cliData[cid]) S.cliData[cid].sessNotes=sn;
-var cnn = S.clients[cid]?S.clients[cid].name:‘client’;
-toast(‘Note saved for ‘+cnn, ‘ok’);
+var cnn = S.clients[cid]?S.clients[cid].name:'client';
+toast('Note saved for '+cnn, 'ok');
 }
 function renderSessCard(sess, cid, cd) {
 var isExp = S.expS[sess.sk];
 var di = sess.day;
 var setCnt = Object.values(sess.exLogs).reduce(function(t,e){return t+Object.keys(e.sets).length;},0);
 var sn = cd.sessNotes && cd.sessNotes[sess.sk];
-var accent = di?(di.accent||’#6366f1’):’#6366f1’;
-return ‘<div class="card" style="border-color:'+(isExp?accent:'var(--bdr)')+';margin-bottom:8px">’ +
-‘<div style="padding:12px 13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="S.expS[\''+sess.sk+'\']=!S.expS[\''+sess.sk+'\'];R()">’ +
-‘<div><div style="font-weight:800;font-size:14px;color:'+accent+'">’+(di?di.title:‘Session’)+’ <span style="font-size:11px;color:var(--m1);font-weight:400">Wk’+sess.w+’</span></div>’ +
-‘<div style="font-size:10px;color:var(--m1);margin-top:2px">’+setCnt+’ sets’+(sess.ts?’ - ‘+fmtD(new Date(sess.ts).toISOString().split(‘T’)[0]):’’)+’</div></div>’ +
-‘<span style="font-size:14px;color:var(--m2)">’+(isExp?’▴’:’▾’)+’</span></div>’ +
-(isExp?’<div style="padding:12px 13px;border-top:1px solid var(--bdr)">’ +
+var accent = di?(di.accent||'#6366f1'):'#6366f1';
+return '<div class="card" style="border-color:'+(isExp?accent:'var(--bdr)')+';margin-bottom:8px">' +
+'<div style="padding:12px 13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="S.expS[\''+sess.sk+'\']=!S.expS[\''+sess.sk+'\'];R()">' +
+'<div><div style="font-weight:800;font-size:14px;color:'+accent+'">'+(di?di.title:'Session')+' <span style="font-size:11px;color:var(--m1);font-weight:400">Wk'+sess.w+'</span></div>' +
+'<div style="font-size:10px;color:var(--m1);margin-top:2px">'+setCnt+' sets'+(sess.ts?' - '+fmtD(new Date(sess.ts).toISOString().split('T')[0]):'')+'</div></div>' +
+'<span style="font-size:14px;color:var(--m2)">'+(isExp?'▴':'▾')+'</span></div>' +
+(isExp?'<div style="padding:12px 13px;border-top:1px solid var(--bdr)">' +
 Object.keys(sess.exLogs).sort(function(a,b){return parseInt(a)-parseInt(b);}).map(function(ei){
 var exLog=sess.exLogs[ei], ex=exLog.ex;
-if(!ex)return’’;
+if(!ex)return'';
 var lName=Object.values(exLog.sets)[0]?(Object.values(exLog.sets)[0].exName||ex.n):ex.n;
 var sets=Object.keys(exLog.sets).sort(function(a,b){return parseInt(a)-parseInt(b);});
-return ‘<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--bdr)">’ +
-‘<div style="font-weight:600;font-size:12px;color:#fff;margin-bottom:5px">’+lName+’</div>’ +
-‘<div style="display:flex;gap:5px;flex-wrap:wrap">’+sets.map(function(si){
-var lg=exLog.sets[si]; if(!lg||!lg.done) return ‘’;
-return ‘<span class="pill p-green">S’+(parseInt(si)+1)+’ ‘+(lg.weight?’<strong>’+lg.weight+‘kg</strong>’:’’)+
-(lg.reps?’ x ‘+lg.reps:’’)+(lg.rpe?’<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+rpeC(lg.rpe)+';margin-left:2px;vertical-align:middle"></span>’:’’)+’</span>’;
-}).join(’’)+’</div></div>’;
-}).join(’’) +
-(sn&&sn.client?’<div style="margin-top:6px;padding:7px 10px;background:rgba(16,185,129,.06);border-radius:8px;border-left:2px solid var(--green)"><div style="font-size:9px;font-weight:700;color:var(--green);margin-bottom:2px">CLIENT NOTE</div><div style="font-size:11px;color:var(--m1)">”’+sn.client+’”</div></div>’:’’) +
-‘<div style="display:flex;gap:6px;align-items:flex-end;margin-top:10px">’ +
-‘<textarea class="inp" id="sn_'+sess.sk+'" rows="2" placeholder="Coaching note..." style="flex:1;min-height:36px">’+(sn&&sn.trainer?sn.trainer:’’)+’</textarea>’ +
-‘<button class="btn-sm btn-acc" onclick="saveSNT(\''+cid+'\',\''+sess.sk+'\')">✓</button></div>’ +
-‘</div>’:’’) + ‘</div>’;
+return '<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--bdr)">' +
+'<div style="font-weight:600;font-size:12px;color:#fff;margin-bottom:5px">'+lName+'</div>' +
+'<div style="display:flex;gap:5px;flex-wrap:wrap">'+sets.map(function(si){
+var lg=exLog.sets[si]; if(!lg||!lg.done) return '';
+return '<span class="pill p-green">S'+(parseInt(si)+1)+' '+(lg.weight?'<strong>'+lg.weight+'kg</strong>':'')+
+(lg.reps?' x '+lg.reps:'')+(lg.rpe?'<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+rpeC(lg.rpe)+';margin-left:2px;vertical-align:middle"></span>':'')+'</span>';
+}).join('')+'</div></div>';
+}).join('') +
+(sn&&sn.client?'<div style="margin-top:6px;padding:7px 10px;background:rgba(16,185,129,.06);border-radius:8px;border-left:2px solid var(--green)"><div style="font-size:9px;font-weight:700;color:var(--green);margin-bottom:2px">CLIENT NOTE</div><div style="font-size:11px;color:var(--m1)">"'+sn.client+'"</div></div>':'') +
+'<div style="display:flex;gap:6px;align-items:flex-end;margin-top:10px">' +
+'<textarea class="inp" id="sn_'+sess.sk+'" rows="2" placeholder="Coaching note..." style="flex:1;min-height:36px">'+(sn&&sn.trainer?sn.trainer:'')+'</textarea>' +
+'<button class="btn-sm btn-acc" onclick="saveSNT(\''+cid+'\',\''+sess.sk+'\')">✓</button></div>' +
+'</div>':'') + '</div>';
 }
 function saveSNT(cid, snKey) {
-var ta=document.getElementById(‘sn_’+snKey); if(!ta)return;
-var sn=DB.get(‘sessnotes_’+cid)||{};
+var ta=document.getElementById('sn_'+snKey); if(!ta)return;
+var sn=DB.get('sessnotes_'+cid)||{};
 sn[snKey]=sn[snKey]||{}; sn[snKey].trainer=ta.value; sn[snKey].trainerTs=Date.now();
-DB.set(‘sessnotes_’+cid,sn);
+DB.set('sessnotes_'+cid,sn);
 if(S.cliData[cid])S.cliData[cid].sessNotes=sn;
-toast(‘Note saved’,‘ok’);
+toast('Note saved','ok');
 }
 
 function buildProgData(logs, cid) {
 var ex={}, progs=getProgs(cid);
 Object.keys(logs).forEach(function(key){
 var l=logs[key]; if(!l||!l.done||!l.weight)return;
-var p=key.split(‘_’);
-var w=parseInt(p[0].replace(‘w’,’’)),d=parseInt(p[1].replace(‘d’,’’)),ei=parseInt(p[2].replace(‘e’,’’));
+var p=key.split('_');
+var w=parseInt(p[0].replace('w','')),d=parseInt(p[1].replace('d','')),ei=parseInt(p[2].replace('e',''));
 var exName=l.exName;
 if(!exName){for(var pi=0;pi<progs.length;pi++){var pr=progs[pi];if(pr.days&&pr.days[d]&&pr.days[d].ex&&pr.days[d].ex[ei]){exName=pr.days[d].ex[ei].n;break;}}}
 if(!exName)return;
-var k=exName.replace(/[^a-zA-Z0-9]/g,’_’);
+var k=exName.replace(/[^a-zA-Z0-9]/g,'_');
 if(!ex[k])ex[k]={name:exName,bw:{}};
 var wt=parseFloat(l.weight)||0;
 if(!ex[k].bw[w]||wt>ex[k].bw[w])ex[k].bw[w]=wt;
@@ -773,210 +773,210 @@ return Object.values(ex).filter(function(e){return Object.keys(e.bw).length>0;})
 }
 function renderPBar(pd, unit) {
 var ws=Object.entries(pd.bw).sort(function(a,b){return parseInt(a)-parseInt(b);});
-if(!ws.length)return’’;
+if(!ws.length)return'';
 var mx=Math.max.apply(null,ws.map(function(x){return x[1];}));
 var lw=ws[ws.length-1][1],fw=ws[0][1],imp=lw>fw;
-return ‘<div class="card"><div class="card-p">’ +
-‘<div style="display:flex;justify-content:space-between;margin-bottom:8px">’ +
-‘<div style="font-weight:700;font-size:12px;color:#fff">’+pd.name+’</div>’ +
-(imp?’<span style="font-size:10px;color:var(--green);font-weight:700">+’+(lw-fw).toFixed(1)+unit+’ ⇧</span>’:’’)+’</div>’ +
+return '<div class="card"><div class="card-p">' +
+'<div style="display:flex;justify-content:space-between;margin-bottom:8px">' +
+'<div style="font-weight:700;font-size:12px;color:#fff">'+pd.name+'</div>' +
+(imp?'<span style="font-size:10px;color:var(--green);font-weight:700">+'+(lw-fw).toFixed(1)+unit+' ⇧</span>':'')+'</div>' +
 ws.map(function(e){ var wn=e[0],wt=e[1];
 var pct=mx>0?(wt/mx)*100:0, isPR=wt===mx&&ws.length>1;
-var wkc=(WK[wn]||{}).c||’#fff’;
-return ‘<div class="pr-brow"><span style="font-size:10px;font-weight:700;width:18px;flex-shrink:0;color:'+wkc+'">’+wn+’</span>’ +
-‘<div class="pr-bg"><div class="pr-fill" style="width:'+pct+'%;background:'+(isPR?'var(--amber)':'var(--green)')+'"></div></div>’ +
-‘<span class="pr-val">’+wt+unit+(isPR?’<span class="pr-tag">PR</span>’:’’)+’</span></div>’;
-}).join(’’)+’</div></div>’;
+var wkc=(WK[wn]||{}).c||'#fff';
+return '<div class="pr-brow"><span style="font-size:10px;font-weight:700;width:18px;flex-shrink:0;color:'+wkc+'">'+wn+'</span>' +
+'<div class="pr-bg"><div class="pr-fill" style="width:'+pct+'%;background:'+(isPR?'var(--amber)':'var(--green)')+'"></div></div>' +
+'<span class="pr-val">'+wt+unit+(isPR?'<span class="pr-tag">PR</span>':'')+'</span></div>';
+}).join('')+'</div></div>';
 }
 function renderCliProg(cid, cd, c) {
 var prs=Object.values(cd.prs||{});
 var pd=buildProgData(cd.logs||{},cid);
-var cu=c.unit||‘kg’;
-return (prs.length?’<div class="sect">🏆 PERSONAL RECORDS</div>’+prs.map(function(pr){
-return ‘<div class="card"><div class="card-p" style="display:flex;justify-content:space-between;align-items:center">’ +
-‘<div><div style="font-weight:600;font-size:13px;color:#fff">’+pr.exName+’</div><div style="font-size:10px;color:var(--m1)">’+fmtD(pr.date)+’</div></div>’ +
-‘<div style="text-align:right"><div style="font-size:15px;font-weight:800;color:var(--amber)">’+pr.weight+cu+’ x ‘+pr.reps+’</div>’ +
-‘<div style="font-size:10px;color:var(--m2)">~’+Math.round(pr.est)+cu+’ 1RM</div></div></div></div>’;
-}).join(’’):’’) +
-‘<div class="sect">WEIGHT PROGRESSION</div>’ +
-(pd.length===0?’<div class="empty">No weight data yet.</div>’:pd.map(function(p){return renderPBar(p,cu);}).join(’’));
+var cu=c.unit||'kg';
+return (prs.length?'<div class="sect">🏆 PERSONAL RECORDS</div>'+prs.map(function(pr){
+return '<div class="card"><div class="card-p" style="display:flex;justify-content:space-between;align-items:center">' +
+'<div><div style="font-weight:600;font-size:13px;color:#fff">'+pr.exName+'</div><div style="font-size:10px;color:var(--m1)">'+fmtD(pr.date)+'</div></div>' +
+'<div style="text-align:right"><div style="font-size:15px;font-weight:800;color:var(--amber)">'+pr.weight+cu+' x '+pr.reps+'</div>' +
+'<div style="font-size:10px;color:var(--m2)">~'+Math.round(pr.est)+cu+' 1RM</div></div></div></div>';
+}).join(''):'') +
+'<div class="sect">WEIGHT PROGRESSION</div>' +
+(pd.length===0?'<div class="empty">No weight data yet.</div>':pd.map(function(p){return renderPBar(p,cu);}).join(''));
 }
 
 function renderCliSess(cid, cd, c) {
-var sessions=Object.values(c.sessions||{}).sort(function(a,b){return(b.date||’’).localeCompare(a.date||’’);});
-return ‘<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">’ +
-‘<div class="sect" style="margin:0">SESSIONS</div>’ +
-‘<button class="btn-sm" style="background:var(--pink)" onclick="openBookSess(\''+cid+'\')">+ Book</button></div>’ +
-(sessions.length===0?’<div class="empty">No sessions yet.</div>’:
-‘<div class="card"><div class="card-p">’+sessions.map(function(s){
-var done=s.status===‘done’;
-return ‘<div class="si">’ +
-‘<div class="si-time"><div class="si-th">’+(s.time||’–’)+’</div><div class="si-td">’+fmtD(s.date)+’</div></div>’ +
-‘<div class="si-dot" style="background:'+(done?'#2d3748':c.type==='online'?'#6366f1':'#10b981')+'"></div>’ +
-‘<div class="si-info"><div class="si-name" style="color:'+(done?'var(--m2)':'#fff')+'">’+(done?‘Done’:‘Upcoming’)+’</div>’ +
-‘<div class="si-meta">’+(c.type===‘online’?‘Online’:‘In Person’)+(s.note?’ - ‘+s.note:’’)+’</div></div>’ +
-(!done?’<button class="btn-sm" style="background:var(--green)" onclick="confirmDone(\''+cid+'\',\''+s.id+'\')">Done ✓</button>’:’’) +
-‘</div>’;
-}).join(’’)+’</div></div>’);
+var sessions=Object.values(c.sessions||{}).sort(function(a,b){return(b.date||'').localeCompare(a.date||'');});
+return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">' +
+'<div class="sect" style="margin:0">SESSIONS</div>' +
+'<button class="btn-sm" style="background:var(--pink)" onclick="openBookSess(\''+cid+'\')">+ Book</button></div>' +
+(sessions.length===0?'<div class="empty">No sessions yet.</div>':
+'<div class="card"><div class="card-p">'+sessions.map(function(s){
+var done=s.status==='done';
+return '<div class="si">' +
+'<div class="si-time"><div class="si-th">'+(s.time||'–')+'</div><div class="si-td">'+fmtD(s.date)+'</div></div>' +
+'<div class="si-dot" style="background:'+(done?'#2d3748':c.type==='online'?'#6366f1':'#10b981')+'"></div>' +
+'<div class="si-info"><div class="si-name" style="color:'+(done?'var(--m2)':'#fff')+'">'+(done?'Done':'Upcoming')+'</div>' +
+'<div class="si-meta">'+(c.type==='online'?'Online':'In Person')+(s.note?' - '+s.note:'')+'</div></div>' +
+(!done?'<button class="btn-sm" style="background:var(--green)" onclick="confirmDone(\''+cid+'\',\''+s.id+'\')">Done ✓</button>':'') +
+'</div>';
+}).join('')+'</div></div>');
 }
 
 function renderCliPay(cid, cd, c) {
 var bal=c.balance||0;
 var pays=Object.values(cd.payments||{}).sort(function(a,b){return b.ts-a.ts;});
-return (bal<=2?’<div class="alert alert-'+(bal===0?'red':'amber')+'">’ +
-‘<div style="font-size:20px">’+(bal===0?’🚨’:’⚠️’)+’</div>’ +
-‘<div style="flex:1"><div style="font-weight:700;font-size:13px;color:#fff">’+(bal===0?‘No sessions left’:‘Running low’)+’</div>’ +
-‘<div style="font-size:11px;color:var(--m1)">Send a payment reminder</div></div>’ +
-‘<button class="btn-sm btn-red" onclick="sendPayReminder(\''+cid+'\')">Remind</button></div>’:’’) +
-‘<div class="sect">PAYMENT HISTORY</div>’ +
-(pays.length===0?’<div class="empty">No payments yet.</div>’:
-‘<div class="card"><div class="card-p">’+pays.map(function(p){
-return ‘<div class="pay-row"><div><div class="pay-amt">+’+currSym(cid)+p.amount+’</div>’ +
-‘<div class="pay-info">’+fmtD(p.date)+’ - ‘+p.sessions+’ session’+(p.sessions===1?’’:‘s’)+’ added’+(p.note?’ - ‘+p.note:’’)+’</div></div></div>’;
-}).join(’’)+’</div></div>’) +
-‘<div class="sect">LOG PAYMENT</div><div class="card"><div class="card-p">’ +
-‘<div class="row"><div class="lbl">Amount (’+currSym(cid)+’)</div><input class="inp" id="pp_amt" type="number" placeholder="e.g. 240" inputmode="decimal"></div>’ +
-‘<div class="row"><div class="lbl">Note (optional)</div><input class="inp" id="pp_note" placeholder="e.g. Bank transfer"></div>’ +
-‘<div style="font-size:11px;color:var(--m1);margin-bottom:10px;padding:7px 10px;background:var(--c2);border-radius:8px">Rate: ‘+currSym(cid)+(c.rate||0)+’/session - amount divided by rate = sessions added</div>’ +
-‘<button class="btn btn-green" onclick="doCliPay(\''+cid+'\')">LOG PAYMENT ✓</button>’ +
-‘</div></div>’;
+return (bal<=2?'<div class="alert alert-'+(bal===0?'red':'amber')+'">' +
+'<div style="font-size:20px">'+(bal===0?'🚨':'⚠️')+'</div>' +
+'<div style="flex:1"><div style="font-weight:700;font-size:13px;color:#fff">'+(bal===0?'No sessions left':'Running low')+'</div>' +
+'<div style="font-size:11px;color:var(--m1)">Send a payment reminder</div></div>' +
+'<button class="btn-sm btn-red" onclick="sendPayReminder(\''+cid+'\')">Remind</button></div>':'') +
+'<div class="sect">PAYMENT HISTORY</div>' +
+(pays.length===0?'<div class="empty">No payments yet.</div>':
+'<div class="card"><div class="card-p">'+pays.map(function(p){
+return '<div class="pay-row"><div><div class="pay-amt">+'+currSym(cid)+p.amount+'</div>' +
+'<div class="pay-info">'+fmtD(p.date)+' - '+p.sessions+' session'+(p.sessions===1?'':'s')+' added'+(p.note?' - '+p.note:'')+'</div></div></div>';
+}).join('')+'</div></div>') +
+'<div class="sect">LOG PAYMENT</div><div class="card"><div class="card-p">' +
+'<div class="row"><div class="lbl">Amount ('+currSym(cid)+')</div><input class="inp" id="pp_amt" type="number" placeholder="e.g. 240" inputmode="decimal"></div>' +
+'<div class="row"><div class="lbl">Note (optional)</div><input class="inp" id="pp_note" placeholder="e.g. Bank transfer"></div>' +
+'<div style="font-size:11px;color:var(--m1);margin-bottom:10px;padding:7px 10px;background:var(--c2);border-radius:8px">Rate: '+currSym(cid)+(c.rate||0)+'/session - amount divided by rate = sessions added</div>' +
+'<button class="btn btn-green" onclick="doCliPay(\''+cid+'\')">LOG PAYMENT ✓</button>' +
+'</div></div>';
 }
 function doCliPay(cid) {
-var amt=parseFloat((document.getElementById(‘pp_amt’)||{}).value||‘0’)||0;
-var note=((document.getElementById(‘pp_note’)||{}).value||’’).trim();
-if(!amt){toast(‘Enter payment amount’,‘err’);return;}
+var amt=parseFloat((document.getElementById('pp_amt')||{}).value||'0')||0;
+var note=((document.getElementById('pp_note')||{}).value||'').trim();
+if(!amt){toast('Enter payment amount','err');return;}
 logPay(cid,amt,note);
 loadCliDetail(cid); R();
 }
 function sendPayReminder(cid) {
 var c=S.clients[cid]||{};
 var bal=c.balance||0;
-var msg=‘Hi ‘+c.name+’, just a reminder you have ‘+bal+’ session’+(bal===1?’’:‘s’)+’ remaining. Please arrange payment when convenient. Thank you!’;
-sendMsg(msg,‘trainer’,cid);
-toast(‘Reminder sent’,‘ok’);
+var msg='Hi '+c.name+', just a reminder you have '+bal+' session'+(bal===1?'':'s')+' remaining. Please arrange payment when convenient. Thank you!';
+sendMsg(msg,'trainer',cid);
+toast('Reminder sent','ok');
 }
 
 function renderCliChat(cid, cd, c) {
-readMsgs(cid,‘trainer’);
+readMsgs(cid,'trainer');
 var msgs=cd.messages?Object.values(cd.messages).sort(function(a,b){return a.ts-b.ts;}):[];
-return ‘<div class="chat-wrap" id="msgList">’ +
-(msgs.length===0?’<div class="empty">No messages yet.</div>’:’’) +
+return '<div class="chat-wrap" id="msgList">' +
+(msgs.length===0?'<div class="empty">No messages yet.</div>':'') +
 msgs.map(function(m){
-var isMe=m.from===‘trainer’;
-return ‘<div class="chat-msg '+(isMe?'from-me':'from-them')+'">’ +
-‘<div class="bubble">’+m.text+’</div>’ +
-‘<div class="chat-ts">’+(isMe?‘You’:c.name)+’ - ‘+fmtT(m.ts)+’</div></div>’;
-}).join(’’) + ‘</div>’ +
-‘<div class="chat-bar">’ +
-‘<textarea class="chat-ta" id="tr_msg" placeholder="Message '+c.name+'..." rows="1"></textarea>’ +
-‘<button class="chat-send" onclick="doTrMsg(\''+cid+'\')">➤</button></div>’;
+var isMe=m.from==='trainer';
+return '<div class="chat-msg '+(isMe?'from-me':'from-them')+'">' +
+'<div class="bubble">'+m.text+'</div>' +
+'<div class="chat-ts">'+(isMe?'You':c.name)+' - '+fmtT(m.ts)+'</div></div>';
+}).join('') + '</div>' +
+'<div class="chat-bar">' +
+'<textarea class="chat-ta" id="tr_msg" placeholder="Message '+c.name+'..." rows="1"></textarea>' +
+'<button class="chat-send" onclick="doTrMsg(\''+cid+'\')">➤</button></div>';
 }
 function doTrMsg(cid) {
-var ta=document.getElementById(‘tr_msg’); if(!ta||!ta.value.trim())return;
-sendMsg(ta.value,‘trainer’,cid); ta.value=’’;
+var ta=document.getElementById('tr_msg'); if(!ta||!ta.value.trim())return;
+sendMsg(ta.value,'trainer',cid); ta.value='';
 loadCliDetail(cid); R();
 }
 
 function doFinPay() {
-var cid=(document.getElementById(‘fp_cli’)||{}).value;
-var amt=parseFloat((document.getElementById(‘fp_amt’)||{}).value||‘0’)||0;
-if(!cid||!amt){toast(‘Select client and enter amount’,‘err’);return;}
-logPay(cid,amt,’’);
-document.getElementById(‘fp_amt’).value=’’;
+var cid=(document.getElementById('fp_cli')||{}).value;
+var amt=parseFloat((document.getElementById('fp_amt')||{}).value||'0')||0;
+if(!cid||!amt){toast('Select client and enter amount','err');return;}
+logPay(cid,amt,'');
+document.getElementById('fp_amt').value='';
 }
 
 function openBookSess(cid) {
 var cs=Object.entries(S.clients);
-showModal(’<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">’ +
-‘<div class="modal-title">Book Session <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">×</button></div>’ +
-‘<div class="row"><div class="lbl">Client</div><select class="sel" id="bs_c">’+cs.map(function(e){return ‘<option value=”’+e[0]+’”’+(cid&&cid===e[0]?’ selected’:’’)+’>’+e[1].name+’</option>’;}).join(’’)+’</select></div>’ +
-‘<div class="row"><div class="lbl">Date</div><input class="inp" id="bs_d" type="date" value="'+today()+'"></div>’ +
-‘<div class="row"><div class="lbl">Time</div><input class="inp" id="bs_t" type="time" value="10:00"></div>’ +
-‘<div class="row"><div class="lbl">Note (optional)</div><input class="inp" id="bs_n" placeholder="e.g. Legs day"></div>’ +
-‘<button class="btn btn-pink" style="background:var(--pink)" onclick="doBookSess()">BOOK →</button>’ +
-‘<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>’ +
-‘</div></div>’);
+showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
+'<div class="modal-title">Book Session <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">×</button></div>' +
+'<div class="row"><div class="lbl">Client</div><select class="sel" id="bs_c">'+cs.map(function(e){return '<option value="'+e[0]+'"'+(cid&&cid===e[0]?' selected':'')+'>'+e[1].name+'</option>';}).join('')+'</select></div>' +
+'<div class="row"><div class="lbl">Date</div><input class="inp" id="bs_d" type="date" value="'+today()+'"></div>' +
+'<div class="row"><div class="lbl">Time</div><input class="inp" id="bs_t" type="time" value="10:00"></div>' +
+'<div class="row"><div class="lbl">Note (optional)</div><input class="inp" id="bs_n" placeholder="e.g. Legs day"></div>' +
+'<button class="btn btn-pink" style="background:var(--pink)" onclick="doBookSess()">BOOK →</button>' +
+'<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
+'</div></div>');
 }
 function doBookSess() {
-var cid=(document.getElementById(‘bs_c’)||{}).value;
-var date=(document.getElementById(‘bs_d’)||{}).value;
-var time=(document.getElementById(‘bs_t’)||{}).value;
-var note=((document.getElementById(‘bs_n’)||{}).value||’’).trim();
-if(!cid||!date){toast(‘Select client and date’,‘err’);return;}
+var cid=(document.getElementById('bs_c')||{}).value;
+var date=(document.getElementById('bs_d')||{}).value;
+var time=(document.getElementById('bs_t')||{}).value;
+var note=((document.getElementById('bs_n')||{}).value||'').trim();
+if(!cid||!date){toast('Select client and date','err');return;}
 var c=S.clients[cid]||{};
-bookSess(cid,{date:date,time:time,type:c.type||‘inperson’,note:note});
+bookSess(cid,{date:date,time:time,type:c.type||'inperson',note:note});
 closeModal(); R();
 }
 function confirmDone(cid, sessId) {
 var c=S.clients[cid]||{};
-showModal(’<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">’ +
-‘<div style="text-align:center;padding:20px 0">’ +
-‘<div style="font-size:48px;margin-bottom:12px">✅</div>’ +
-‘<div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:8px">’+c.name+’</div>’ +
-‘<div style="font-size:13px;color:var(--m1);margin-bottom:6px">Mark session as completed?</div>’ +
-‘<div style="font-size:13px;color:var(--amber);font-weight:700;margin-bottom:20px">1 session will be deducted</div></div>’ +
-‘<button class="btn btn-green" onclick="doDone(\''+cid+'\',\''+sessId+'\')">YES - DONE ✓</button>’ +
-‘<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>’ +
-‘</div></div>’);
+showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
+'<div style="text-align:center;padding:20px 0">' +
+'<div style="font-size:48px;margin-bottom:12px">✅</div>' +
+'<div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:8px">'+c.name+'</div>' +
+'<div style="font-size:13px;color:var(--m1);margin-bottom:6px">Mark session as completed?</div>' +
+'<div style="font-size:13px;color:var(--amber);font-weight:700;margin-bottom:20px">1 session will be deducted</div></div>' +
+'<button class="btn btn-green" onclick="doDone(\''+cid+'\',\''+sessId+'\')">YES - DONE ✓</button>' +
+'<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
+'</div></div>');
 }
 function doDone(cid,sessId){completeSess(cid,sessId);closeModal();R();}
 
 function openAddProg(cid) {
-var saved=DB.get(‘prog_templates’)||[];
+var saved=DB.get('prog_templates')||[];
 var tkeys=Object.keys(PROG);
-showModal(’<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">’ +
-‘<div class="modal-title">Add Program <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">×</button></div>’ +
-(saved.length>0?’<div class="sect" style="margin-top:0">YOUR SAVED PROGRAMS</div>’+
+showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
+'<div class="modal-title">Add Program <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">×</button></div>' +
+(saved.length>0?'<div class="sect" style="margin-top:0">YOUR SAVED PROGRAMS</div>'+
 saved.map(function(t,i){
-return ‘<div style="display:flex;gap:8px;margin-bottom:8px">’ +
-‘<button class="btn btn-acc" style="flex:1;text-align:left;display:flex;justify-content:space-between;align-items:center;margin-bottom:0" onclick="useTemplate(\''+cid+'\','+i+')">’ +
-‘<div><div style="font-size:13px;font-weight:700">’+t.name+’</div>’ +
-‘<div style="font-size:10px;opacity:.7">’+(t.days?t.days.length:0)+’ days</div></div><span>→</span></button>’ +
-‘<button onclick="delTemplate('+i+')" style="padding:8px 10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#f87171;cursor:pointer;font-size:12px">✕</button></div>’;
-}).join(’’):’’) +
-‘<div class="sect">BUILT-IN TEMPLATES</div>’ +
+return '<div style="display:flex;gap:8px;margin-bottom:8px">' +
+'<button class="btn btn-acc" style="flex:1;text-align:left;display:flex;justify-content:space-between;align-items:center;margin-bottom:0" onclick="useTemplate(\''+cid+'\','+i+')">' +
+'<div><div style="font-size:13px;font-weight:700">'+t.name+'</div>' +
+'<div style="font-size:10px;opacity:.7">'+(t.days?t.days.length:0)+' days</div></div><span>→</span></button>' +
+'<button onclick="delTemplate('+i+')" style="padding:8px 10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#f87171;cursor:pointer;font-size:12px">✕</button></div>';
+}).join(''):'') +
+'<div class="sect">BUILT-IN TEMPLATES</div>' +
 tkeys.map(function(k){
-return ‘<button class="btn btn-ghost" style="margin-bottom:8px;text-align:left;display:flex;justify-content:space-between;align-items:center" onclick="useBuiltIn(\''+cid+'\',\''+k+'\')">’ +
-‘<div><div style="font-size:13px;color:#fff;font-weight:700">’+PROG[k].name+’</div>’ +
-‘<div style="font-size:10px;color:var(--m1);margin-top:2px">’+PROG[k].days.length+’ days</div></div><span style="font-size:16px">→</span></button>’;
-}).join(’’) +
-‘<div class="sect">BUILD FROM SCRATCH</div>’ +
-‘<div class="row"><div class="lbl">Program Name</div><input class="inp" id="np_name" placeholder="e.g. Strength Block Phase 2"></div>’ +
-‘<button class="btn btn-acc" style="margin-bottom:8px" onclick="startBuilder(\''+cid+'\')">BUILD CUSTOM PROGRAM →</button>’ +
-‘<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>’ +
-‘</div></div>’);
+return '<button class="btn btn-ghost" style="margin-bottom:8px;text-align:left;display:flex;justify-content:space-between;align-items:center" onclick="useBuiltIn(\''+cid+'\',\''+k+'\')">' +
+'<div><div style="font-size:13px;color:#fff;font-weight:700">'+PROG[k].name+'</div>' +
+'<div style="font-size:10px;color:var(--m1);margin-top:2px">'+PROG[k].days.length+' days</div></div><span style="font-size:16px">→</span></button>';
+}).join('') +
+'<div class="sect">BUILD FROM SCRATCH</div>' +
+'<div class="row"><div class="lbl">Program Name</div><input class="inp" id="np_name" placeholder="e.g. Strength Block Phase 2"></div>' +
+'<button class="btn btn-acc" style="margin-bottom:8px" onclick="startBuilder(\''+cid+'\')">BUILD CUSTOM PROGRAM →</button>' +
+'<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
+'</div></div>');
 }
 function useBuiltIn(cid, key) {
 var t=PROG[key]; if(!t)return;
 var prog=JSON.parse(JSON.stringify(t));
-prog.id=‘prog_’+Date.now(); prog.created=Date.now();
+prog.id='prog_'+Date.now(); prog.created=Date.now();
 saveProg(cid,prog);
 }
 function useTemplate(cid, idx) {
-var saved=DB.get(‘prog_templates’)||[];
+var saved=DB.get('prog_templates')||[];
 var t=saved[idx]; if(!t)return;
 var prog=JSON.parse(JSON.stringify(t));
-prog.id=‘prog_’+Date.now(); prog.created=Date.now();
+prog.id='prog_'+Date.now(); prog.created=Date.now();
 saveProg(cid,prog);
 }
 function delTemplate(idx) {
-var saved=DB.get(‘prog_templates’)||[];
-saved.splice(idx,1); DB.set(‘prog_templates’,saved);
-toast(‘Template deleted’,‘ok’);
+var saved=DB.get('prog_templates')||[];
+saved.splice(idx,1); DB.set('prog_templates',saved);
+toast('Template deleted','ok');
 if(S.vCli)openAddProg(S.vCli); else closeModal();
 }
 function saveProg(cid,prog) {
 var progs=getProgs(cid); progs.push(prog);
-DB.set(‘progs_’+cid,progs);
-var cp=DB.get(‘cp_’+cid)||{}; cp.currentProgId=prog.id;
-DB.set(‘cp_’+cid,cp);
-closeModal(); toast(prog.name+’ added’,‘ok’); R();
+DB.set('progs_'+cid,progs);
+var cp=DB.get('cp_'+cid)||{}; cp.currentProgId=prog.id;
+DB.set('cp_'+cid,cp);
+closeModal(); toast(prog.name+' added','ok'); R();
 }
 function switchProg(cid,pid) {
-var cp=DB.get(‘cp_’+cid)||{}; cp.currentProgId=pid;
-DB.set(‘cp_’+cid,cp);
+var cp=DB.get('cp_'+cid)||{}; cp.currentProgId=pid;
+DB.set('cp_'+cid,cp);
 var prog=getProgById(pid,cid);
-toast(’Switched to ’+(prog?prog.name:‘program’),‘ok’); R();
+toast('Switched to '+(prog?prog.name:'program'),'ok'); R();
 }
 function getProgById(pid,cid) {
 var progs=getProgs(cid);
@@ -986,153 +986,153 @@ return null;
 
 var _bp={cid:null,prog:null}, _bpDay=0;
 function startBuilder(cid) {
-var name=((document.getElementById(‘np_name’)||{}).value||’’).trim();
-if(!name){toast(‘Enter a program name first’,‘err’);return;}
-_bp.cid=cid; _bp.prog={id:’prog_’+Date.now(),name:name,days:[],created:Date.now()};
+var name=((document.getElementById('np_name')||{}).value||'').trim();
+if(!name){toast('Enter a program name first','err');return;}
+_bp.cid=cid; _bp.prog={id:'prog_'+Date.now(),name:name,days:[],created:Date.now()};
 showBuilder();
 }
 function showBuilder() {
 var p=_bp.prog;
-showModal(’<div class="modal-bg"><div class="modal-box" style="max-height:94vh">’ +
-‘<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">’ +
-‘<div style="font-size:18px;font-weight:800;color:#fff">’+p.name+’</div>’ +
-‘<div style="display:flex;gap:6px"><button class="btn-sm btn-green" onclick="doSaveBuilder()">Save ✓</button>’ +
-‘<button class="btn-sm btn-ghost" onclick="closeModal()">Cancel</button></div></div>’ +
+showModal('<div class="modal-bg"><div class="modal-box" style="max-height:94vh">' +
+'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">' +
+'<div style="font-size:18px;font-weight:800;color:#fff">'+p.name+'</div>' +
+'<div style="display:flex;gap:6px"><button class="btn-sm btn-green" onclick="doSaveBuilder()">Save ✓</button>' +
+'<button class="btn-sm btn-ghost" onclick="closeModal()">Cancel</button></div></div>' +
 p.days.map(function(d,di){
-return ‘<div style="background:var(--c2);border:1px solid var(--bdr);border-radius:12px;padding:12px;margin-bottom:10px">’ +
-‘<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">’ +
-‘<div style="font-size:14px;font-weight:700;color:'+d.accent+'">’+d.tag+’ - ‘+d.title+’</div>’ +
-‘<button onclick="removeDay('+di+')" style="color:var(--red);font-size:18px;background:none;border:none;cursor:pointer">×</button></div>’ +
+return '<div style="background:var(--c2);border:1px solid var(--bdr);border-radius:12px;padding:12px;margin-bottom:10px">' +
+'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">' +
+'<div style="font-size:14px;font-weight:700;color:'+d.accent+'">'+d.tag+' - '+d.title+'</div>' +
+'<button onclick="removeDay('+di+')" style="color:var(--red);font-size:18px;background:none;border:none;cursor:pointer">×</button></div>' +
 (d.ex.length>0?d.ex.map(function(ex,ei){
-return ‘<div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">’ +
-‘<div style="flex:1"><div style="font-size:12px;font-weight:600;color:#fff">’+ex.n+’</div>’ +
-‘<div style="font-size:10px;color:var(--m1)">’+ex.sets+’ sets - ‘+ex.r+’</div></div>’ +
-‘<button onclick="removeEx('+di+','+ei+')" style="color:var(--red);background:none;border:none;cursor:pointer;font-size:14px">×</button></div>’;
-}).join(’’):’<div style="font-size:11px;color:var(--m2);padding:4px 0">No exercises yet</div>’) +
-‘<button onclick="openAddEx('+di+')" style="width:100%;padding:7px;background:rgba(99,102,241,.06);border:1px dashed rgba(99,102,241,.25);border-radius:8px;color:var(--acc);font-size:11px;font-weight:700;margin-top:8px;cursor:pointer">+ Add Exercise</button>’ +
-‘</div>’;
-}).join(’’) +
-‘<button onclick="addDay()" style="width:100%;padding:10px;background:rgba(16,185,129,.06);border:1px dashed rgba(16,185,129,.25);border-radius:10px;color:var(--green);font-size:12px;font-weight:700;margin-bottom:12px;cursor:pointer">+ Add Training Day</button>’ +
-‘<div style="padding:9px 11px;background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.12);border-radius:8px;font-size:10px;color:var(--m1)">Saved programs become reusable templates for all clients.</div>’ +
-‘</div></div>’);
+return '<div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">' +
+'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:#fff">'+ex.n+'</div>' +
+'<div style="font-size:10px;color:var(--m1)">'+ex.sets+' sets - '+ex.r+'</div></div>' +
+'<button onclick="removeEx('+di+','+ei+')" style="color:var(--red);background:none;border:none;cursor:pointer;font-size:14px">×</button></div>';
+}).join(''):'<div style="font-size:11px;color:var(--m2);padding:4px 0">No exercises yet</div>') +
+'<button onclick="openAddEx('+di+')" style="width:100%;padding:7px;background:rgba(99,102,241,.06);border:1px dashed rgba(99,102,241,.25);border-radius:8px;color:var(--acc);font-size:11px;font-weight:700;margin-top:8px;cursor:pointer">+ Add Exercise</button>' +
+'</div>';
+}).join('') +
+'<button onclick="addDay()" style="width:100%;padding:10px;background:rgba(16,185,129,.06);border:1px dashed rgba(16,185,129,.25);border-radius:10px;color:var(--green);font-size:12px;font-weight:700;margin-bottom:12px;cursor:pointer">+ Add Training Day</button>' +
+'<div style="padding:9px 11px;background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.12);border-radius:8px;font-size:10px;color:var(--m1)">Saved programs become reusable templates for all clients.</div>' +
+'</div></div>');
 }
-var _accs=[’#ef4444’,’#10b981’,’#3b82f6’,’#a855f7’,’#ec4899’,’#f59e0b’];
+var _accs=['#ef4444','#10b981','#3b82f6','#a855f7','#ec4899','#f59e0b'];
 function addDay() {
 var di=_bp.prog.days.length;
-_bp.prog.days.push({tag:‘Day ‘+(di+1),title:‘Day ‘+(di+1),sub:’’,accent:_accs[di%6],ex:[]});
+_bp.prog.days.push({tag:'Day '+(di+1),title:'Day '+(di+1),sub:'',accent:_accs[di%6],ex:[]});
 showBuilder();
 }
-function removeDay(di){_bp.prog.days.splice(di,1);_bp.prog.days.forEach(function(d,i){d.tag=‘Day ‘+(i+1);});showBuilder();}
+function removeDay(di){_bp.prog.days.splice(di,1);_bp.prog.days.forEach(function(d,i){d.tag='Day '+(i+1);});showBuilder();}
 function removeEx(di,ei){_bp.prog.days[di].ex.splice(ei,1);showBuilder();}
 function openAddEx(di) {
 _bpDay=di;
-showModal(’<div class="modal-bg"><div class="modal-box">’ +
-‘<div class="modal-title">Add Exercise - Day ‘+(di+1)+’</div>’ +
-‘<div class="row"><div class="lbl">Exercise Name</div><input class="inp" id="ae_n" placeholder="e.g. Barbell Back Squat"></div>’ +
-‘<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">’ +
-‘<div><div class="lbl">Sets</div><input class="inp" id="ae_s" type="number" value="3" inputmode="numeric" style="margin-bottom:0"></div>’ +
-‘<div><div class="lbl">Rep Range</div><input class="inp" id="ae_r" placeholder="8-12" style="margin-bottom:0"></div>’ +
-‘</div>’ +
-‘<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">’ +
-‘<div><div class="lbl">Type</div><select class="sel" id="ae_t"><option>Compound</option><option>Isolation</option><option>Unilateral</option><option>Abs</option><option>Finisher</option></select></div>’ +
-‘<div><div class="lbl">Muscle Group</div><input class="inp" id="ae_m" placeholder="e.g. Quads" style="margin-bottom:0"></div>’ +
-‘</div>’ +
-‘<div class="row"><div class="lbl">Rest</div><input class="inp" id="ae_rest" placeholder="e.g. 90s"></div>’ +
-‘<div class="row"><div class="lbl">Coaching Cue (optional)</div><textarea class="inp" id="ae_note" rows="2" placeholder="Form tip..."></textarea></div>’ +
-‘<div class="row"><div class="lbl">Alternatives (comma separated)</div><input class="inp" id="ae_alt" placeholder="e.g. Goblet Squat, Smith Squat"></div>’ +
-‘<button class="btn btn-acc" style="margin-bottom:8px" onclick="doAddEx()">ADD →</button>’ +
-‘<button class="btn btn-ghost" onclick="showBuilder()">← Back</button>’ +
-‘</div></div>’);
+showModal('<div class="modal-bg"><div class="modal-box">' +
+'<div class="modal-title">Add Exercise - Day '+(di+1)+'</div>' +
+'<div class="row"><div class="lbl">Exercise Name</div><input class="inp" id="ae_n" placeholder="e.g. Barbell Back Squat"></div>' +
+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
+'<div><div class="lbl">Sets</div><input class="inp" id="ae_s" type="number" value="3" inputmode="numeric" style="margin-bottom:0"></div>' +
+'<div><div class="lbl">Rep Range</div><input class="inp" id="ae_r" placeholder="8-12" style="margin-bottom:0"></div>' +
+'</div>' +
+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
+'<div><div class="lbl">Type</div><select class="sel" id="ae_t"><option>Compound</option><option>Isolation</option><option>Unilateral</option><option>Abs</option><option>Finisher</option></select></div>' +
+'<div><div class="lbl">Muscle Group</div><input class="inp" id="ae_m" placeholder="e.g. Quads" style="margin-bottom:0"></div>' +
+'</div>' +
+'<div class="row"><div class="lbl">Rest</div><input class="inp" id="ae_rest" placeholder="e.g. 90s"></div>' +
+'<div class="row"><div class="lbl">Coaching Cue (optional)</div><textarea class="inp" id="ae_note" rows="2" placeholder="Form tip..."></textarea></div>' +
+'<div class="row"><div class="lbl">Alternatives (comma separated)</div><input class="inp" id="ae_alt" placeholder="e.g. Goblet Squat, Smith Squat"></div>' +
+'<button class="btn btn-acc" style="margin-bottom:8px" onclick="doAddEx()">ADD →</button>' +
+'<button class="btn btn-ghost" onclick="showBuilder()">← Back</button>' +
+'</div></div>');
 }
 function doAddEx() {
-var n=((document.getElementById(‘ae_n’)||{}).value||’’).trim();
-var sets=parseInt((document.getElementById(‘ae_s’)||{}).value)||3;
-var r=((document.getElementById(‘ae_r’)||{}).value||‘8-12’).trim();
-var t=(document.getElementById(‘ae_t’)||{}).value||‘Compound’;
-var m=((document.getElementById(‘ae_m’)||{}).value||’’).trim();
-var rest=((document.getElementById(‘ae_rest’)||{}).value||‘90s’).trim();
-var note=((document.getElementById(‘ae_note’)||{}).value||’’).trim();
-var altRaw=((document.getElementById(‘ae_alt’)||{}).value||’’).trim();
-var alt=altRaw?altRaw.split(’,’).map(function(a){return a.trim();}).filter(Boolean):[];
-if(!n){toast(‘Enter exercise name’,‘err’);return;}
+var n=((document.getElementById('ae_n')||{}).value||'').trim();
+var sets=parseInt((document.getElementById('ae_s')||{}).value)||3;
+var r=((document.getElementById('ae_r')||{}).value||'8-12').trim();
+var t=(document.getElementById('ae_t')||{}).value||'Compound';
+var m=((document.getElementById('ae_m')||{}).value||'').trim();
+var rest=((document.getElementById('ae_rest')||{}).value||'90s').trim();
+var note=((document.getElementById('ae_note')||{}).value||'').trim();
+var altRaw=((document.getElementById('ae_alt')||{}).value||'').trim();
+var alt=altRaw?altRaw.split(',').map(function(a){return a.trim();}).filter(Boolean):[];
+if(!n){toast('Enter exercise name','err');return;}
 _bp.prog.days[_bpDay].ex.push({n:n,sets:sets,r:r,t:t,m:m,rest:rest,note:note,alt:alt});
 showBuilder();
 }
 function doSaveBuilder() {
 var prog=_bp.prog, cid=_bp.cid;
-if(!prog.days.length){toast(‘Add at least one training day’,’err’);return;}
+if(!prog.days.length){toast('Add at least one training day','err');return;}
 var progs=getProgs(cid); progs.push(prog);
-DB.set(‘progs_’+cid,progs);
-var cp=DB.get(‘cp_’+cid)||{}; cp.currentProgId=prog.id;
-DB.set(‘cp_’+cid,cp);
-var templates=DB.get(‘prog_templates’)||[];
+DB.set('progs_'+cid,progs);
+var cp=DB.get('cp_'+cid)||{}; cp.currentProgId=prog.id;
+DB.set('cp_'+cid,cp);
+var templates=DB.get('prog_templates')||[];
 templates.push(JSON.parse(JSON.stringify(prog)));
-DB.set(‘prog_templates’,templates);
-closeModal(); toast(prog.name+’ saved as template!’,‘ok’); R();
+DB.set('prog_templates',templates);
+closeModal(); toast(prog.name+' saved as template!','ok'); R();
 }
 
 function renderClient() {
-if(S.cTab===‘workout’)return renderWorkout();
-if(S.cTab===‘progress’)return renderProgress();
-if(S.cTab===‘sessions’)return renderMySess();
-if(S.cTab===‘account’)return renderMyAcct();
-if(S.cTab===‘messages’)return renderMsgs();
+if(S.cTab==='workout')return renderWorkout();
+if(S.cTab==='progress')return renderProgress();
+if(S.cTab==='sessions')return renderMySess();
+if(S.cTab==='account')return renderMyAcct();
+if(S.cTab==='messages')return renderMsgs();
 return renderWorkout();
 }
 function cliNav() {
 var days=getDays();
 var tabs=[];
-days.forEach(function(d,i){tabs.push({id:‘d’+i,icon:[’💪’,’🦻’,’🔵’,’🟣’,’🟢’][i]||’💪’,lbl:d.tag,di:i});});
-tabs.push({id:‘sessions’,icon:’📅’,lbl:‘Sessions’});
-tabs.push({id:‘account’,icon:’💳’,lbl:‘Account’});
-tabs.push({id:‘progress’,icon:’📈’,lbl:‘Progress’});
-tabs.push({id:‘messages’,icon:’💬’,lbl:‘Ahmed’,badge:S.unread});
-return ‘<nav class="bnav">’+tabs.map(function(t){
-var on=t.di!==undefined?(S.cTab===‘workout’&&S.day===t.di):(S.cTab===t.id);
-var color=on?(t.di!==undefined&&getDay()?getDay().accent||’var(--acc)’:’var(--acc)’):’var(--m2)’;
-var click=t.di!==undefined?’selDay(‘+t.di+’)’:’S.cTab=\’’+t.id+’\’;R()’;
-return ‘<button class="nb" onclick="'+click+'" style="color:'+color+'">’ +
-‘<span class="nbi">’+t.icon+’</span>’+t.lbl+
-(t.badge&&t.badge>0?’<span class="nbd">’+t.badge+’</span>’:’’)+
-‘</button>’;
-}).join(’’)+’</nav>’;
+days.forEach(function(d,i){tabs.push({id:'d'+i,icon:['💪','🦻','🔵','🟣','🟢'][i]||'💪',lbl:d.tag,di:i});});
+tabs.push({id:'sessions',icon:'📅',lbl:'Sessions'});
+tabs.push({id:'account',icon:'💳',lbl:'Account'});
+tabs.push({id:'progress',icon:'📈',lbl:'Progress'});
+tabs.push({id:'messages',icon:'💬',lbl:'Ahmed',badge:S.unread});
+return '<nav class="bnav">'+tabs.map(function(t){
+var on=t.di!==undefined?(S.cTab==='workout'&&S.day===t.di):(S.cTab===t.id);
+var color=on?(t.di!==undefined&&getDay()?getDay().accent||'var(--acc)':'var(--acc)'):'var(--m2)';
+var click=t.di!==undefined?'selDay('+t.di+')':'S.cTab=\''+t.id+'\';R()';
+return '<button class="nb" onclick="'+click+'" style="color:'+color+'">' +
+'<span class="nbi">'+t.icon+'</span>'+t.lbl+
+(t.badge&&t.badge>0?'<span class="nbd">'+t.badge+'</span>':'')+
+'</button>';
+}).join('')+'</nav>';
 }
 
 function renderWorkout() {
 var d=getDay(), wk=WK[S.week]||WK[1];
 var pr=sessP(), pct=pr.total>0?(pr.done/pr.total*100):0;
-return ‘<div class="hdr"><div class="hdr-top">’ +
-‘<div><div class="hdr-sub">Ahmed PT</div><div class="hdr-title">’+(getProg()?getProg().name.split(’-’)[0].trim():‘My Training’)+’</div></div>’ +
-‘<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">’ +
-(S.streak.cur>0?’<span class="pill p-amber">🔥 ‘+S.streak.cur+’ days</span>’:’’) +
-‘<div style="display:flex;gap:3px">’+[1,2,3,4].map(function(w){
-return ‘<button onclick="setWk('+w+')" style="width:26px;height:26px;border-radius:50%;border:'+(w===S.week?'2px solid '+(wk.c||'#fff'):'1px solid var(--bdr)')+';background:'+(w===S.week?(wk.c||'#fff')+'22':'transparent')+';color:'+(w===S.week?(wk.c||'#fff'):'var(--m2)')+';font-size:11px;font-weight:700;cursor:pointer">’+w+’</button>’;
-}).join(’’)+’</div>’ +
-‘<div style="display:flex;gap:3px"><button onclick="setUnit(\'kg\')" style="padding:2px 7px;border-radius:8px;border:1px solid '+(S.unit==='kg'?'var(--acc)':'var(--bdr)')+';background:'+(S.unit==='kg'?'rgba(99,102,241,.15)':'transparent')+';color:'+(S.unit==='kg'?'var(--acc)':'var(--m2)')+';font-size:10px;font-weight:700;cursor:pointer">KG</button>’ +
-‘<button onclick="setUnit(\'lb\')" style="padding:2px 7px;border-radius:8px;border:1px solid '+(S.unit==='lb'?'var(--acc)':'var(--bdr)')+';background:'+(S.unit==='lb'?'rgba(99,102,241,.15)':'transparent')+';color:'+(S.unit==='lb'?'var(--acc)':'var(--m2)')+';font-size:10px;font-weight:700;cursor:pointer">LB</button></div>’ +
-‘</div></div>’ +
-‘<div class="wk-banner" style="border-color:'+wk.c+';background:'+wk.c+'0a">’ +
-‘<div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:'+wk.c+'">WK’+S.week+’ - ‘+wk.l+’</div>’ +
-‘<div style="font-size:10px;color:var(--m1);margin-top:2px">’+wk.n+’</div></div>’ +
-‘<div class="dtabs">’+getDays().map(function(dd,i){
-var on=i===S.day&&S.cTab===‘workout’;
-return ‘<button class="dtab'+(on?' on':'')+'" onclick="selDay('+i+')" style="'+(on?'background:'+dd.accent+';border-color:'+dd.accent+';color:#fff':'')+'">’+dd.tag+’</button>’;
-}).join(’’)+’</div></div>’ +
-‘<div class="page">’ +
-(!d?’<div class="empty">No program yet.<br>Ahmed will set up your program.</div>’:
-‘<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">’ +
-‘<div><div style="font-size:24px;font-weight:800;color:#fff;letter-spacing:-.5px">’+d.title+’</div>’ +
-‘<div style="font-size:10px;color:var(--m2);letter-spacing:1px;text-transform:uppercase;margin-top:2px">’+(d.sub||’’)+’</div></div>’ +
-‘<div style="text-align:right"><div style="font-size:22px;font-weight:900;color:'+d.accent+'">’+pr.done+’<span style="color:var(--m2)">/’+pr.total+’</span></div>’ +
-‘<div style="width:80px;height:3px;background:var(--m3);border-radius:2px;margin-left:auto;margin-top:3px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+d.accent+';border-radius:2px;transition:width .3s"></div></div></div></div>’ +
-(d.coach?’<div style="padding:8px 12px;background:'+d.accent+'0d;border-left:3px solid '+d.accent+';border-radius:0 8px 8px 0;margin-bottom:12px;font-size:11px;color:var(--m1);line-height:1.6"><strong style="color:'+d.accent+'">COACH: </strong>’+d.coach+’</div>’:’’) +
-d.ex.map(function(ex,ei){return renderExCard(ex,ei,d);}).join(’’) +
+return '<div class="hdr"><div class="hdr-top">' +
+'<div><div class="hdr-sub">Ahmed PT</div><div class="hdr-title">'+(getProg()?getProg().name.split('-')[0].trim():'My Training')+'</div></div>' +
+'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">' +
+(S.streak.cur>0?'<span class="pill p-amber">🔥 '+S.streak.cur+' days</span>':'') +
+'<div style="display:flex;gap:3px">'+[1,2,3,4].map(function(w){
+return '<button onclick="setWk('+w+')" style="width:26px;height:26px;border-radius:50%;border:'+(w===S.week?'2px solid '+(wk.c||'#fff'):'1px solid var(--bdr)')+';background:'+(w===S.week?(wk.c||'#fff')+'22':'transparent')+';color:'+(w===S.week?(wk.c||'#fff'):'var(--m2)')+';font-size:11px;font-weight:700;cursor:pointer">'+w+'</button>';
+}).join('')+'</div>' +
+'<div style="display:flex;gap:3px"><button onclick="setUnit(\'kg\')" style="padding:2px 7px;border-radius:8px;border:1px solid '+(S.unit==='kg'?'var(--acc)':'var(--bdr)')+';background:'+(S.unit==='kg'?'rgba(99,102,241,.15)':'transparent')+';color:'+(S.unit==='kg'?'var(--acc)':'var(--m2)')+';font-size:10px;font-weight:700;cursor:pointer">KG</button>' +
+'<button onclick="setUnit(\'lb\')" style="padding:2px 7px;border-radius:8px;border:1px solid '+(S.unit==='lb'?'var(--acc)':'var(--bdr)')+';background:'+(S.unit==='lb'?'rgba(99,102,241,.15)':'transparent')+';color:'+(S.unit==='lb'?'var(--acc)':'var(--m2)')+';font-size:10px;font-weight:700;cursor:pointer">LB</button></div>' +
+'</div></div>' +
+'<div class="wk-banner" style="border-color:'+wk.c+';background:'+wk.c+'0a">' +
+'<div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:'+wk.c+'">WK'+S.week+' - '+wk.l+'</div>' +
+'<div style="font-size:10px;color:var(--m1);margin-top:2px">'+wk.n+'</div></div>' +
+'<div class="dtabs">'+getDays().map(function(dd,i){
+var on=i===S.day&&S.cTab==='workout';
+return '<button class="dtab'+(on?' on':'')+'" onclick="selDay('+i+')" style="'+(on?'background:'+dd.accent+';border-color:'+dd.accent+';color:#fff':'')+'">'+dd.tag+'</button>';
+}).join('')+'</div></div>' +
+'<div class="page">' +
+(!d?'<div class="empty">No program yet.<br>Ahmed will set up your program.</div>':
+'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">' +
+'<div><div style="font-size:24px;font-weight:800;color:#fff;letter-spacing:-.5px">'+d.title+'</div>' +
+'<div style="font-size:10px;color:var(--m2);letter-spacing:1px;text-transform:uppercase;margin-top:2px">'+(d.sub||'')+'</div></div>' +
+'<div style="text-align:right"><div style="font-size:22px;font-weight:900;color:'+d.accent+'">'+pr.done+'<span style="color:var(--m2)">/'+pr.total+'</span></div>' +
+'<div style="width:80px;height:3px;background:var(--m3);border-radius:2px;margin-left:auto;margin-top:3px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+d.accent+';border-radius:2px;transition:width .3s"></div></div></div></div>' +
+(d.coach?'<div style="padding:8px 12px;background:'+d.accent+'0d;border-left:3px solid '+d.accent+';border-radius:0 8px 8px 0;margin-bottom:12px;font-size:11px;color:var(--m1);line-height:1.6"><strong style="color:'+d.accent+'">COACH: </strong>'+d.coach+'</div>':'') +
+d.ex.map(function(ex,ei){return renderExCard(ex,ei,d);}).join('') +
 renderSessNoteBox()) +
-‘</div>’ + cliNav();
+'</div>' + cliNav();
 }
 
 function renderExCard(origEx, ei, d) {
-var ex=getEx(ei); if(!ex)return’’;
+var ex=getEx(ei); if(!ex)return'';
 var sc=origEx.sets||3;
 var allDone=true;
 for(var i=0;i<sc;i++){var l=getL(S.week,S.day,ei,i);if(!l||!l.done){allDone=false;break;}}
@@ -1142,119 +1142,119 @@ var hasN=exN&&(exN.client||exN.trainer);
 var showNote=S.xNote===ei;
 var showAlt=S.xAlt===ei;
 var hasAlt=origEx.alt&&origEx.alt.length>0;
-return ‘<div class="ex-card'+(allDone?' done':'')+'" id="exc_'+ei+'">’ +
-‘<div class="ex-hdr" onclick="togNote('+ei+')">’ +
-‘<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">’ +
-‘<div style="flex:1;min-width:0">’ +
-‘<div class="ex-name">’+ex.n+(ex.swapped?’<span style="font-size:9px;color:var(--amber);margin-left:5px">(swapped)</span>’:’’)+’</div>’ +
-‘<div class="ex-info">’ +
-‘<span class="pill p-blue" style="font-size:8px;margin-right:4px">’+origEx.t+’</span>’ +
-‘<span style="color:var(--m2)">’+origEx.r+’ reps - ‘+sc+’ sets - ‘+(origEx.rest||’’)+’</span>’ +
-(hasN?’<span style="font-size:9px;color:var(--acc);margin-left:5px">📝</span>’:’’) +
-‘</div></div>’ +
-‘<div style="display:flex;gap:5px;align-items:center;flex-shrink:0">’ +
-(hasAlt?’<button class="pill p-amber" onclick="event.stopPropagation();togAlt('+ei+')" style="cursor:pointer">swap</button>’:’’) +
-‘<button onclick="event.stopPropagation();openYT(\''+ex.n.replace(/[^a-zA-Z0-9 ]/g,'').trim()+'\')" style="padding:3px 7px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:7px;color:#f87171;font-size:9px;font-weight:700;cursor:pointer">YT ▶</button>’ +
-‘<span style="font-size:12px;color:var(--m2)">’+(showNote?’▴’:’▾’)+’</span>’ +
-‘</div></div></div>’ +
-‘<div class="ex-cue'+(showNote?' show':'')+'">’+ex.note+’</div>’ +
-(showAlt&&hasAlt?’<div class="alt-wrap"><div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--amber);margin-bottom:7px">SWAP EXERCISE</div>’ +
-‘<button class="alt-btn" onclick="doSwap('+ei+',undefined)" style="'+(S.swaps[S.day+'_'+ei]===undefined?'background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.3)':'')+'">’+origEx.n+’ (original)</button>’ +
-origEx.alt.map(function(a,ai){return ‘<button class="alt-btn" onclick="doSwap('+ei+','+ai+')" style="'+(S.swaps[S.day+'_'+ei]===ai?'background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.3)':'')+'">’+a+’</button>’;}).join(’’) +
-‘</div>’:’’) +
-‘<div class="sets">’+Array.from({length:sc},function(_,si){
+return '<div class="ex-card'+(allDone?' done':'')+'" id="exc_'+ei+'">' +
+'<div class="ex-hdr" onclick="togNote('+ei+')">' +
+'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">' +
+'<div style="flex:1;min-width:0">' +
+'<div class="ex-name">'+ex.n+(ex.swapped?'<span style="font-size:9px;color:var(--amber);margin-left:5px">(swapped)</span>':'')+'</div>' +
+'<div class="ex-info">' +
+'<span class="pill p-blue" style="font-size:8px;margin-right:4px">'+origEx.t+'</span>' +
+'<span style="color:var(--m2)">'+origEx.r+' reps - '+sc+' sets - '+(origEx.rest||'')+'</span>' +
+(hasN?'<span style="font-size:9px;color:var(--acc);margin-left:5px">📝</span>':'') +
+'</div></div>' +
+'<div style="display:flex;gap:5px;align-items:center;flex-shrink:0">' +
+(hasAlt?'<button class="pill p-amber" onclick="event.stopPropagation();togAlt('+ei+')" style="cursor:pointer">swap</button>':'') +
+'<button onclick="event.stopPropagation();openYT(\''+ex.n.replace(/[^a-zA-Z0-9 ]/g,'').trim()+'\')" style="padding:3px 7px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:7px;color:#f87171;font-size:9px;font-weight:700;cursor:pointer">YT ▶</button>' +
+'<span style="font-size:12px;color:var(--m2)">'+(showNote?'▴':'▾')+'</span>' +
+'</div></div></div>' +
+'<div class="ex-cue'+(showNote?' show':'')+'">'+ex.note+'</div>' +
+(showAlt&&hasAlt?'<div class="alt-wrap"><div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--amber);margin-bottom:7px">SWAP EXERCISE</div>' +
+'<button class="alt-btn" onclick="doSwap('+ei+',undefined)" style="'+(S.swaps[S.day+'_'+ei]===undefined?'background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.3)':'')+'">'+origEx.n+' (original)</button>' +
+origEx.alt.map(function(a,ai){return '<button class="alt-btn" onclick="doSwap('+ei+','+ai+')" style="'+(S.swaps[S.day+'_'+ei]===ai?'background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.3)':'')+'">'+a+'</button>';}).join('') +
+'</div>':'') +
+'<div class="sets">'+Array.from({length:sc},function(_,si){
 var lg=getL(S.week,S.day,ei,si),lgd=lg&&lg.done;
 var isA=S.aSet&&S.aSet.ei===ei&&S.aSet.si===si;
-return ‘<div style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer" onclick="openSet('+ei+','+si+')">’ +
-‘<div class="sdot'+(lgd?' done':'')+(isA?' active':'')+'" style="border-color:'+(lgd?d.accent:isA?d.accent:'var(--bdr)')+';'+(lgd?'background:'+d.accent:'')+(isA&&!lgd?';color:'+d.accent:'')+'">’+(lgd?’✓’:si+1)+’</div>’ +
-(lgd&&lg.weight?’<div class="sdot-w" style="color:'+d.accent+'">’+lg.weight+S.unit+’</div>’:’’) +
-‘</div>’;
-}).join(’’)+’</div>’ +
-(isOpen?renderLogPanel(ei,S.aSet.si,d):’’) +
-‘<div style="border-top:1px solid var(--bdr)">’ +
-‘<button onclick="event.stopPropagation();S.xNote=(S.xNote==='+ei+'?-1:'+ei+');R()" style="width:100%;padding:7px 12px;text-align:left;font-size:10px;font-weight:700;color:'+(hasN?d.accent:'var(--m2)')+';letter-spacing:1px;background:none;border:none;cursor:pointer">📝 ‘+(showNote?‘HIDE’:‘NOTES’)+(hasN&&!showNote?’ (has notes)’:’’)+’</button>’ +
-(showNote?renderExNoteBox(ei,exN,d):’’) +
-‘</div></div>’;
+return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer" onclick="openSet('+ei+','+si+')">' +
+'<div class="sdot'+(lgd?' done':'')+(isA?' active':'')+'" style="border-color:'+(lgd?d.accent:isA?d.accent:'var(--bdr)')+';'+(lgd?'background:'+d.accent:'')+(isA&&!lgd?';color:'+d.accent:'')+'">'+(lgd?'✓':si+1)+'</div>' +
+(lgd&&lg.weight?'<div class="sdot-w" style="color:'+d.accent+'">'+lg.weight+S.unit+'</div>':'') +
+'</div>';
+}).join('')+'</div>' +
+(isOpen?renderLogPanel(ei,S.aSet.si,d):'') +
+'<div style="border-top:1px solid var(--bdr)">' +
+'<button onclick="event.stopPropagation();S.xNote=(S.xNote==='+ei+'?-1:'+ei+');R()" style="width:100%;padding:7px 12px;text-align:left;font-size:10px;font-weight:700;color:'+(hasN?d.accent:'var(--m2)')+';letter-spacing:1px;background:none;border:none;cursor:pointer">📝 '+(showNote?'HIDE':'NOTES')+(hasN&&!showNote?' (has notes)':'')+'</button>' +
+(showNote?renderExNoteBox(ei,exN,d):'') +
+'</div></div>';
 }
 function renderLogPanel(ei, si, d) {
-var ex=getEx(ei); if(!ex)return’’;
+var ex=getEx(ei); if(!ex)return'';
 var lg=getL(S.week,S.day,ei,si)||{};
 var prev=null;
 for(var w=S.week-1;w>=1;w--){var pl=getL(w,S.day,ei,si);if(pl&&pl.done){prev={data:pl,week:w};break;}}
-return ‘<div class="lpanel">’ +
-‘<div class="lt" style="color:'+d.accent+'">SET ‘+(si+1)+’ - ‘+ex.n.toUpperCase()+’</div>’ +
-(prev?’<div class="prev">Wk’+prev.week+’: ‘+(prev.data.weight?’<strong>’+prev.data.weight+S.unit+’</strong>’:’’)+(prev.data.reps?’ x ‘+prev.data.reps:’’)+(prev.data.rpe?’ - RPE ‘+prev.data.rpe:’’)+’</div>’:’’) +
-‘<div class="two-col">’ +
-‘<div><div class="lbl">Weight (’+S.unit+’)</div><input class="inp" type="number" id="inp_w" value="'+(lg.weight||'')+'" placeholder="'+(prev&&prev.data.weight?prev.data.weight:'e.g. 60')+'" inputmode="decimal" onfocus="this.style.borderColor=\''+d.accent+'\'" onblur="this.style.borderColor=\'\'"></div>’ +
-‘<div><div class="lbl">Reps done</div><input class="inp" type="number" id="inp_r" value="'+(lg.reps||'')+'" placeholder="'+(prev&&prev.data.reps?prev.data.reps:'e.g. 8')+'" inputmode="numeric" onfocus="this.style.borderColor=\''+d.accent+'\'" onblur="this.style.borderColor=\'\'"></div>’ +
-‘</div>’ +
-‘<div class="lbl">RPE</div>’ +
-‘<div class="rpe-row">’+[1,2,3,4,5,6,7,8,9,10].map(function(v){
-return ‘<button class="rpe-btn" onclick="S.rpe='+(S.rpe===v?'null':v)+';R()" style="'+(S.rpe===v?'background:'+rpeC(v)+';color:#fff;border-color:transparent;':'')+'">’+v+’</button>’;
-}).join(’’)+(S.rpe?’<span style="font-size:11px;font-weight:700;color:'+rpeC(S.rpe)+';margin-left:4px">’+rpeN(S.rpe)+’</span>’:’’)+’</div>’ +
-‘<div class="log-acts">’ +
-‘<button class="btn btn-acc" style="flex:1;background:'+d.accent+';margin-bottom:0" onclick="doLog('+ei+','+si+')">✓ LOG SET</button>’ +
-(lg.done?’<button class="btn-sm btn-ghost" onclick="doClear('+ei+','+si+')" style="margin-bottom:0">✕</button>’:’’) +
-‘<button class="btn-sm btn-ghost" onclick="S.aSet=null;S.rpe=null;R()" style="margin-bottom:0">ESC</button>’ +
-‘</div></div>’;
+return '<div class="lpanel">' +
+'<div class="lt" style="color:'+d.accent+'">SET '+(si+1)+' - '+ex.n.toUpperCase()+'</div>' +
+(prev?'<div class="prev">Wk'+prev.week+': '+(prev.data.weight?'<strong>'+prev.data.weight+S.unit+'</strong>':'')+(prev.data.reps?' x '+prev.data.reps:'')+(prev.data.rpe?' - RPE '+prev.data.rpe:'')+'</div>':'') +
+'<div class="two-col">' +
+'<div><div class="lbl">Weight ('+S.unit+')</div><input class="inp" type="number" id="inp_w" value="'+(lg.weight||'')+'" placeholder="'+(prev&&prev.data.weight?prev.data.weight:'e.g. 60')+'" inputmode="decimal" onfocus="this.style.borderColor=\''+d.accent+'\'" onblur="this.style.borderColor=\'\'"></div>' +
+'<div><div class="lbl">Reps done</div><input class="inp" type="number" id="inp_r" value="'+(lg.reps||'')+'" placeholder="'+(prev&&prev.data.reps?prev.data.reps:'e.g. 8')+'" inputmode="numeric" onfocus="this.style.borderColor=\''+d.accent+'\'" onblur="this.style.borderColor=\'\'"></div>' +
+'</div>' +
+'<div class="lbl">RPE</div>' +
+'<div class="rpe-row">'+[1,2,3,4,5,6,7,8,9,10].map(function(v){
+return '<button class="rpe-btn" onclick="S.rpe='+(S.rpe===v?'null':v)+';R()" style="'+(S.rpe===v?'background:'+rpeC(v)+';color:#fff;border-color:transparent;':'')+'">'+v+'</button>';
+}).join('')+(S.rpe?'<span style="font-size:11px;font-weight:700;color:'+rpeC(S.rpe)+';margin-left:4px">'+rpeN(S.rpe)+'</span>':'')+'</div>' +
+'<div class="log-acts">' +
+'<button class="btn btn-acc" style="flex:1;background:'+d.accent+';margin-bottom:0" onclick="doLog('+ei+','+si+')">✓ LOG SET</button>' +
+(lg.done?'<button class="btn-sm btn-ghost" onclick="doClear('+ei+','+si+')" style="margin-bottom:0">✕</button>':'') +
+'<button class="btn-sm btn-ghost" onclick="S.aSet=null;S.rpe=null;R()" style="margin-bottom:0">ESC</button>' +
+'</div></div>';
 }
 function renderExNoteBox(ei, exN, d) {
-var tN=exN&&exN.trainer?exN.trainer:’’, cN=exN&&exN.client?exN.client:’’;
-return ‘<div style="padding:10px 13px;background:rgba(0,0,0,.2)">’ +
-(tN?’<div style="margin-bottom:7px"><div class="lbl" style="color:var(--blue)">AHMED'S NOTE</div><div style="padding:7px 10px;background:rgba(99,102,241,.08);border-radius:8px;border:1px solid rgba(99,102,241,.15);font-size:11px;color:var(--m1)">’+tN+’</div></div>’:’’) +
-(cN?’<div style="margin-bottom:7px"><div class="lbl" style="color:var(--green)">YOUR NOTE</div><div style="padding:7px 10px;background:rgba(16,185,129,.06);border-radius:8px;border:1px solid rgba(16,185,129,.15);font-size:11px;color:var(--m1)">’+cN+’</div></div>’:’’) +
-‘<div style="display:flex;gap:6px;align-items:flex-end">’ +
-‘<textarea class="inp" id="exn_'+ei+'" rows="2" placeholder="Add a note..." style="flex:1;min-height:36px">’+cN+’</textarea>’ +
-‘<button class="btn-sm btn-acc" onclick="doExNote('+ei+')">✓</button></div></div>’;
+var tN=exN&&exN.trainer?exN.trainer:'', cN=exN&&exN.client?exN.client:'';
+return '<div style="padding:10px 13px;background:rgba(0,0,0,.2)">' +
+(tN?'<div style="margin-bottom:7px"><div class="lbl" style="color:var(--blue)">AHMED&#39;S NOTE</div><div style="padding:7px 10px;background:rgba(99,102,241,.08);border-radius:8px;border:1px solid rgba(99,102,241,.15);font-size:11px;color:var(--m1)">'+tN+'</div></div>':'') +
+(cN?'<div style="margin-bottom:7px"><div class="lbl" style="color:var(--green)">YOUR NOTE</div><div style="padding:7px 10px;background:rgba(16,185,129,.06);border-radius:8px;border:1px solid rgba(16,185,129,.15);font-size:11px;color:var(--m1)">'+cN+'</div></div>':'') +
+'<div style="display:flex;gap:6px;align-items:flex-end">' +
+'<textarea class="inp" id="exn_'+ei+'" rows="2" placeholder="Add a note..." style="flex:1;min-height:36px">'+cN+'</textarea>' +
+'<button class="btn-sm btn-acc" onclick="doExNote('+ei+')">✓</button></div></div>';
 }
 function renderSessNoteBox() {
-var k=sk(S.week,S.day), sn=S.sN[k]||{}, tN=sn.trainer||’’, cN=sn.client||’’;
-return ‘<div class="card" style="margin-top:12px"><div class="card-p">’ +
-‘<div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--m1);margin-bottom:10px;text-transform:uppercase">📋 Session Notes</div>’ +
-(tN?’<div style="margin-bottom:10px"><div class="lbl" style="color:var(--blue)">AHMED'S FEEDBACK</div><div style="padding:8px 10px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.15);border-radius:9px;font-size:11px;color:var(--m1);line-height:1.6">’+tN+’</div></div>’:’’) +
-‘<div class="lbl" style="color:var(--green)">YOUR NOTES</div>’ +
-‘<textarea class="inp" id="sn_inp" rows="3" placeholder="How did the session go?" style="min-height:60px;margin-bottom:8px">’+cN+’</textarea>’ +
-‘<button class="btn-sm btn-green" onclick="doSessNote()">Save ✓</button>’ +
-‘</div></div>’;
+var k=sk(S.week,S.day), sn=S.sN[k]||{}, tN=sn.trainer||'', cN=sn.client||'';
+return '<div class="card" style="margin-top:12px"><div class="card-p">' +
+'<div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--m1);margin-bottom:10px;text-transform:uppercase">📋 Session Notes</div>' +
+(tN?'<div style="margin-bottom:10px"><div class="lbl" style="color:var(--blue)">AHMED&#39;S FEEDBACK</div><div style="padding:8px 10px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.15);border-radius:9px;font-size:11px;color:var(--m1);line-height:1.6">'+tN+'</div></div>':'') +
+'<div class="lbl" style="color:var(--green)">YOUR NOTES</div>' +
+'<textarea class="inp" id="sn_inp" rows="3" placeholder="How did the session go?" style="min-height:60px;margin-bottom:8px">'+cN+'</textarea>' +
+'<button class="btn-sm btn-green" onclick="doSessNote()">Save ✓</button>' +
+'</div></div>';
 }
 
 function renderProgress() {
 var d14=get14(), prs=Object.values(S.prs), pd=buildCliProgData();
-return ‘<div class="hdr"><div class="hdr-top">’ +
-‘<div><div class="hdr-sub">My Progress</div><div class="hdr-title">Progress</div></div>’ +
-(S.streak.cur>0?’<span class="pill p-amber">🔥 ‘+S.streak.cur+’</span>’:’’) +
-‘</div></div><div class="page">’ +
-‘<div class="sk-card">’ +
-‘<div class="sk-nums"><div><div class="sk-n">’+S.streak.cur+’</div><div class="sk-l">Current 🔥</div></div>’ +
-‘<div><div class="sk-n">’+S.streak.best+’</div><div class="sk-l">Best 🏆</div></div></div>’ +
-‘<div style="font-size:10px;color:var(--m1);margin-bottom:8px;font-weight:600;letter-spacing:1px">LAST 14 DAYS</div>’ +
-‘<div class="sk-days">’+d14.map(function(d){
+return '<div class="hdr"><div class="hdr-top">' +
+'<div><div class="hdr-sub">My Progress</div><div class="hdr-title">Progress</div></div>' +
+(S.streak.cur>0?'<span class="pill p-amber">🔥 '+S.streak.cur+'</span>':'') +
+'</div></div><div class="page">' +
+'<div class="sk-card">' +
+'<div class="sk-nums"><div><div class="sk-n">'+S.streak.cur+'</div><div class="sk-l">Current 🔥</div></div>' +
+'<div><div class="sk-n">'+S.streak.best+'</div><div class="sk-l">Best 🏆</div></div></div>' +
+'<div style="font-size:10px;color:var(--m1);margin-bottom:8px;font-weight:600;letter-spacing:1px">LAST 14 DAYS</div>' +
+'<div class="sk-days">'+d14.map(function(d){
 var isT=d===today(), had=hadSess(d)||(S.streak.lastDate===d);
-return ‘<div class="sk-day '+(isT?'today':had?'done':'miss')+'">’ +
-‘<div style="font-size:7px;color:var(--m1)">’+new Date(d+‘T12:00:00’).toLocaleDateString(‘en-GB’,{weekday:‘short’}).slice(0,1)+’</div>’ +
-‘<div style="font-size:12px">’+(isT?’📍’:had?’✅’:’·’)+’</div>’ +
-‘<div style="font-size:7px;color:var(--m2)">’+new Date(d+‘T12:00:00’).getDate()+’</div></div>’;
-}).join(’’)+’</div></div>’ +
-(prs.length?’<div class="sect">🏆 PERSONAL RECORDS</div>’+prs.map(function(pr){
-return ‘<div class="card"><div class="card-p" style="display:flex;justify-content:space-between;align-items:center">’ +
-‘<div><div style="font-weight:600;font-size:13px;color:#fff">’+pr.exName+’</div><div style="font-size:10px;color:var(--m1)">’+fmtD(pr.date)+’</div></div>’ +
-‘<div style="text-align:right"><div style="font-size:15px;font-weight:800;color:var(--amber)">’+pr.weight+S.unit+’ x ‘+pr.reps+’</div>’ +
-‘<div style="font-size:10px;color:var(--m2)">~’+Math.round(pr.est)+S.unit+’ 1RM</div></div></div></div>’;
-}).join(’’):’’) +
-‘<div class="sect">WEIGHT PROGRESSION</div>’ +
-(pd.length===0?’<div class="empty">Log sessions to see your progress.</div>’:pd.map(function(p){return renderPBar(p,S.unit);}).join(’’)) +
-renderHistLog() + ‘</div>’ + cliNav();
+return '<div class="sk-day '+(isT?'today':had?'done':'miss')+'">' +
+'<div style="font-size:7px;color:var(--m1)">'+new Date(d+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short'}).slice(0,1)+'</div>' +
+'<div style="font-size:12px">'+(isT?'📍':had?'✅':'·')+'</div>' +
+'<div style="font-size:7px;color:var(--m2)">'+new Date(d+'T12:00:00').getDate()+'</div></div>';
+}).join('')+'</div></div>' +
+(prs.length?'<div class="sect">🏆 PERSONAL RECORDS</div>'+prs.map(function(pr){
+return '<div class="card"><div class="card-p" style="display:flex;justify-content:space-between;align-items:center">' +
+'<div><div style="font-weight:600;font-size:13px;color:#fff">'+pr.exName+'</div><div style="font-size:10px;color:var(--m1)">'+fmtD(pr.date)+'</div></div>' +
+'<div style="text-align:right"><div style="font-size:15px;font-weight:800;color:var(--amber)">'+pr.weight+S.unit+' x '+pr.reps+'</div>' +
+'<div style="font-size:10px;color:var(--m2)">~'+Math.round(pr.est)+S.unit+' 1RM</div></div></div></div>';
+}).join(''):'') +
+'<div class="sect">WEIGHT PROGRESSION</div>' +
+(pd.length===0?'<div class="empty">Log sessions to see your progress.</div>':pd.map(function(p){return renderPBar(p,S.unit);}).join('')) +
+renderHistLog() + '</div>' + cliNav();
 }
 function buildCliProgData() {
 var ex={}, progs=getProgs();
 Object.keys(S.logs).forEach(function(key){
 var l=S.logs[key]; if(!l||!l.done||!l.weight)return;
-var p=key.split(‘_’);
-var w=parseInt(p[0].replace(‘w’,’’)),d=parseInt(p[1].replace(‘d’,’’)),ei=parseInt(p[2].replace(‘e’,’’));
+var p=key.split('_');
+var w=parseInt(p[0].replace('w','')),d=parseInt(p[1].replace('d','')),ei=parseInt(p[2].replace('e',''));
 var exName=l.exName;
 if(!exName){for(var pi=0;pi<progs.length;pi++){var pr=progs[pi];if(pr.days&&pr.days[d]&&pr.days[d].ex&&pr.days[d].ex[ei]){exName=pr.days[d].ex[ei].n;break;}}}
 if(!exName)return;
-var k=exName.replace(/[^a-zA-Z0-9]/g,’_’);
+var k=exName.replace(/[^a-zA-Z0-9]/g,'_');
 if(!ex[k])ex[k]={name:exName,bw:{}};
 var wt=parseFloat(l.weight)||0;
 if(!ex[k].bw[w]||wt>ex[k].bw[w])ex[k].bw[w]=wt;
@@ -1265,128 +1265,128 @@ function renderHistLog() {
 var ss={};
 Object.keys(S.logs).forEach(function(k){
 var l=S.logs[k]; if(!l||!l.done)return;
-var p=k.split(‘_’), k2=p[0]+’_’+p[1];
+var p=k.split('_'), k2=p[0]+'_'+p[1];
 if(!ss[k2])ss[k2]={w:p[0],d:p[1],sets:0,exs:{}};
 ss[k2].sets++; ss[k2].exs[p[2]]=1;
 });
 var entries=Object.entries(ss);
-if(!entries.length)return’’;
-return ‘<div class="sect">📋 HISTORY</div>’+entries.reverse().slice(0,8).map(function(e){
+if(!entries.length)return'';
+return '<div class="sect">📋 HISTORY</div>'+entries.reverse().slice(0,8).map(function(e){
 var s=e[1];
-var dn=parseInt(s.d.replace(‘d’,’’)), wn=parseInt(s.w.replace(‘w’,’’));
+var dn=parseInt(s.d.replace('d','')), wn=parseInt(s.w.replace('w',''));
 var prog=getProg(), di=prog&&prog.days?prog.days[dn]:null;
-var sn=S.sN[s.w+’_’+s.d];
-return ‘<div class="card"><div class="card-p">’ +
-‘<div style="display:flex;justify-content:space-between;margin-bottom:6px">’ +
-‘<div style="font-weight:700;font-size:13px;color:#fff">’+(di?di.title:‘Session’)+’</div>’ +
-‘<div style="text-align:right"><div style="font-size:11px;font-weight:700;color:'+(di?di.accent||'var(--acc)':'var(--acc)')+'">Week ‘+wn+’</div>’ +
-‘<div style="font-size:10px;color:var(--m1)">’+s.sets+’ sets - ‘+Object.keys(s.exs).length+’ exercises</div></div></div>’ +
-(sn&&sn.client?’<div style="font-size:11px;color:var(--m1);padding:5px 8px;background:rgba(16,185,129,.05);border-radius:7px;border-left:2px solid var(--green)">”’+sn.client+’”</div>’:’’) +
-(sn&&sn.trainer?’<div style="font-size:11px;color:var(--m1);padding:5px 8px;background:rgba(99,102,241,.05);border-radius:7px;border-left:2px solid var(--acc);margin-top:4px">Ahmed: ‘+sn.trainer+’</div>’:’’) +
-‘</div></div>’;
-}).join(’’);
+var sn=S.sN[s.w+'_'+s.d];
+return '<div class="card"><div class="card-p">' +
+'<div style="display:flex;justify-content:space-between;margin-bottom:6px">' +
+'<div style="font-weight:700;font-size:13px;color:#fff">'+(di?di.title:'Session')+'</div>' +
+'<div style="text-align:right"><div style="font-size:11px;font-weight:700;color:'+(di?di.accent||'var(--acc)':'var(--acc)')+'">Week '+wn+'</div>' +
+'<div style="font-size:10px;color:var(--m1)">'+s.sets+' sets - '+Object.keys(s.exs).length+' exercises</div></div></div>' +
+(sn&&sn.client?'<div style="font-size:11px;color:var(--m1);padding:5px 8px;background:rgba(16,185,129,.05);border-radius:7px;border-left:2px solid var(--green)">"'+sn.client+'"</div>':'') +
+(sn&&sn.trainer?'<div style="font-size:11px;color:var(--m1);padding:5px 8px;background:rgba(99,102,241,.05);border-radius:7px;border-left:2px solid var(--acc);margin-top:4px">Ahmed: '+sn.trainer+'</div>':'') +
+'</div></div>';
+}).join('');
 }
 
 function renderMySess() {
-return ‘<div class="hdr"><div class="hdr-top">’ +
-‘<div><div class="hdr-sub">My Schedule</div><div class="hdr-title">Sessions</div></div></div></div>’ +
-‘<div class="page" id="sess_page"><div class="empty">Loading…</div></div>’ + cliNav();
+return '<div class="hdr"><div class="hdr-top">' +
+'<div><div class="hdr-sub">My Schedule</div><div class="hdr-title">Sessions</div></div></div></div>' +
+'<div class="page" id="sess_page"><div class="empty">Loading…</div></div>' + cliNav();
 }
 function renderMySessData() {
-var page=document.getElementById(‘sess_page’); if(!page)return;
-var sessObj=DB.get(‘sessions_’+S.cid)||{};
-var sessions=Object.values(sessObj).sort(function(a,b){return(a.date||’’).localeCompare(b.date||’’);});
-var upcoming=sessions.filter(function(s){return s.status===‘upcoming’;});
-var done=sessions.filter(function(s){return s.status===‘done’;});
-page.innerHTML=(upcoming.length>0?’<div class="sect">UPCOMING</div>’+upcoming.map(function(s){
-return ‘<div class="card" style="margin-bottom:8px"><div class="card-p" style="display:flex;align-items:center;gap:12px">’ +
-‘<div class="si-time"><div class="si-th">’+(s.time||‘TBD’)+’</div><div class="si-td">’+fmtD(s.date)+’</div></div>’ +
-‘<div class="si-dot" style="background:'+(s.type==='online'?'#6366f1':'#10b981')+'"></div>’ +
-‘<div class="si-info"><div class="si-name">’+(s.type===‘online’?‘Online’:‘In Person’)+’</div>’ +
-(s.note?’<div class="si-meta">’+s.note+’</div>’:’’)+’</div></div></div>’;
-}).join(’’):’’) +
-(done.length>0?’<div class="sect">COMPLETED</div>’+done.slice(0,5).map(function(s){
-return ‘<div class="card" style="margin-bottom:6px;opacity:.6"><div class="card-p" style="display:flex;align-items:center;gap:10px">’ +
-‘<div class="si-time"><div style="font-size:10px;color:var(--m2)">’+fmtD(s.date)+’</div></div>’ +
-‘<div class="si-dot" style="background:var(--m3)"></div>’ +
-‘<div style="font-size:12px;color:var(--m2)">Completed</div></div></div>’;
-}).join(’’):’’) +
-(sessions.length===0?’<div class="empty">No sessions yet.<br>Ahmed will book these for you.</div>’:’’);
+var page=document.getElementById('sess_page'); if(!page)return;
+var sessObj=DB.get('sessions_'+S.cid)||{};
+var sessions=Object.values(sessObj).sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+var upcoming=sessions.filter(function(s){return s.status==='upcoming';});
+var done=sessions.filter(function(s){return s.status==='done';});
+page.innerHTML=(upcoming.length>0?'<div class="sect">UPCOMING</div>'+upcoming.map(function(s){
+return '<div class="card" style="margin-bottom:8px"><div class="card-p" style="display:flex;align-items:center;gap:12px">' +
+'<div class="si-time"><div class="si-th">'+(s.time||'TBD')+'</div><div class="si-td">'+fmtD(s.date)+'</div></div>' +
+'<div class="si-dot" style="background:'+(s.type==='online'?'#6366f1':'#10b981')+'"></div>' +
+'<div class="si-info"><div class="si-name">'+(s.type==='online'?'Online':'In Person')+'</div>' +
+(s.note?'<div class="si-meta">'+s.note+'</div>':'')+'</div></div></div>';
+}).join(''):'') +
+(done.length>0?'<div class="sect">COMPLETED</div>'+done.slice(0,5).map(function(s){
+return '<div class="card" style="margin-bottom:6px;opacity:.6"><div class="card-p" style="display:flex;align-items:center;gap:10px">' +
+'<div class="si-time"><div style="font-size:10px;color:var(--m2)">'+fmtD(s.date)+'</div></div>' +
+'<div class="si-dot" style="background:var(--m3)"></div>' +
+'<div style="font-size:12px;color:var(--m2)">Completed</div></div></div>';
+}).join(''):'') +
+(sessions.length===0?'<div class="empty">No sessions yet.<br>Ahmed will book these for you.</div>':'');
 }
 
 function renderMyAcct() {
-return ‘<div class="hdr"><div class="hdr-top">’ +
-‘<div><div class="hdr-sub">My Account</div><div class="hdr-title">Account</div></div></div></div>’ +
-‘<div class="page" id="acct_page"><div class="big-bal">’ +
-‘<div style="font-size:10px;color:var(--m1);letter-spacing:2px;margin-bottom:8px">SESSIONS REMAINING</div>’ +
-‘<div id="bal_num" style="font-size:70px;font-weight:900;line-height:1;color:var(--green)">-</div>’ +
-‘<div id="bal_msg" style="font-size:12px;color:var(--m1);margin-top:8px">Loading…</div></div>’ +
-‘<div id="next_sess"></div>’ +
-‘<div class="sect">PAYMENT RECEIPTS</div>’ +
-‘<div id="pay_list"><div class="empty">Loading…</div></div>’ +
-‘</div>’ + cliNav();
+return '<div class="hdr"><div class="hdr-top">' +
+'<div><div class="hdr-sub">My Account</div><div class="hdr-title">Account</div></div></div></div>' +
+'<div class="page" id="acct_page"><div class="big-bal">' +
+'<div style="font-size:10px;color:var(--m1);letter-spacing:2px;margin-bottom:8px">SESSIONS REMAINING</div>' +
+'<div id="bal_num" style="font-size:70px;font-weight:900;line-height:1;color:var(--green)">-</div>' +
+'<div id="bal_msg" style="font-size:12px;color:var(--m1);margin-top:8px">Loading…</div></div>' +
+'<div id="next_sess"></div>' +
+'<div class="sect">PAYMENT RECEIPTS</div>' +
+'<div id="pay_list"><div class="empty">Loading…</div></div>' +
+'</div>' + cliNav();
 }
 function renderMyAcctData() {
-var balEl=document.getElementById(‘bal_num’);
-var msgEl=document.getElementById(‘bal_msg’);
-var nextEl=document.getElementById(‘next_sess’);
-var payEl=document.getElementById(‘pay_list’);
-var trainerClients=DB.get(‘tc’)||{};
+var balEl=document.getElementById('bal_num');
+var msgEl=document.getElementById('bal_msg');
+var nextEl=document.getElementById('next_sess');
+var payEl=document.getElementById('pay_list');
+var trainerClients=DB.get('tc')||{};
 var clientData=trainerClients[S.cid]||{};
 var bal=clientData.balance||0;
-if(balEl){balEl.textContent=bal;balEl.style.color=bal===0?’var(--red)’:bal<=2?’var(--amber)’:’var(--green)’;}
+if(balEl){balEl.textContent=bal;balEl.style.color=bal===0?'var(--red)':bal<=2?'var(--amber)':'var(--green)';}
 if(msgEl){
-if(bal===0)msgEl.textContent=‘No sessions left - please arrange payment with Ahmed’;
-else if(bal<=2)msgEl.textContent=‘Only ‘+bal+’ session’+(bal===1?’’:‘s’)+’ left - time to top up’;
-else msgEl.textContent=‘You have ‘+bal+’ session’+(bal===1?’’:‘s’)+’ with Ahmed’;
+if(bal===0)msgEl.textContent='No sessions left - please arrange payment with Ahmed';
+else if(bal<=2)msgEl.textContent='Only '+bal+' session'+(bal===1?'':'s')+' left - time to top up';
+else msgEl.textContent='You have '+bal+' session'+(bal===1?'':'s')+' with Ahmed';
 }
-var sessions=Object.values(DB.get(‘sessions_’+S.cid)||{}).filter(function(s){return s.status===‘upcoming’;}).sort(function(a,b){return(a.date||’’).localeCompare(b.date||’’);});
-if(nextEl&&sessions.length>0){var s=sessions[0];nextEl.innerHTML=’<div style="padding:13px;background:rgba(236,72,153,.06);border:1px solid rgba(236,72,153,.15);border-radius:13px;text-align:center;margin-bottom:14px"><div style="font-size:10px;color:var(--pink);font-weight:700;letter-spacing:1px;margin-bottom:6px">NEXT SESSION</div><div style="font-size:20px;font-weight:800;color:#fff">’+fmtD(s.date)+(s.time?’ at ‘+s.time:’’)+’</div><div style="font-size:12px;color:var(--m1);margin-top:4px">’+(s.type===‘online’?‘Online’:‘In Person’)+(s.note?’ - ‘+s.note:’’)+’</div></div>’;}
-var pays=Object.values(DB.get(‘payments_’+S.cid)||{}).sort(function(a,b){return b.ts-a.ts;});
+var sessions=Object.values(DB.get('sessions_'+S.cid)||{}).filter(function(s){return s.status==='upcoming';}).sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+if(nextEl&&sessions.length>0){var s=sessions[0];nextEl.innerHTML='<div style="padding:13px;background:rgba(236,72,153,.06);border:1px solid rgba(236,72,153,.15);border-radius:13px;text-align:center;margin-bottom:14px"><div style="font-size:10px;color:var(--pink);font-weight:700;letter-spacing:1px;margin-bottom:6px">NEXT SESSION</div><div style="font-size:20px;font-weight:800;color:#fff">'+fmtD(s.date)+(s.time?' at '+s.time:'')+'</div><div style="font-size:12px;color:var(--m1);margin-top:4px">'+(s.type==='online'?'Online':'In Person')+(s.note?' - '+s.note:'')+'</div></div>';}
+var pays=Object.values(DB.get('payments_'+S.cid)||{}).sort(function(a,b){return b.ts-a.ts;});
 if(payEl){
-if(!pays.length){payEl.innerHTML=’<div class="empty">No payment receipts yet.</div>’;}
-else payEl.innerHTML=’<div class="card"><div class="card-p">’+pays.map(function(p){
-return ‘<div class="pay-row"><div><div style="font-size:14px;font-weight:800;color:var(--green)">+’+p.sessions+’ session’+(p.sessions===1?’’:‘s’)+’ added</div><div class="pay-info">’+fmtD(p.date)+(p.note?’ - ‘+p.note:’’)+’</div></div></div>’;
-}).join(’’)+’</div></div>’;
+if(!pays.length){payEl.innerHTML='<div class="empty">No payment receipts yet.</div>';}
+else payEl.innerHTML='<div class="card"><div class="card-p">'+pays.map(function(p){
+return '<div class="pay-row"><div><div style="font-size:14px;font-weight:800;color:var(--green)">+'+p.sessions+' session'+(p.sessions===1?'':'s')+' added</div><div class="pay-info">'+fmtD(p.date)+(p.note?' - '+p.note:'')+'</div></div></div>';
+}).join('')+'</div></div>';
 }
 }
 
 function renderMsgs() {
-readMsgs(S.cid,‘client’);
-return ‘<div class="hdr"><div class="hdr-top">’ +
-‘<div><div class="hdr-sub">Messages</div><div class="hdr-title">Ahmed</div></div></div></div>’ +
-‘<div class="page">’ +
-‘<div class="chat-wrap" id="msgList">’ +
-(S.msgs.length===0?’<div class="empty">No messages yet.<br>Ahmed's replies appear here.</div>’:’’) +
+readMsgs(S.cid,'client');
+return '<div class="hdr"><div class="hdr-top">' +
+'<div><div class="hdr-sub">Messages</div><div class="hdr-title">Ahmed</div></div></div></div>' +
+'<div class="page">' +
+'<div class="chat-wrap" id="msgList">' +
+(S.msgs.length===0?'<div class="empty">No messages yet.<br>Ahmed&#39;s replies appear here.</div>':'') +
 S.msgs.map(function(m){
-var isMe=m.from===‘client’;
-return ‘<div class="chat-msg '+(isMe?'from-me':'from-them')+'">’ +
-‘<div class="bubble">’+m.text+’</div>’ +
-‘<div class="chat-ts">’+(isMe?‘You’:‘Ahmed’)+’ - ‘+fmtT(m.ts)+’</div></div>’;
-}).join(’’)+’</div>’ +
-‘<div class="chat-bar">’ +
-‘<textarea class="chat-ta" id="cl_msg" placeholder="Message Ahmed..." rows="1"></textarea>’ +
-‘<button class="chat-send" onclick="doCliMsg()">➤</button></div>’ +
-‘</div>’ + cliNav();
+var isMe=m.from==='client';
+return '<div class="chat-msg '+(isMe?'from-me':'from-them')+'">' +
+'<div class="bubble">'+m.text+'</div>' +
+'<div class="chat-ts">'+(isMe?'You':'Ahmed')+' - '+fmtT(m.ts)+'</div></div>';
+}).join('')+'</div>' +
+'<div class="chat-bar">' +
+'<textarea class="chat-ta" id="cl_msg" placeholder="Message Ahmed..." rows="1"></textarea>' +
+'<button class="chat-send" onclick="doCliMsg()">➤</button></div>' +
+'</div>' + cliNav();
 }
-function doCliMsg(){var ta=document.getElementById(‘cl_msg’);if(!ta||!ta.value.trim())return;sendMsg(ta.value,‘client’,null);ta.value=’’;R();}
+function doCliMsg(){var ta=document.getElementById('cl_msg');if(!ta||!ta.value.trim())return;sendMsg(ta.value,'client',null);ta.value='';R();}
 
-function setWk(w){S.week=w;S.aSet=null;var cp=DB.get(‘cp_’+S.cid)||{};cp.week=w;DB.set(‘cp_’+S.cid,cp);R();}
-function setUnit(u){S.unit=u;var cp=DB.get(‘cp_’+S.cid)||{};cp.unit=u;DB.set(‘cp_’+S.cid,cp);R();}
-function selDay(i){S.day=i;S.aSet=null;S.cTab=‘workout’;R();}
+function setWk(w){S.week=w;S.aSet=null;var cp=DB.get('cp_'+S.cid)||{};cp.week=w;DB.set('cp_'+S.cid,cp);R();}
+function setUnit(u){S.unit=u;var cp=DB.get('cp_'+S.cid)||{};cp.unit=u;DB.set('cp_'+S.cid,cp);R();}
+function selDay(i){S.day=i;S.aSet=null;S.cTab='workout';R();}
 function togNote(ei){S.xNote=(S.xNote===ei?-1:ei);R();}
 function togAlt(ei){S.xAlt=(S.xAlt===ei?-1:ei);R();}
-function doSwap(ei,idx){S.swaps[S.day+’_’+ei]=idx;S.xAlt=-1;R();}
+function doSwap(ei,idx){S.swaps[S.day+'_'+ei]=idx;S.xAlt=-1;R();}
 function openSet(ei,si){
 if(S.aSet&&S.aSet.ei===ei&&S.aSet.si===si){S.aSet=null;S.rpe=null;}
 else{S.aSet={ei:ei,si:si};var lg=getL(S.week,S.day,ei,si);S.rpe=lg?lg.rpe:null;}
 R();
-setTimeout(function(){var el=document.getElementById(‘exc_’+ei);if(el){var lp=el.querySelector(‘.lpanel’);if(lp)lp.scrollIntoView({behavior:’smooth’,block:’nearest’});}},60);
+setTimeout(function(){var el=document.getElementById('exc_'+ei);if(el){var lp=el.querySelector('.lpanel');if(lp)lp.scrollIntoView({behavior:'smooth',block:'nearest'});}},60);
 }
-function openYT(n){window.open(‘https://www.youtube.com/results?search_query=’+encodeURIComponent(n+’ exercise form tutorial’),’_blank’);}
+function openYT(n){window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(n+' exercise form tutorial'),'_blank');}
 function doLog(ei,si){
-var w=(document.getElementById(‘inp_w’)||{}).value;
-var r=(document.getElementById(‘inp_r’)||{}).value;
+var w=(document.getElementById('inp_w')||{}).value;
+var r=(document.getElementById('inp_r')||{}).value;
 saveLog(ei,si,w,r,S.rpe);
 S.aSet=null;S.rpe=null;
 var d=getDay();
@@ -1395,49 +1395,49 @@ R();
 if(si+1<sc)setTimeout(function(){S.aSet={ei:ei,si:si+1};S.rpe=null;R();},150);
 }
 function doClear(ei,si){delLog(ei,si);S.aSet=null;S.rpe=null;R();}
-function doExNote(ei){var ta=document.getElementById(‘exn_’+ei);if(!ta)return;saveExNote(ei,ta.value,’client’);R();}
-function doSessNote(){var ta=document.getElementById(‘sn_inp’);if(!ta)return;saveSessNote(ta.value,‘client’);var b=ta.nextElementSibling;if(b){b.textContent=‘Saved!’;setTimeout(function(){b.textContent=‘Save ✓’;},2000);}}
+function doExNote(ei){var ta=document.getElementById('exn_'+ei);if(!ta)return;saveExNote(ei,ta.value,'client');R();}
+function doSessNote(){var ta=document.getElementById('sn_inp');if(!ta)return;saveSessNote(ta.value,'client');var b=ta.nextElementSibling;if(b){b.textContent='Saved!';setTimeout(function(){b.textContent='Save ✓';},2000);}}
 
 function init() {
 try {
-var sess = DB.get(‘sess’);
-if (sess && sess.role === ‘trainer’) {
-S.role=‘trainer’; S.scr=‘trainer’; S.tTab=‘dash’;
+var sess = DB.get('sess');
+if (sess && sess.role === 'trainer') {
+S.role='trainer'; S.scr='trainer'; S.tTab='dash';
 try { loadAll(); } catch(e) { S.clients={}; }
-} else if (sess && sess.role === ‘client’ && sess.cid) {
+} else if (sess && sess.role === 'client' && sess.cid) {
 try {
-var cp = DB.get(‘cp_’ + sess.cid);
+var cp = DB.get('cp_' + sess.cid);
 if (cp) {
-S.role=‘client’; S.scr=‘client’; S.cid=sess.cid;
-S.unit=cp.unit||‘kg’; S.week=cp.week||1;
-S.logs=DB.get(‘logs_’+sess.cid)||{};
-S.exN=DB.get(‘exnotes_’+sess.cid)||{};
-S.sN=DB.get(‘sessnotes_’+sess.cid)||{};
-S.msgs=DB.get(‘msgs_’+sess.cid)||[];
-S.streak=DB.get(‘streak_’+sess.cid)||{cur:0,best:0,lastDate:null};
-S.prs=DB.get(‘prs_’+sess.cid)||{};
-S.unread=S.msgs.filter(function(m){return m.from===‘trainer’&&!m.read;}).length;
-} else { S.scr=‘login’; }
-} catch(e) { S.scr=‘login’; }
-} else { S.scr=‘login’; }
-} catch(e) { S.scr=‘login’; }
+S.role='client'; S.scr='client'; S.cid=sess.cid;
+S.unit=cp.unit||'kg'; S.week=cp.week||1;
+S.logs=DB.get('logs_'+sess.cid)||{};
+S.exN=DB.get('exnotes_'+sess.cid)||{};
+S.sN=DB.get('sessnotes_'+sess.cid)||{};
+S.msgs=DB.get('msgs_'+sess.cid)||[];
+S.streak=DB.get('streak_'+sess.cid)||{cur:0,best:0,lastDate:null};
+S.prs=DB.get('prs_'+sess.cid)||{};
+S.unread=S.msgs.filter(function(m){return m.from==='trainer'&&!m.read;}).length;
+} else { S.scr='login'; }
+} catch(e) { S.scr='login'; }
+} else { S.scr='login'; }
+} catch(e) { S.scr='login'; }
 try { R(); } catch(e) {
-var app=document.getElementById(‘app’);
-if(app) app.innerHTML=’<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#07070e;color:#fff;flex-direction:column;gap:12px;text-align:center"><div style="font-size:48px">🏋</div><div style="font-size:9px;letter-spacing:3px;color:#ec4899;font-weight:700">AHMED PERSONAL TRAINING</div><div style="font-size:24px;font-weight:800">Error loading</div><div style="font-size:13px;color:#8892a4">’+e.message+’</div><button onclick="localStorage.clear();location.reload()" style="padding:12px 24px;background:#6366f1;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px">Reset & Reload</button></div>’;
+var app=document.getElementById('app');
+if(app) app.innerHTML='<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#07070e;color:#fff;flex-direction:column;gap:12px;text-align:center"><div style="font-size:48px">🏋</div><div style="font-size:9px;letter-spacing:3px;color:#ec4899;font-weight:700">AHMED PERSONAL TRAINING</div><div style="font-size:24px;font-weight:800">Error loading</div><div style="font-size:13px;color:#8892a4">'+e.message+'</div><button onclick="localStorage.clear();location.reload()" style="padding:12px 24px;background:#6366f1;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px">Reset & Reload</button></div>';
 }
 }
 setTimeout(function() {
-var app = document.getElementById(‘app’);
-if (app && app.innerHTML.indexOf(‘Loading’) !== -1) {
-S.scr = ‘login’;
+var app = document.getElementById('app');
+if (app && app.innerHTML.indexOf('Loading') !== -1) {
+S.scr = 'login';
 try { R(); } catch(e) {
-app.innerHTML = ‘<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#07070e;color:#fff;flex-direction:column;gap:16px;text-align:center"><div style="font-size:48px">🏋</div><div style="font-size:9px;letter-spacing:3px;color:#ec4899;font-weight:700">AHMED PERSONAL TRAINING</div><div style="font-size:22px;font-weight:800;color:#fff">Welcome</div><div style="font-size:13px;color:#8892a4;line-height:1.6">App loaded. Please reload the page.</div><button onclick="location.reload()" style="padding:14px 28px;background:#6366f1;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer">Reload App</button></div>’;
+app.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#07070e;color:#fff;flex-direction:column;gap:16px;text-align:center"><div style="font-size:48px">🏋</div><div style="font-size:9px;letter-spacing:3px;color:#ec4899;font-weight:700">AHMED PERSONAL TRAINING</div><div style="font-size:22px;font-weight:800;color:#fff">Welcome</div><div style="font-size:13px;color:#8892a4;line-height:1.6">App loaded. Please reload the page.</div><button onclick="location.reload()" style="padding:14px 28px;background:#6366f1;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer">Reload App</button></div>';
 }
 }
 }, 3000);
 
-if (document.readyState === ‘loading’) {
-document.addEventListener(‘DOMContentLoaded’, init);
+if (document.readyState === 'loading') {
+document.addEventListener('DOMContentLoaded', init);
 } else {
 init();
 }

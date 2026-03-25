@@ -221,6 +221,19 @@ var EX_LIB = [
 {n:"Sled Push",m:"Quads, Glutes, Calves",t:"Finisher",sets:4,r:"20m",rest:"90s",note:""}
 ];
 
+var PLANS = {
+free:{name:'Starter',price:0,clientLimit:3,features:{programBuilder:false,paymentTracking:false,messaging:true,analytics:false,scheduling:true,export:false,templates:false}},
+pro:{name:'Pro',price:29,currency:'GBP',clientLimit:999,features:{programBuilder:true,paymentTracking:true,messaging:true,analytics:true,scheduling:true,export:true,templates:true}},
+business:{name:'Business',price:79,currency:'GBP',clientLimit:999,features:{programBuilder:true,paymentTracking:true,messaging:true,analytics:true,scheduling:true,export:true,templates:true,whiteLabel:true,multiTrainer:true}}
+};
+var CLIENT_PREMIUM = {price:4.99,currency:'GBP',features:{badges:true,detailedAnalytics:true,bodyComposition:true,dailyTips:true,progressExport:true,extendedHistory:true}};
+var CHECKOUT_URLS = {
+pro_monthly:'https://buy.stripe.com/YOUR_PRO_MONTHLY_LINK',
+pro_annual:'https://buy.stripe.com/YOUR_PRO_ANNUAL_LINK',
+business_monthly:'https://buy.stripe.com/YOUR_BUSINESS_LINK',
+client_premium:'https://buy.stripe.com/YOUR_CLIENT_PREMIUM_LINK'
+};
+
 var FB_CONFIG = {
 apiKey: "AIzaSyBdCybj28adk2cmfFkMsmNwsKRWuOE3Bcc",
 authDomain: "ahmed-pt-app-1ef9a.firebaseapp.com",
@@ -291,8 +304,97 @@ day: 0, week: 1, unit: 'kg',
 aSet: null, xNote: -1, xAlt: -1, rpe: null, swaps: {},
 logs: {}, exN: {}, sN: {}, msgs: [], streak: {cur:0,best:0,lastDate:null}, prs: {},
 clients: {}, unread: 0, expS: {}, cliData: {},
-restTimer: {secs:0, iv:null}
+restTimer: {secs:0, iv:null},
+sub: {plan:'pro', status:'trial', trialEndsAt:null, currentPeriodEnd:null},
+clientPremium: false,
+referralCode: null
 };
+
+function getPlan() { return PLANS[S.sub.plan] || PLANS.free; }
+function trialExpired() { return S.sub.trialEndsAt ? Date.now() > S.sub.trialEndsAt : false; }
+function canUse(feature) {
+if (S.sub.status === 'trial' && !trialExpired()) return true;
+return getPlan().features[feature] === true;
+}
+function canAddClient() {
+if (S.sub.status === 'trial' && !trialExpired()) return true;
+return Object.keys(S.clients).length < getPlan().clientLimit;
+}
+function daysRemaining() {
+var end = S.sub.status === 'trial' ? S.sub.trialEndsAt : S.sub.currentPeriodEnd;
+if (!end) return null;
+return Math.max(0, Math.ceil((end - Date.now()) / 86400000));
+}
+function clientHasPremium() { return S.clientPremium === true; }
+function generateReferralCode(name) {
+var prefix = name.replace(/[^a-zA-Z]/g,'').toUpperCase().substring(0,3) || 'APT';
+var suffix = Math.floor(Math.random() * 900 + 100).toString();
+return prefix + suffix;
+}
+function loadSubscription() {
+var cached = DB.get('sub_cache');
+if (cached) S.sub = cached;
+if (!DB._fb) return;
+var tr = DB.get('trainer'); var uid = tr ? tr.uid : null; if (!uid) return;
+DB._fb.ref('trainerConfig/subscription').once('value').then(function(snap) {
+var sub = snap.val();
+if (sub) { S.sub = sub; DB.set('sub_cache', sub); }
+else {
+var trial = {plan:'pro',status:'trial',trialEndsAt:Date.now()+1209600000,currentPeriodEnd:null,updatedAt:Date.now()};
+S.sub = trial; DB._fb.ref('trainerConfig/subscription').set(trial).catch(function(){}); DB.set('sub_cache', trial);
+}
+S.referralCode = DB.get('referral_code') || null;
+R();
+}).catch(function(){});
+}
+function loadClientPremium(cid) {
+var cached = DB.get('premium_' + cid);
+if (cached !== null) S.clientPremium = !!cached;
+if (!DB._fb) return;
+DB._fb.ref('clients/' + cid + '/premium').once('value').then(function(snap) {
+var p = snap.val();
+if (p && p.active) {
+S.clientPremium = !p.expiresAt || p.expiresAt > Date.now();
+if (!S.clientPremium) DB._fb.ref('clients/' + cid + '/premium/active').set(false).catch(function(){});
+} else { S.clientPremium = false; }
+DB.set('premium_' + cid, S.clientPremium); R();
+}).catch(function(){});
+}
+function setupReferral(uid, name, usedCode) {
+var code = generateReferralCode(name);
+S.referralCode = code; DB.set('referral_code', code);
+if (!DB._fb) return;
+DB._fb.ref('referrals/' + code).set({trainerUid:uid,trainerName:name,createdAt:Date.now()}).catch(function(){});
+DB._fb.ref('trainerConfig/referralCode').set(code).catch(function(){});
+if (usedCode) DB._fb.ref('referrals/' + usedCode + '/usedBy/' + uid).set(Date.now()).catch(function(){});
+}
+function trackUsage(event) {
+if (!DB._fb) return;
+var tr = DB.get('trainer'); var uid = tr ? tr.uid : null; if (!uid) return;
+var month = new Date().toISOString().substring(0,7);
+var upd = {}; upd[event] = firebase.database.ServerValue.increment(1); upd.lastSeen = Date.now();
+DB._fb.ref('analytics/' + uid + '/' + month).update(upd).catch(function(){});
+}
+function goToCheckout(plan) {
+var url = CHECKOUT_URLS[plan + '_monthly'];
+if (url && url.indexOf('YOUR') === -1) window.open(url, '_blank');
+else toast('Contact Ahmed to upgrade your plan', 'info');
+}
+function goToClientCheckout() {
+var url = CHECKOUT_URLS['client_premium'];
+if (url && url.indexOf('YOUR') === -1) window.open(url, '_blank');
+else toast('Contact Ahmed to upgrade', 'info');
+}
+function toggleClientPremium(cid, currentlyActive) {
+var ns = {active:!currentlyActive,grantedBy:'trainer',expiresAt:null,updatedAt:Date.now()};
+if (DB._fb) DB._fb.ref('clients/' + cid + '/premium').set(ns).catch(function(){});
+DB.set('premium_' + cid, !currentlyActive);
+if (S.cliData[cid]) S.cliData[cid].premium = ns;
+toast(!currentlyActive ? 'Premium granted to client' : 'Premium revoked', 'ok'); R();
+}
+function copyReferralCode() {
+if (S.referralCode && navigator.clipboard) { navigator.clipboard.writeText(S.referralCode); toast('Referral code copied', 'ok'); }
+}
 
 function parseRest(s) {
 if (!s) return 90;
@@ -473,6 +575,7 @@ updStreak();
 DB.set('logs_' + S.cid, S.logs);
 DB.set('streak_' + S.cid, S.streak);
 DB.set('prs_' + S.cid, S.prs);
+trackUsage('sessionsLogged');
 }
 function delLog(ei, si) {
 var key = lk(S.week, S.day, ei, si);
@@ -502,6 +605,7 @@ if (from === 'trainer' && S.cliData[cid]) {
 S.cliData[cid].messages = S.cliData[cid].messages || {};
 S.cliData[cid].messages[msg.id] = msg;
 }
+trackUsage('messagesSent');
 }
 function readMsgs(cid, role) {
 var other = role === 'trainer' ? 'client' : 'trainer';
@@ -548,6 +652,7 @@ S.clients[cid].balance = (S.clients[cid].balance || 0) + sessions;
 if (!S.clients[cid].payments) S.clients[cid].payments = {};
 S.clients[cid].payments[pay.id] = pay;
 DB.set('tc', S.clients);
+trackUsage('paymentsLogged');
 toast('Payment logged - +' + sessions + ' sessions added', 'ok');
 R();
 }
@@ -639,8 +744,10 @@ return '<div class="row"><div class="lbl">PIN</div>' +
 '<div style="font-size:11px;color:var(--m2);margin-bottom:12px;font-weight:600">FIRST TIME - CREATE ACCOUNT</div>' +
 '<div class="row"><div class="lbl">Your Name</div><input class="inp" id="tname" placeholder="e.g. Ahmed"></div>' +
 '<div class="row"><div class="lbl">Create PIN (4 digits)</div><input class="inp" id="tnewpin" type="tel" maxlength="4" placeholder="Choose a PIN" inputmode="numeric"></div>' +
+'<div class="row"><div class="lbl">Referral Code (optional)</div><input class="inp" id="t_refcode" placeholder="e.g. AHM001" style="text-transform:uppercase"></div>' +
 '<div id="tcreate_err"></div>' +
-'<button class="btn btn-green" onclick="doTCreate()">CREATE ACCOUNT →</button></div>' : '');
+'<button class="btn btn-green" onclick="doTCreate()">CREATE ACCOUNT →</button>' +
+'<div style="font-size:10px;color:var(--m2);text-align:center;margin-top:6px">14-day free trial &#8212; no card required</div></div>' : '');
 }
 function renderClientLogin() {
 return '<div class="row"><div class="lbl">Your Name</div>' +
@@ -654,12 +761,15 @@ return '<div class="row"><div class="lbl">Your Name</div>' +
 function doTCreate() {
 var name = (document.getElementById('tname') || {}).value || '';
 var pin = (document.getElementById('tnewpin') || {}).value || '';
+var refCode = ((document.getElementById('t_refcode')||{}).value||'').trim().toUpperCase();
 name = name.trim(); pin = pin.trim();
 var err = document.getElementById('tcreate_err');
 if (!name) { if(err) err.innerHTML='<div class="err-msg">Enter your name</div>'; return; }
 if (pin.length < 4) { if(err) err.innerHTML='<div class="err-msg">PIN must be 4 digits</div>'; return; }
-DB.set('trainer', {name:name, pin:pin});
+var uid = 'tr_' + Date.now();
+DB.set('trainer', {name:name, pin:pin, uid:uid});
 enterTrainer();
+setTimeout(function(){ setupReferral(uid, name, refCode || null); }, 1000);
 }
 function doTLogin() {
 var pin = ((document.getElementById('tpin')||{}).value||'').trim();
@@ -673,6 +783,8 @@ function enterTrainer() {
 S.role='trainer'; S.scr='trainer'; S.tTab='dash';
 DB.set('sess', {role:'trainer'});
 loadAll();
+S.referralCode = DB.get('referral_code') || null;
+loadSubscription();
 R();
 }
 function doCLogin() {
@@ -702,6 +814,7 @@ S.streak=DB.get('streak_'+cid)||{cur:0,best:0,lastDate:null};
 S.prs=DB.get('prs_'+cid)||{};
 S.unread=S.msgs.filter(function(m){return m.from==='trainer'&&!m.read;}).length;
 DB.set('sess', {role:'client', cid:cid});
+loadClientPremium(cid);
 R();
 }
 function doLogout() {
@@ -714,16 +827,22 @@ function renderTrainer() {
 if (S.vCli) return renderCliDetail();
 if (S.tTab === 'dash') return renderDash();
 if (S.tTab === 'clients') return renderClients();
+if (S.tTab === 'chats') return renderTrainerChats();
 if (S.tTab === 'sched') return renderSched();
 if (S.tTab === 'finance') return renderFinance();
 return renderDash();
 }
 function trNav() {
-var tabs = [{id:'dash',icon:'📊',lbl:'Overview'},{id:'clients',icon:'👥',lbl:'Clients'},{id:'sched',icon:'📅',lbl:'Schedule'},{id:'finance',icon:'💰',lbl:'Finance'}];
+var totalUnread = Object.keys(S.clients).reduce(function(acc, cid) {
+var msgs = DB.get('msgs_'+cid)||[];
+return acc + msgs.filter(function(m){return m.from==='client'&&!m.read;}).length;
+}, 0);
+var tabs = [{id:'dash',icon:'&#128202;',lbl:'Overview'},{id:'clients',icon:'&#128101;',lbl:'Clients'},{id:'chats',icon:'&#128172;',lbl:'Chats',badge:totalUnread},{id:'sched',icon:'&#128197;',lbl:'Schedule'},{id:'finance',icon:'&#128176;',lbl:'Finance'}];
 return '<nav class="bnav">' + tabs.map(function(t){
 var on = S.tTab===t.id && !S.vCli;
-return '<button class="nb'+(on?' on':'')+'" onclick="S.tTab=\''+t.id+'\';S.vCli=null;R()"><span class="nbi">'+t.icon+'</span>'+t.lbl+'</button>';
-}).join('') + '<button class="nb" onclick="doLogout()"><span class="nbi">🚪</span>Logout</button></nav>';
+var badge = t.badge&&t.badge>0?'<span class="nbd">'+t.badge+'</span>':'';
+return '<button class="nb'+(on?' on':'')+'" onclick="S.tTab=\''+t.id+'\';S.vCli=null;R()"><span class="nbi">'+t.icon+'</span>'+badge+t.lbl+'</button>';
+}).join('') + '<button class="nb" onclick="doLogout()"><span class="nbi">&#128682;</span>Logout</button></nav>';
 }
 
 function getUpcoming() {
@@ -755,6 +874,142 @@ else if (bal<=2) alerts.push({cid:cid,name:c.name,type:'low',msg:'Only '+bal+' s
 return {rev:rev, sessDone:sessDone, needPay:needPay, alerts:alerts};
 }
 
+function showUpgradeModal(reason) {
+var reasons = {
+clientLimit:{title:'Client Limit Reached',msg:'The free plan includes up to 3 clients. Upgrade to Pro for unlimited clients.',icon:'&#128101;'},
+programBuilder:{title:'Pro Feature',msg:'The program builder is available on the Pro plan. Build and save unlimited custom programs.',icon:'&#128170;'},
+paymentTracking:{title:'Pro Feature',msg:'Payment tracking and revenue analytics are available on the Pro plan.',icon:'&#128176;'},
+analytics:{title:'Pro Feature',msg:'Detailed client analytics are available on the Pro plan.',icon:'&#128200;'},
+trial:{title:'Upgrade to Pro',msg:'Keep all Pro features after your trial ends.',icon:'&#11088;'},
+expired:{title:'Trial Expired',msg:'Upgrade to restore access to all Pro features.',icon:'&#9203;'}
+};
+var r=reasons[reason]||{title:'Pro Feature',msg:'Upgrade to unlock this feature.',icon:'&#11088;'};
+var days=daysRemaining();
+var trialMsg=S.sub.status==='trial'&&days>0?'<div style="font-size:12px;color:var(--amber);margin-bottom:16px">Trial ends in '+days+' day'+(days===1?'':'s')+'</div>':'';
+showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
+'<div style="text-align:center;padding:10px 0 20px">' +
+'<div style="font-size:48px;margin-bottom:12px">'+r.icon+'</div>' +
+'<div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:8px">'+r.title+'</div>' +
+trialMsg +
+'<div style="font-size:13px;color:var(--m1);line-height:1.6;margin-bottom:20px">'+r.msg+'</div>' +
+'<div style="background:var(--c2);border-radius:12px;padding:14px;margin-bottom:14px;text-align:left">' +
+'<div style="font-size:11px;font-weight:800;letter-spacing:1px;color:var(--acc);margin-bottom:8px">PRO PLAN &#8212; &#163;29/MONTH</div>' +
+'<div style="font-size:12px;color:var(--m1);line-height:1.9">&#10003; Unlimited clients<br>&#10003; Full program builder<br>&#10003; Payment tracking<br>&#10003; Revenue analytics<br>&#10003; Saved templates<br>&#10003; Client messaging</div>' +
+'</div>' +
+'<button class="btn btn-acc" onclick="goToCheckout(\'pro\')" style="margin-bottom:8px">UPGRADE TO PRO &#8212; &#163;29/mo</button>' +
+'<button class="btn btn-ghost" onclick="closeModal()">Maybe later</button>' +
+'</div></div></div>');
+}
+function renderLockedFeature(feature) {
+var names={paymentTracking:'Payment Tracking',analytics:'Analytics',programBuilder:'Program Builder',templates:'Program Templates',export:'Export'};
+return '<div class="page"><div style="text-align:center;padding:48px 20px">' +
+'<div style="font-size:48px;margin-bottom:16px">&#128274;</div>' +
+'<div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:8px">'+(names[feature]||'Pro Feature')+'</div>' +
+'<div style="font-size:13px;color:var(--m1);line-height:1.6;margin-bottom:24px">This feature is available on the Pro plan.<br>Upgrade to unlock unlimited access.</div>' +
+'<button class="btn btn-acc" onclick="showUpgradeModal(\''+feature+'\')" style="max-width:300px;margin:0 auto 8px">See Pro Features</button>' +
+'<button class="btn btn-ghost" style="max-width:300px;margin:0 auto" onclick="S.tTab=\'dash\';R()">Back to Dashboard</button>' +
+'</div></div>' + trNav();
+}
+function renderClientUpgrade() {
+return '<div style="text-align:center;padding:28px 16px;background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(236,72,153,.05));border:1px solid rgba(99,102,241,.2);border-radius:14px;margin-bottom:14px">' +
+'<div style="font-size:36px;margin-bottom:10px">&#11088;</div>' +
+'<div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:8px">Premium Feature</div>' +
+'<div style="font-size:13px;color:var(--m1);line-height:1.6;margin-bottom:16px">Unlock detailed progress charts, milestone badges, body composition tracking and more.</div>' +
+'<div style="background:var(--c2);border-radius:12px;padding:12px 14px;margin-bottom:14px;text-align:left">' +
+'<div style="font-size:11px;font-weight:800;letter-spacing:1px;color:var(--pink);margin-bottom:8px">PREMIUM &#8212; &#163;4.99/MONTH</div>' +
+'<div style="font-size:12px;color:var(--m1);line-height:1.9">&#10003; Detailed progress analytics<br>&#10003; Milestone badges<br>&#10003; Body composition tracker<br>&#10003; Daily coaching tips<br>&#10003; Export progress<br>&#10003; Extended workout history</div>' +
+'</div>' +
+'<button class="btn" style="background:var(--pink);margin-bottom:8px" onclick="goToClientCheckout()">UPGRADE &#8212; &#163;4.99/mo</button>' +
+'<div style="font-size:11px;color:var(--m2);margin-top:6px">Or ask Ahmed to include Premium in your package</div>' +
+'</div>';
+}
+function renderSubBanner() {
+var days=daysRemaining();
+if (S.sub.status==='trial'&&days>0) {
+return '<div style="background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.25);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">' +
+'<div><div style="font-size:12px;font-weight:700;color:var(--acc)">Pro Trial Active</div>' +
+'<div style="font-size:10px;color:var(--m1)">'+days+' day'+(days===1?'':'s')+' remaining</div></div>' +
+'<button class="btn-sm btn-acc" onclick="showUpgradeModal(\'trial\')">Upgrade</button></div>';
+}
+if (S.sub.status==='trial'&&days===0) {
+return '<div class="alert alert-red" style="margin-bottom:14px">' +
+'<div style="font-size:18px">&#9888;</div>' +
+'<div style="flex:1"><div style="font-weight:700;font-size:13px;color:#fff">Trial Expired</div>' +
+'<div style="font-size:11px;color:var(--m1)">Upgrade to keep Pro features</div></div>' +
+'<button class="btn-sm btn-acc" onclick="showUpgradeModal(\'expired\')">Upgrade</button></div>';
+}
+if (S.sub.status==='active'&&days!==null&&days<=7) {
+return '<div class="alert alert-amber" style="margin-bottom:14px">' +
+'<div style="font-size:18px">&#9203;</div>' +
+'<div style="flex:1"><div style="font-weight:700;font-size:13px;color:#fff">Renews in '+days+' day'+(days===1?'':'s')+'</div>' +
+'<div style="font-size:11px;color:var(--m1)">Ensure payment method is up to date</div></div></div>';
+}
+return '';
+}
+function renderReferralCard() {
+if (!S.referralCode) return '';
+return '<div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:12px;padding:12px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">' +
+'<div><div style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:var(--green);margin-bottom:4px">YOUR REFERRAL CODE</div>' +
+'<div style="font-size:22px;font-weight:900;color:#fff;letter-spacing:4px">'+S.referralCode+'</div>' +
+'<div style="font-size:10px;color:var(--m1);margin-top:2px">Both get 1 month free when a trainer signs up</div></div>' +
+'<button class="btn-sm btn-green" onclick="copyReferralCode()">Copy</button>' +
+'</div>';
+}
+function renderAIInsights() {
+var cs=Object.entries(S.clients); if(!cs.length)return'';
+var insights=[];
+var best=null, bestStreak=0;
+cs.forEach(function(e){var str=(e[1].streak||{}).cur||0;if(str>bestStreak){bestStreak=str;best=e;}});
+if(best&&bestStreak>1)insights.push({c:'green',icon:'&#128293;',text:best[1].name+' is your most consistent client &#8212; '+bestStreak+'-day streak. Great work!'});
+var falling=cs.filter(function(e){
+var last=e[1].lastActive; if(!last)return false;
+return(new Date(today())-new Date(last))/86400000>=5;
+});
+if(falling.length)insights.push({c:'amber',icon:'&#9888;',text:falling.map(function(e){return e[1].name;}).join(', ')+' &#8212; no training in 5+ days. Send a check-in message.'});
+var noPay=cs.filter(function(e){return(e[1].balance||0)===0;});
+if(noPay.length)insights.push({c:'red',icon:'&#128179;',text:noPay.map(function(e){return e[1].name;}).join(', ')+' &#8212; out of sessions. Request payment now.'});
+var newClients=cs.filter(function(e){
+var logs=DB.get('logs_'+e[0]);
+return!logs||Object.keys(logs).length===0;
+});
+if(newClients.length)insights.push({c:'blue',icon:'&#128221;',text:newClients[0][1].name+(newClients.length>1?' and '+(newClients.length-1)+' others':'')+' &#8212; no workouts logged yet. Set up a program and send a message.'});
+if(!insights.length)insights.push({c:'green',icon:'&#9989;',text:'All clients are active and sessions are up to date. Nice work!'});
+return '<div class="sect">AI INSIGHTS</div>'+insights.map(function(ins){
+var bc=ins.c==='green'?'rgba(16,185,129,.08)':ins.c==='red'?'rgba(239,68,68,.08)':ins.c==='blue'?'rgba(99,102,241,.08)':'rgba(245,158,11,.08)';
+var bdr=ins.c==='green'?'rgba(16,185,129,.2)':ins.c==='red'?'rgba(239,68,68,.2)':ins.c==='blue'?'rgba(99,102,241,.2)':'rgba(245,158,11,.2)';
+var tc=ins.c==='green'?'#34d399':ins.c==='red'?'#f87171':ins.c==='blue'?'#818cf8':'var(--amber)';
+return '<div style="background:'+bc+';border:1px solid '+bdr+';border-radius:10px;padding:10px 13px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start">' +
+'<div style="font-size:18px;flex-shrink:0">'+ins.icon+'</div>' +
+'<div style="font-size:12px;color:'+tc+';line-height:1.5;font-weight:600">'+ins.text+'</div></div>';
+}).join('');
+}
+function renderTrainerChats() {
+var cs=Object.entries(S.clients);
+var allChats=cs.map(function(e){
+var cid=e[0], c=e[1];
+var msgs=DB.get('msgs_'+cid)||[];
+var last=msgs.length?msgs[msgs.length-1]:null;
+var unread=msgs.filter(function(m){return m.from==='client'&&!m.read;}).length;
+return {cid:cid,name:c.name,last:last,unread:unread};
+}).filter(function(x){return x.last;}).sort(function(a,b){return(b.last?b.last.ts:0)-(a.last?a.last.ts:0);});
+return '<div class="hdr"><div class="hdr-top">' +
+'<div><div class="hdr-sub">Messages</div><div class="hdr-title">Client Chats</div></div></div></div>' +
+'<div class="page">' +
+(allChats.length===0?'<div class="empty">No messages yet.<br>Start a conversation from a client profile.</div>':
+allChats.map(function(x){
+return '<div class="ccard" onclick="openCli(\''+x.cid+'\');S.cliTab=\'chat\';R()" style="display:flex;align-items:center;gap:12px">' +
+'<div style="width:40px;height:40px;border-radius:50%;background:rgba(99,102,241,.2);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--acc);flex-shrink:0">'+x.name.charAt(0).toUpperCase()+'</div>' +
+'<div style="flex:1;min-width:0">' +
+'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">' +
+'<div class="cname" style="font-size:14px">'+x.name+'</div>' +
+'<div style="font-size:10px;color:var(--m2)">'+fmtT(x.last.ts)+'</div></div>' +
+'<div style="font-size:12px;color:var(--m1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px">'+(x.last.from==='trainer'?'You: ':'')+x.last.text+'</div>' +
+'</div>' +
+(x.unread>0?'<div style="width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+x.unread+'</div>':'') +
+'</div>';
+}).join('')) +
+'</div>' + trNav();
+}
 function renderDash() {
 var ms = monthStats();
 var up = getUpcoming().slice(0,5);
@@ -763,6 +1018,7 @@ return '<div class="hdr"><div class="hdr-top">' +
 '<div style="font-size:11px;color:var(--m1);font-weight:600">'+fmtMon(today())+'</div>' +
 '</div></div>' +
 '<div class="page">' +
+renderSubBanner() +
 '<div class="sgrid">' +
 '<div class="scard"><div class="sv" style="color:var(--green)">'+currSym()+ms.rev.toLocaleString()+'</div><div class="sl">This Month</div><div class="ss">'+Object.keys(S.clients).length+' clients</div></div>' +
 '<div class="scard"><div class="sv" style="color:var(--blue)">'+ms.sessDone+'</div><div class="sl">Sessions Done</div><div class="ss">This month</div></div>' +
@@ -771,12 +1027,14 @@ return '<div class="hdr"><div class="hdr-top">' +
 '</div>' +
 ms.alerts.map(function(a){
 return '<div class="alert alert-'+(a.type==='zero'?'red':'amber')+'" onclick="openCli(\''+a.cid+'\')">' +
-'<div style="font-size:20px">'+(a.type==='zero'?'🚨':'⚠️')+'</div>' +
+'<div style="font-size:20px">'+(a.type==='zero'?'&#128680;':'&#9888;&#65039;')+'</div>' +
 '<div style="flex:1"><div style="font-weight:700;font-size:13px;color:#fff">'+a.name+'</div><div style="font-size:11px;color:var(--m1)">'+a.msg+'</div></div>' +
-'<div style="font-size:12px;color:var(--m2)">→</div></div>';
+'<div style="font-size:12px;color:var(--m2)">&#8594;</div></div>';
 }).join('') +
+renderAIInsights() +
 (up.length>0?'<div class="sect">TODAY&#39;S SESSIONS</div><div class="card"><div class="card-p">'+
 up.map(function(s){return sessRow(s);}).join('')+'</div></div>':'<div class="empty">No upcoming sessions.<br>Book from a client profile.</div>') +
+renderReferralCard() +
 '</div>' + trNav();
 }
 function sessRow(s) {
@@ -842,6 +1100,7 @@ fut.map(function(s){return '<div class="card" style="margin-bottom:8px"><div cla
 }
 
 function renderFinance() {
+if (!canUse('paymentTracking')) return renderLockedFeature('paymentTracking');
 var cs = Object.entries(S.clients);
 var now = new Date();
 var mn = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
@@ -879,7 +1138,7 @@ rows.map(function(c){ return '<div class="ccard" onclick="openCli(\''+c.cid+'\')
 
 function openAddClient() {
 showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
-'<div class="modal-title">Add Client <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">×</button></div>' +
+'<div class="modal-title">Add Client <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>' +
 '<div class="row"><div class="lbl">Name</div><input class="inp" id="nc_n" placeholder="e.g. Sarah"></div>' +
 '<div class="row"><div class="lbl">Type</div><select class="sel" id="nc_t"><option value="inperson">In-Person</option><option value="online">Online</option></select></div>' +
 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
@@ -887,22 +1146,39 @@ showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" o
 '<div><div class="lbl">Rate per session</div><input class="inp" id="nc_r" type="number" placeholder="e.g. 60" inputmode="decimal" style="margin-bottom:0"></div>' +
 '</div>' +
 '<div class="row"><div class="lbl">PIN (4 digits)</div><input class="inp" id="nc_p" type="tel" maxlength="4" placeholder="e.g. 1234" inputmode="numeric"></div>' +
+'<div style="border-top:1px solid var(--bdr);margin:12px 0 12px;padding-top:12px">' +
+'<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--acc);margin-bottom:10px">INTAKE QUESTIONNAIRE</div>' +
+'<div class="row"><div class="lbl">Primary Goal</div><select class="sel" id="nc_goal"><option value="">Select goal...</option><option value="lose_fat">Lose Fat</option><option value="build_muscle">Build Muscle</option><option value="tone">Tone &amp; Lean Up</option><option value="strength">Get Stronger</option><option value="fitness">General Fitness</option><option value="sport">Sport Performance</option><option value="rehab">Rehabilitation</option></select></div>' +
+'<div class="row"><div class="lbl">Experience Level</div><select class="sel" id="nc_exp"><option value="beginner">Beginner (0-1 yr)</option><option value="intermediate">Intermediate (1-3 yrs)</option><option value="advanced">Advanced (3+ yrs)</option></select></div>' +
+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
+'<div><div class="lbl">Current Body Weight</div><input class="inp" id="nc_bw" type="number" placeholder="e.g. 80" inputmode="decimal" style="margin-bottom:0"></div>' +
+'<div><div class="lbl">Target Weight (optional)</div><input class="inp" id="nc_tw" type="number" placeholder="e.g. 75" inputmode="decimal" style="margin-bottom:0"></div>' +
+'</div>' +
+'<div class="row"><div class="lbl">Injuries / Limitations (optional)</div><input class="inp" id="nc_inj" placeholder="e.g. Lower back pain, bad knees"></div>' +
+'</div>' +
 '<div id="nc_err"></div>' +
-'<button class="btn btn-green" onclick="doAddClient()">ADD CLIENT →</button>' +
+'<button class="btn btn-green" onclick="doAddClient()">ADD CLIENT &#8594;</button>' +
 '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
 '</div></div>');
 }
 function doAddClient() {
+if (!canAddClient()) { showUpgradeModal('clientLimit'); return; }
 var name = ((document.getElementById('nc_n')||{}).value||'').trim();
 var type = (document.getElementById('nc_t')||{}).value||'inperson';
 var curr = (document.getElementById('nc_c')||{}).value||'GBP';
 var rate = parseFloat((document.getElementById('nc_r')||{}).value||'0')||0;
 var pin = ((document.getElementById('nc_p')||{}).value||'').trim();
+var goal = (document.getElementById('nc_goal')||{}).value||'';
+var exp = (document.getElementById('nc_exp')||{}).value||'beginner';
+var bw = parseFloat((document.getElementById('nc_bw')||{}).value||'0')||0;
+var tw = parseFloat((document.getElementById('nc_tw')||{}).value||'0')||0;
+var inj = ((document.getElementById('nc_inj')||{}).value||'').trim();
 var err = document.getElementById('nc_err');
 if (!name) { if(err) err.innerHTML='<div class="err-msg">Enter client name</div>'; return; }
 if (pin.length<4) { if(err) err.innerHTML='<div class="err-msg">PIN must be 4 digits</div>'; return; }
 var cid = name.toLowerCase().replace(/[^a-z0-9]/g,'*') + '*' + Date.now();
-var data = {name:name, type:type, currency:curr, rate:rate, pin:pin, unit:'kg', week:1, currentProgId:null};
+var intake = {goal:goal, experience:exp, bodyWeight:bw||null, targetWeight:tw||null, injuries:inj||null, addedAt:Date.now()};
+var data = {name:name, type:type, currency:curr, rate:rate, pin:pin, unit:'kg', week:1, currentProgId:null, intake:intake};
 DB.set('cp_'+cid, data);
 S.clients[cid] = {name:name, type:type, currency:curr, rate:rate, balance:0, streak:{cur:0}, msgCount:0, sessions:{}, payments:{}};
 DB.set('tc', S.clients);
@@ -1110,11 +1386,25 @@ return '<div class="si">' +
 }).join('')+'</div></div>');
 }
 
+function renderPremiumToggle(cid, cd) {
+var premData = (cd&&cd.premium)||{};
+var active = premData.active===true && (!premData.expiresAt||premData.expiresAt>Date.now());
+return '<div class="sect">CLIENT PREMIUM</div>' +
+'<div class="card"><div class="card-p">' +
+'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
+'<div><div style="font-size:13px;font-weight:700;color:#fff">Premium Access</div>' +
+'<div style="font-size:11px;color:var(--m1);margin-top:2px">Badges, detailed analytics, body tracking &amp; more</div></div>' +
+'<span class="pill '+(active?'p-green':'p-gray')+'">'+(active?'Active':'Inactive')+'</span>' +
+'</div>' +
+'<button class="btn '+(active?'btn-red':'btn-acc')+' btn-sm" style="width:100%;padding:9px;font-size:12px" onclick="toggleClientPremium(\''+cid+'\','+active+')">'+
+(active?'Revoke Premium':'Grant Premium (Free)')+'</button>' +
+'</div></div>';
+}
 function renderCliPay(cid, cd, c) {
 var bal=c.balance||0;
 var pays=Object.values(cd.payments||{}).sort(function(a,b){return b.ts-a.ts;});
 return (bal<=2?'<div class="alert alert-'+(bal===0?'red':'amber')+'">' +
-'<div style="font-size:20px">'+(bal===0?'🚨':'⚠️')+'</div>' +
+'<div style="font-size:20px">'+(bal===0?'&#128680;':'&#9888;&#65039;')+'</div>' +
 '<div style="flex:1"><div style="font-weight:700;font-size:13px;color:#fff">'+(bal===0?'No sessions left':'Running low')+'</div>' +
 '<div style="font-size:11px;color:var(--m1)">Send a payment reminder</div></div>' +
 '<button class="btn-sm btn-red" onclick="sendPayReminder(\''+cid+'\')">Remind</button></div>':'') +
@@ -1128,8 +1418,9 @@ return '<div class="pay-row"><div><div class="pay-amt">+'+currSym(cid)+p.amount+
 '<div class="row"><div class="lbl">Amount ('+currSym(cid)+')</div><input class="inp" id="pp_amt" type="number" placeholder="e.g. 240" inputmode="decimal"></div>' +
 '<div class="row"><div class="lbl">Note (optional)</div><input class="inp" id="pp_note" placeholder="e.g. Bank transfer"></div>' +
 '<div style="font-size:11px;color:var(--m1);margin-bottom:10px;padding:7px 10px;background:var(--c2);border-radius:8px">Rate: '+currSym(cid)+(c.rate||0)+'/session - amount divided by rate = sessions added</div>' +
-'<button class="btn btn-green" onclick="doCliPay(\''+cid+'\')">LOG PAYMENT ✓</button>' +
-'</div></div>';
+'<button class="btn btn-green" onclick="doCliPay(\''+cid+'\')">LOG PAYMENT &#10003;</button>' +
+'</div></div>' +
+renderPremiumToggle(cid, cd);
 }
 function doCliPay(cid) {
 var amt=parseFloat((document.getElementById('pp_amt')||{}).value||'0')||0;
@@ -1266,6 +1557,7 @@ closeModal();
 }
 
 function openAddProg(cid) {
+if (!canUse('programBuilder')) { showUpgradeModal('programBuilder'); return; }
 var saved=DB.get('prog_templates')||[];
 var tkeys=Object.keys(PROG);
 showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
@@ -1336,6 +1628,7 @@ showBuilder();
 
 var _bp={cid:null,prog:null,editId:null}, _bpDay=0;
 function startBuilder(cid) {
+if (!canUse('programBuilder')) { showUpgradeModal('programBuilder'); return; }
 var name=((document.getElementById('np_name')||{}).value||'').trim();
 if(!name){toast('Enter a program name first','err');return;}
 _bp.cid=cid; _bp.prog={id:'prog_'+Date.now(),name:name,days:[],created:Date.now()};
@@ -1468,6 +1761,7 @@ DB.set('cp_'+cid,cp);
 var templates=DB.get('prog_templates')||[];
 templates.push(JSON.parse(JSON.stringify(prog)));
 DB.set('prog_templates',templates);
+trackUsage('programsCreated');
 closeModal(); toast(prog.name+' saved as template!','ok'); R();
 }
 }

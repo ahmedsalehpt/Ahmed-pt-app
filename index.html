@@ -169,7 +169,7 @@ if (!x || est > (x.est || 0)) S.prs[k] = {weight:wt, reps:rp, est:est, date:toda
 }
 function get14() {
 var days = [];
-for (var i = 13; i >= 0; i–) {
+for (var i = 13; i >= 0; i--) {
 var dt = new Date(); dt.setDate(dt.getDate() - i);
 days.push(dt.toISOString().split(‘T’)[0]);
 }

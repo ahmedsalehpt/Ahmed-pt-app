@@ -1015,8 +1015,10 @@ var ms = monthStats();
 var up = getUpcoming().slice(0,5);
 return '<div class="hdr"><div class="hdr-top">' +
 '<div><div class="hdr-sub">Trainer</div><div class="hdr-title">Ahmed PT</div></div>' +
+'<div style="display:flex;align-items:center;gap:8px">' +
 '<div style="font-size:11px;color:var(--m1);font-weight:600">'+fmtMon(today())+'</div>' +
-'</div></div>' +
+'<button onclick="openTrainerProfile()" style="width:30px;height:30px;border-radius:50%;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.25);color:var(--acc);font-size:14px;cursor:pointer">&#9881;</button>' +
+'</div></div></div>' +
 '<div class="page">' +
 renderSubBanner() +
 '<div class="sgrid">' +
@@ -1039,11 +1041,15 @@ renderReferralCard() +
 }
 function sessRow(s) {
 return '<div class="si">' +
-'<div class="si-time"><div class="si-th">'+(s.time||'–:–')+'</div><div class="si-td">'+fmtD(s.date)+'</div></div>' +
+'<div class="si-time"><div class="si-th">'+(s.time||'&#8211;:&#8211;')+'</div><div class="si-td">'+fmtD(s.date)+'</div></div>' +
 '<div class="si-dot" style="background:'+(s.clientType==='online'?'#6366f1':'#10b981')+'"></div>' +
 '<div class="si-info"><div class="si-name">'+(s.clientName||'')+'</div>' +
-'<div class="si-meta">'+(s.clientType==='online'?'Online':'In Person')+(s.note?' - '+s.note:'')+'</div></div>' +
-'<button class="btn-sm" style="background:var(--green)" onclick="confirmDone(\''+s.clientId+'\',\''+s.id+'\')">Done ✓</button></div>';
+'<div class="si-meta">'+(s.clientType==='online'?'Online':'In Person')+(s.note?' &#8212; '+s.note:'')+'</div></div>' +
+'<div style="display:flex;gap:4px">' +
+'<button class="btn-sm" style="background:var(--green)" onclick="confirmDone(\''+s.clientId+'\',\''+s.id+'\')">Done</button>' +
+'<button style="width:26px;height:26px;border-radius:7px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);color:#818cf8;font-size:12px;cursor:pointer" onclick="openEditSess(\''+s.clientId+'\',\''+s.id+'\')">&#9998;</button>' +
+'<button style="width:26px;height:26px;border-radius:7px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;font-size:12px;cursor:pointer" onclick="deleteSessConfirm(\''+s.clientId+'\',\''+s.id+'\')">&#215;</button>' +
+'</div></div>';
 }
 
 function renderClients() {
@@ -1206,10 +1212,15 @@ var progs = getProgs(cid);
 var curPid = (DB.get('cp_'+cid)||{}).currentProgId;
 var tabs = [{id:'log',icon:'📋',lbl:'Log'},{id:'prog',icon:'💪',lbl:'Progress'},{id:'sess',icon:'📅',lbl:'Sessions'},{id:'pay',icon:'💰',lbl:'Payments'},{id:'chat',icon:'💬',lbl:'Chat'}];
 var hdr = '<div class="hdr"><div class="hdr-top">' +
-'<button onclick="S.vCli=null;R()" style="font-size:13px;color:var(--m1);font-weight:600">← Back</button>' +
+'<button onclick="S.vCli=null;R()" style="font-size:13px;color:var(--m1);font-weight:600">&#8592; Back</button>' +
+'<div style="display:flex;align-items:center;gap:8px">' +
 '<div style="text-align:right">' +
 '<div style="font-size:18px;font-weight:800;color:#fff">'+c.name+'</div>' +
 '<div style="font-size:10px;color:var(--m1)">'+currSym(cid)+(c.rate||0)+'/sess - '+(c.type==='online'?'Online':'In Person')+'</div></div>' +
+'<div style="display:flex;gap:5px">' +
+'<button onclick="openEditClient(\''+cid+'\')" style="width:30px;height:30px;border-radius:8px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);color:#818cf8;font-size:13px;cursor:pointer">&#9998;</button>' +
+'<button onclick="deleteClientConfirm(\''+cid+'\')" style="width:30px;height:30px;border-radius:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;font-size:13px;cursor:pointer">&#128465;</button>' +
+'</div></div>' +
 '</div>' +
 '<div class="dtabs">'+tabs.map(function(t){
 var on = S.cliTab===t.id;
@@ -1377,11 +1388,15 @@ return '<div style="display:flex;justify-content:space-between;align-items:cente
 '<div class="card"><div class="card-p">'+sessions.map(function(s){
 var done=s.status==='done';
 return '<div class="si">' +
-'<div class="si-time"><div class="si-th">'+(s.time||'–')+'</div><div class="si-td">'+fmtD(s.date)+'</div></div>' +
+'<div class="si-time"><div class="si-th">'+(s.time||'&#8211;')+'</div><div class="si-td">'+fmtD(s.date)+'</div></div>' +
 '<div class="si-dot" style="background:'+(done?'#2d3748':c.type==='online'?'#6366f1':'#10b981')+'"></div>' +
 '<div class="si-info"><div class="si-name" style="color:'+(done?'var(--m2)':'#fff')+'">'+(done?'Done':'Upcoming')+'</div>' +
-'<div class="si-meta">'+(c.type==='online'?'Online':'In Person')+(s.note?' - '+s.note:'')+'</div></div>' +
-(!done?'<button class="btn-sm" style="background:var(--green)" onclick="confirmDone(\''+cid+'\',\''+s.id+'\')">Done ✓</button>':'') +
+'<div class="si-meta">'+(c.type==='online'?'Online':'In Person')+(s.note?' &#8212; '+s.note:'')+'</div></div>' +
+'<div style="display:flex;gap:4px">' +
+(!done?'<button class="btn-sm" style="background:var(--green)" onclick="confirmDone(\''+cid+'\',\''+s.id+'\')">Done</button>':'') +
+(!done?'<button style="width:26px;height:26px;border-radius:7px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);color:#818cf8;font-size:12px;cursor:pointer" onclick="openEditSess(\''+cid+'\',\''+s.id+'\')">&#9998;</button>':'') +
+'<button style="width:26px;height:26px;border-radius:7px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;font-size:12px;cursor:pointer" onclick="deleteSessConfirm(\''+cid+'\',\''+s.id+'\')">&#215;</button>' +
+'</div>' +
 '</div>';
 }).join('')+'</div></div>');
 }
@@ -1512,15 +1527,153 @@ function confirmDone(cid, sessId) {
 var c=S.clients[cid]||{};
 showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
 '<div style="text-align:center;padding:20px 0">' +
-'<div style="font-size:48px;margin-bottom:12px">✅</div>' +
+'<div style="font-size:48px;margin-bottom:12px">&#9989;</div>' +
 '<div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:8px">'+c.name+'</div>' +
 '<div style="font-size:13px;color:var(--m1);margin-bottom:6px">Mark session as completed?</div>' +
 '<div style="font-size:13px;color:var(--amber);font-weight:700;margin-bottom:20px">1 session will be deducted</div></div>' +
-'<button class="btn btn-green" onclick="doDone(\''+cid+'\',\''+sessId+'\')">YES - DONE ✓</button>' +
+'<button class="btn btn-green" onclick="doDone(\''+cid+'\',\''+sessId+'\')">YES - DONE &#10003;</button>' +
 '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
 '</div></div>');
 }
 function doDone(cid,sessId){completeSess(cid,sessId);closeModal();R();}
+
+function openEditSess(cid, sessId) {
+var local=DB.get('sessions_'+cid)||{};
+var s=local[sessId]; if(!s)return;
+showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
+'<div class="modal-title">Edit Session <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>' +
+'<div class="row"><div class="lbl">Date</div><input class="inp" id="es_d" type="date" value="'+(s.date||today())+'"></div>' +
+'<div class="row"><div class="lbl">Time</div><input class="inp" id="es_t" type="time" value="'+(s.time||'10:00')+'"></div>' +
+'<div class="row"><div class="lbl">Note (optional)</div><input class="inp" id="es_n" value="'+(s.note||'')+'" placeholder="e.g. Legs day"></div>' +
+'<button class="btn btn-acc" onclick="doEditSess(\''+cid+'\',\''+sessId+'\')">SAVE CHANGES &#10003;</button>' +
+'<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
+'</div></div>');
+}
+function doEditSess(cid, sessId) {
+var date=(document.getElementById('es_d')||{}).value||today();
+var time=(document.getElementById('es_t')||{}).value||'';
+var note=((document.getElementById('es_n')||{}).value||'').trim();
+var local=DB.get('sessions_'+cid)||{};
+if(local[sessId]){local[sessId].date=date;local[sessId].time=time;local[sessId].note=note;DB.set('sessions_'+cid,local);}
+if(S.clients[cid]&&S.clients[cid].sessions&&S.clients[cid].sessions[sessId]){
+S.clients[cid].sessions[sessId].date=date;S.clients[cid].sessions[sessId].time=time;S.clients[cid].sessions[sessId].note=note;
+}
+DB.set('tc',S.clients);
+closeModal(); toast('Session updated','ok'); R();
+}
+function deleteSessConfirm(cid, sessId) {
+showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
+'<div style="text-align:center;padding:20px 0">' +
+'<div style="font-size:48px;margin-bottom:12px">&#128465;</div>' +
+'<div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:8px">Delete Session?</div>' +
+'<div style="font-size:13px;color:var(--m1);margin-bottom:20px">This cannot be undone.</div></div>' +
+'<button class="btn btn-red" onclick="doDeleteSess(\''+cid+'\',\''+sessId+'\')">YES, DELETE</button>' +
+'<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
+'</div></div>');
+}
+function doDeleteSess(cid, sessId) {
+var local=DB.get('sessions_'+cid)||{};
+delete local[sessId];
+DB.set('sessions_'+cid,local);
+if(S.clients[cid]&&S.clients[cid].sessions)delete S.clients[cid].sessions[sessId];
+DB.set('tc',S.clients);
+closeModal(); toast('Session deleted','ok'); R();
+}
+
+function deleteClientConfirm(cid) {
+var c=S.clients[cid]||{};
+showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
+'<div style="text-align:center;padding:20px 0">' +
+'<div style="font-size:48px;margin-bottom:12px">&#9888;&#65039;</div>' +
+'<div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:8px">Remove '+c.name+'?</div>' +
+'<div style="font-size:13px;color:var(--m1);margin-bottom:6px">All sessions, payments, and logs will be permanently deleted.</div>' +
+'<div style="font-size:11px;color:var(--red);margin-bottom:20px;font-weight:700">This cannot be undone.</div></div>' +
+'<button class="btn btn-red" onclick="doDeleteClient(\''+cid+'\')">YES, REMOVE CLIENT</button>' +
+'<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
+'</div></div>');
+}
+function doDeleteClient(cid) {
+var c=S.clients[cid]||{};
+delete S.clients[cid];
+DB.set('tc',S.clients);
+var keys=['cp_','logs_','sessions_','payments_','msgs_','streak_','prs_','exnotes_','sessnotes_','progs_','premium_'];
+keys.forEach(function(pfx){DB.del(pfx+cid);});
+S.vCli=null;
+closeModal();
+toast((c.name||'Client')+' removed','ok');
+R();
+}
+
+function openEditClient(cid) {
+var c=S.clients[cid]||{};
+var cp=DB.get('cp_'+cid)||{};
+showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
+'<div class="modal-title">Edit Client <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>' +
+'<div class="row"><div class="lbl">Name</div><input class="inp" id="ec_n" value="'+(c.name||'')+'"></div>' +
+'<div class="row"><div class="lbl">Type</div><select class="sel" id="ec_t"><option value="inperson"'+(c.type==='inperson'?' selected':'')+'>In-Person</option><option value="online"'+(c.type==='online'?' selected':'')+'>Online</option></select></div>' +
+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
+'<div><div class="lbl">Currency</div><select class="sel" id="ec_c" style="margin-bottom:0">'+CURRENCIES.map(function(cur){return '<option'+(cur===(c.currency||'GBP')?' selected':'')+'>'+cur+'</option>';}).join('')+'</select></div>' +
+'<div><div class="lbl">Rate / session</div><input class="inp" id="ec_r" type="number" value="'+(c.rate||'')+'" inputmode="decimal" style="margin-bottom:0"></div>' +
+'</div>' +
+'<div class="row"><div class="lbl">New PIN (leave blank to keep)</div><input class="inp" id="ec_p" type="tel" maxlength="4" placeholder="4 digits" inputmode="numeric"></div>' +
+'<div id="ec_err"></div>' +
+'<button class="btn btn-acc" onclick="doEditClient(\''+cid+'\')">SAVE CHANGES &#10003;</button>' +
+'<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
+'</div></div>');
+}
+function doEditClient(cid) {
+var name=((document.getElementById('ec_n')||{}).value||'').trim();
+var type=(document.getElementById('ec_t')||{}).value||'inperson';
+var curr=(document.getElementById('ec_c')||{}).value||'GBP';
+var rate=parseFloat((document.getElementById('ec_r')||{}).value||'0')||0;
+var pin=((document.getElementById('ec_p')||{}).value||'').trim();
+var err=document.getElementById('ec_err');
+if(!name){if(err)err.innerHTML='<div class="err-msg">Name is required</div>';return;}
+if(pin&&pin.length<4){if(err)err.innerHTML='<div class="err-msg">PIN must be 4 digits</div>';return;}
+if(S.clients[cid]){S.clients[cid].name=name;S.clients[cid].type=type;S.clients[cid].currency=curr;S.clients[cid].rate=rate;}
+DB.set('tc',S.clients);
+var cp=DB.get('cp_'+cid)||{};
+cp.name=name;cp.type=type;cp.currency=curr;cp.rate=rate;
+if(pin)cp.pin=pin;
+DB.set('cp_'+cid,cp);
+closeModal(); toast(name+' updated','ok'); R();
+}
+
+function openTrainerProfile() {
+var tr=DB.get('trainer')||{};
+showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
+'<div class="modal-title">My Profile <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>' +
+'<div style="text-align:center;margin-bottom:20px">' +
+'<div style="width:64px;height:64px;border-radius:50%;background:rgba(99,102,241,.2);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:var(--acc);margin:0 auto 10px">'+((tr.name||'A').charAt(0).toUpperCase())+'</div>' +
+'<div style="font-size:16px;font-weight:700;color:#fff">'+(tr.name||'Trainer')+'</div>' +
+'<div style="font-size:11px;color:var(--m2);margin-top:3px">Ahmed Personal Training</div>' +
+'</div>' +
+(S.referralCode?'<div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:10px;padding:12px;margin-bottom:16px;text-align:center">' +
+'<div style="font-size:9px;letter-spacing:2px;color:var(--m2);font-weight:700;margin-bottom:4px">YOUR REFERRAL CODE</div>' +
+'<div style="font-size:22px;font-weight:900;color:var(--acc);letter-spacing:3px">'+S.referralCode+'</div>' +
+'<button onclick="copyReferralCode()" style="margin-top:6px;padding:4px 12px;border-radius:8px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:var(--acc);font-size:10px;font-weight:700;cursor:pointer">COPY CODE</button>' +
+'</div>':'') +
+'<div style="border-top:1px solid var(--bdr);padding-top:14px">' +
+'<div class="row"><div class="lbl">Display Name</div><input class="inp" id="tp_n" value="'+(tr.name||'')+'"></div>' +
+'<div class="row"><div class="lbl">New PIN (leave blank to keep)</div><input class="inp" id="tp_p" type="tel" maxlength="4" placeholder="4 digits" inputmode="numeric"></div>' +
+'<div id="tp_err"></div>' +
+'<button class="btn btn-acc" onclick="doSaveProfile()">SAVE &#10003;</button>' +
+'</div>' +
+'<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
+'</div></div>');
+}
+function doSaveProfile() {
+var name=((document.getElementById('tp_n')||{}).value||'').trim();
+var pin=((document.getElementById('tp_p')||{}).value||'').trim();
+var err=document.getElementById('tp_err');
+if(!name){if(err)err.innerHTML='<div class="err-msg">Name is required</div>';return;}
+if(pin&&pin.length<4){if(err)err.innerHTML='<div class="err-msg">PIN must be 4 digits</div>';return;}
+var tr=DB.get('trainer')||{};
+tr.name=name;
+if(pin)tr.pin=pin;
+DB.set('trainer',tr);
+closeModal(); toast('Profile updated','ok'); R();
+}
 
 function openQuickMsg(cid) {
 var c=S.clients[cid]||{};

@@ -848,7 +848,8 @@ var key = keys.length ? keys[keys.length-1] : ‘w1_d0’;
 sn[key] = sn[key]||{}; sn[key].trainer=ta.value; sn[key].trainerTs=Date.now();
 DB.set(‘sessnotes_’+cid, sn);
 if (S.cliData[cid]) S.cliData[cid].sessNotes=sn;
-toast(‘Note saved for ‘+c.name, ‘ok’);
+var cnn = S.clients[cid]?S.clients[cid].name:‘client’;
+toast(‘Note saved for ‘+cnn, ‘ok’);
 }
 function renderSessCard(sess, cid, cd) {
 var isExp = S.expS[sess.sk];
@@ -1534,11 +1535,13 @@ function doExNote(ei){var ta=document.getElementById(’exn*’+ei);if(!ta)retur
 function doSessNote(){var ta=document.getElementById(‘sn_inp’);if(!ta)return;saveSessNote(ta.value,‘client’);var b=ta.nextElementSibling;if(b){b.textContent=‘Saved!’;setTimeout(function(){b.textContent=‘Save ✓’;},2000);}}
 
 function init() {
+try {
 var sess = DB.get(‘sess’);
 if (sess && sess.role === ‘trainer’) {
 S.role=‘trainer’; S.scr=‘trainer’; S.tTab=‘dash’;
-loadAll();
+try { loadAll(); } catch(e) { S.clients={}; }
 } else if (sess && sess.role === ‘client’ && sess.cid) {
+try {
 var cp = DB.get(‘cp_’ + sess.cid);
 if (cp) {
 S.role=‘client’; S.scr=‘client’; S.cid=sess.cid;
@@ -1551,9 +1554,25 @@ S.streak=DB.get(‘streak_’+sess.cid)||{cur:0,best:0,lastDate:null};
 S.prs=DB.get(‘prs_’+sess.cid)||{};
 S.unread=S.msgs.filter(function(m){return m.from===‘trainer’&&!m.read;}).length;
 } else { S.scr=‘login’; }
+} catch(e) { S.scr=‘login’; }
 } else { S.scr=‘login’; }
-R();
+} catch(e) { S.scr=‘login’; }
+try { R(); } catch(e) {
+var app=document.getElementById(‘app’);
+if(app) app.innerHTML=’<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#07070e;color:#fff;flex-direction:column;gap:12px;text-align:center"><div style="font-size:48px">🏋</div><div style="font-size:9px;letter-spacing:3px;color:#ec4899;font-weight:700">AHMED PERSONAL TRAINING</div><div style="font-size:24px;font-weight:800">Error loading</div><div style="font-size:13px;color:#8892a4">’+e.message+’</div><button onclick="localStorage.clear();location.reload()" style="padding:12px 24px;background:#6366f1;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px">Reset & Reload</button></div>’;
 }
+}
+
+// Fallback: if still showing Loading after 3 seconds, force login
+setTimeout(function() {
+var app = document.getElementById(‘app’);
+if (app && app.innerHTML.indexOf(‘Loading’) !== -1) {
+S.scr = ‘login’;
+try { R(); } catch(e) {
+app.innerHTML = ‘<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#07070e;color:#fff;flex-direction:column;gap:16px;text-align:center"><div style="font-size:48px">🏋</div><div style="font-size:9px;letter-spacing:3px;color:#ec4899;font-weight:700">AHMED PERSONAL TRAINING</div><div style="font-size:22px;font-weight:800;color:#fff">Welcome</div><div style="font-size:13px;color:#8892a4;line-height:1.6">App loaded. Please reload the page.</div><button onclick="location.reload()" style="padding:14px 28px;background:#6366f1;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer">Reload App</button></div>’;
+}
+}
+}, 3000);
 
 if (document.readyState === ‘loading’) {
 document.addEventListener(‘DOMContentLoaded’, init);

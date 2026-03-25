@@ -11,10 +11,18 @@
 <title>Ahmed Personal Training</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<style>*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent} :root{--bg:#07070e;--c1:#0f1117;--c2:#161b26;--bdr:rgba(255,255,255,.08);--tx:#e8eaf0;--m1:#8892a4;--m2:#4a5568;--m3:#2d3748;--green:#10b981;--blue:#6366f1;--pink:#ec4899;--amber:#f59e0b;--red:#ef4444;--purple:#8b5cf6;--acc:#6366f1} html,body{height:100%;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased} input,textarea,select,button{font-family:inherit;-webkit-appearance:none;appearance:none;outline:none;border:none} input[type=number]{-moz-appearance:textfield} input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none} button{cursor:pointer;background:none;color:inherit} button:active{opacity:.75;transform:scale(.97)} textarea{resize:none} #app{min-height:100vh;padding-bottom:76px} .page{max-width:640px;margin:0 auto;padding:14px} .hdr{position:sticky;top:0;z-index:90;background:rgba(7,7,14,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);padding:12px 14px 0} .hdr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px} .hdr-sub{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--acc);font-weight:700;margin-bottom:2px} .hdr-title{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.5px} .dtabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;padding-bottom:0} .dtabs::-webkit-scrollbar{display:none} .dtab{padding:7px 12px;border-radius:7px 7px 0 0;font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--m1);white-space:nowrap;border:1px solid transparent;border-bottom:none;cursor:pointer} .dtab.on{background:var(--c1);border-color:var(--bdr);color:#fff} .bnav{position:fixed;bottom:0;left:0;right:0;background:rgba(7,7,14,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--bdr);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:100} .nb{flex:1;padding:9px 2px 7px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:8px;font-weight:600;letter-spacing:.3px;color:var(--m2);position:relative;text-transform:uppercase;cursor:pointer;background:none;border:none} .nb.on{color:var(--acc)} .nbi{font-size:18px;line-height:1} .nbd{position:absolute;top:5px;right:calc(50% - 16px);background:var(--red);color:#fff;font-size:8px;font-weight:800;min-width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:0 3px} .card{background:var(--c1);border:1px solid var(--bdr);border-radius:12px;overflow:hidden;margin-bottom:8px} .card-p{padding:13px} .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px} .scard{background:var(--c1);border:1px solid var(--bdr);border-radius:12px;padding:13px;cursor:pointer} .sv{font-size:28px;font-weight:900;line-height:1;margin-bottom:3px} .sl{font-size:10px;color:var(--m1)} .ss{font-size:9px;color:var(--m2);margin-top:2px} .lbl{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--m2);margin-bottom:5px} .inp{width:100%;background:var(--c2);border:1.5px solid var(--bdr);border-radius:10px;color:var(--tx);font-size:15px;padding:11px 12px;transition:border-color .15s;display:block} .inp:focus{border-color:var(--acc)} .sel{width:100%;background:var(--c2);border:1.5px solid var(--bdr);border-radius:10px;color:var(--tx);font-size:14px;padding:11px 12px;display:block} .row{margin-bottom:12px} .btn{display:block;width:100%;padding:13px;border-radius:11px;font-size:14px;font-weight:800;color:#fff;text-align:center;cursor:pointer;border:none;margin-bottom:8px} .btn-acc{background:var(--acc)} .btn-green{background:var(--green)} .btn-ghost{background:transparent;border:1.5px solid var(--bdr);color:var(--m1)} .btn-red{background:var(--red)} .btn-sm{padding:7px 13px;font-size:11px;font-weight:700;border-radius:8px;border:none;cursor:pointer;color:#fff} .pill{padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap} .p-green{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);color:#34d399} .p-amber{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);color:var(--amber)} .p-red{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#f87171} .p-blue{background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);color:#818cf8} .p-pink{background:rgba(236,72,153,.12);border:1px solid rgba(236,72,153,.25);color:#f472b6} .p-gray{background:var(--c2);border:1px solid var(--bdr);color:var(--m1)} .alert{padding:11px 13px;border-radius:11px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer} .alert-red{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2)} .alert-amber{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2)} .ccard{background:var(--c1);border:1px solid var(--bdr);border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer} .ccard:active{border-color:rgba(255,255,255,.2)} .cname{font-size:16px;font-weight:700;color:#fff;margin-bottom:4px} .cmeta{font-size:11px;color:var(--m1);display:flex;gap:8px;flex-wrap:wrap;align-items:center} .ex-card{background:var(--c1);border:1px solid var(--bdr);border-radius:12px;margin-bottom:8px;overflow:hidden} .ex-card.done{background:rgba(16,185,129,.04);border-color:rgba(16,185,129,.2)} .ex-hdr{padding:11px 13px;cursor:pointer} .ex-name{font-weight:700;font-size:14px;color:#fff;margin-bottom:3px} .ex-card.done .ex-name{color:var(--m2);text-decoration:line-through} .ex-info{font-size:11px;color:var(--m1)} .ex-cue{font-size:11px;color:var(--m2);line-height:1.6;padding:0 13px 10px;display:none} .ex-cue.show{display:block} .sets{display:flex;gap:6px;padding:0 13px 11px;flex-wrap:wrap} .sdot{width:36px;height:36px;border-radius:50%;border:2px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--m2);cursor:pointer;transition:all .15s;flex-direction:column;gap:1px} .sdot.done{color:#fff} .sdot.active{border-style:dashed} .sdot-w{font-size:8px;font-weight:600} .lpanel{padding:12px 13px 14px;background:rgba(0,0,0,.3);border-top:1px solid var(--bdr)} .lt{font-size:11px;font-weight:800;letter-spacing:1.5px;margin-bottom:8px} .two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px} .prev{font-size:10px;color:var(--m2);padding:6px 10px;background:var(--c2);border-radius:8px;margin-bottom:8px} .rpe-row{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;align-items:center} .rpe-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--bdr);background:var(--c2);font-size:11px;font-weight:700;color:var(--m1);cursor:pointer} .log-acts{display:flex;gap:6px} .sect{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--m2);margin:16px 0 10px} .sect:first-child{margin-top:0} .empty{text-align:center;padding:40px 20px;color:var(--m2);font-size:13px;line-height:1.6} .si{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bdr)} .si:last-child{border-bottom:none} .si-time{min-width:50px;text-align:center} .si-th{font-size:13px;font-weight:700;color:#fff} .si-td{font-size:10px;color:var(--m1);margin-top:1px} .si-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0} .si-info{flex:1} .si-name{font-size:13px;font-weight:600;color:#fff} .si-meta{font-size:10px;color:var(--m1);margin-top:2px} .pay-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--bdr)} .pay-row:last-child{border-bottom:none} .pay-amt{font-size:15px;font-weight:800;color:var(--green)} .pay-info{font-size:10px;color:var(--m1);margin-top:2px} .pr-brow{display:flex;align-items:center;gap:8px;margin-bottom:5px} .pr-bg{flex:1;height:8px;background:var(--m3);border-radius:4px;overflow:hidden} .pr-fill{height:100%;border-radius:4px;transition:width .4s} .pr-val{font-size:10px;color:var(--m1);min-width:50px;text-align:right} .pr-tag{font-size:8px;padding:1px 5px;border-radius:5px;background:rgba(245,158,11,.15);color:var(--amber);font-weight:700;margin-left:4px;border:1px solid rgba(245,158,11,.2)} .sk-card{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(239,68,68,.05));border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:14px;margin-bottom:14px} .sk-nums{display:flex;gap:24px;margin-bottom:12px} .sk-n{font-size:38px;font-weight:900;color:var(--amber);line-height:1} .sk-l{font-size:9px;color:var(--m1);letter-spacing:1px;text-transform:uppercase;margin-top:2px} .sk-days{display:flex;gap:4px;flex-wrap:wrap} .sk-day{width:32px;height:32px;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px} .sk-day.done{background:rgba(245,158,11,.2);border:1px solid rgba(245,158,11,.35)} .sk-day.today{background:rgba(245,158,11,.35);border:1.5px solid var(--amber)} .sk-day.miss{background:var(--c2);border:1px solid var(--bdr)} .chat-wrap{max-height:52vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 0} .chat-msg{max-width:80%;display:flex;flex-direction:column} .from-me{align-self:flex-end} .from-them{align-self:flex-start} .bubble{padding:9px 12px;border-radius:12px;font-size:13px;line-height:1.5} .from-me .bubble{background:var(--acc);color:#fff;border-bottom-right-radius:3px} .from-them .bubble{background:var(--c2);color:var(--tx);border-bottom-left-radius:3px} .chat-ts{font-size:9px;color:var(--m2);margin-top:3px} .from-me .chat-ts{align-self:flex-end} .from-them .chat-ts{align-self:flex-start} .chat-bar{display:flex;gap:8px;align-items:flex-end;padding-top:10px;border-top:1px solid var(--bdr);margin-top:8px} .chat-ta{flex:1;background:var(--c2);border:1.5px solid var(--bdr);border-radius:12px;color:var(--tx);font-size:13px;padding:9px 12px;min-height:40px;max-height:100px;line-height:1.5} .chat-send{width:40px;height:40px;border-radius:12px;background:var(--acc);display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;flex-shrink:0;cursor:pointer;border:none} .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:flex-end} .modal-box{background:var(--c1);border-radius:18px 18px 0 0;padding:20px;width:100%;max-height:92vh;overflow-y:auto} .modal-title{font-size:18px;font-weight:800;color:#fff;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center} .toast-bar{position:fixed;top:0;left:0;right:0;z-index:999;padding:8px 16px;font-size:11px;font-weight:700;text-align:center;display:none;letter-spacing:.5px} .t-ok{background:rgba(16,185,129,.95);color:#fff} .t-err{background:rgba(239,68,68,.95);color:#fff} .t-info{background:rgba(99,102,241,.95);color:#fff} .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg)} .login-box{width:100%;max-width:400px} .login-logo{text-align:center;margin-bottom:28px} .role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px} .role-card{padding:16px;border-radius:13px;border:2px solid var(--bdr);background:var(--c1);cursor:pointer;text-align:center;transition:all .15s} .role-card.on{border-color:var(--acc);background:rgba(99,102,241,.08)} .err-msg{font-size:11px;color:#f87171;padding:8px 11px;background:rgba(239,68,68,.08);border-radius:8px;margin-bottom:10px;border:1px solid rgba(239,68,68,.15)} .ok-msg{font-size:11px;color:#34d399;padding:8px 11px;background:rgba(16,185,129,.08);border-radius:8px;margin-bottom:10px;border:1px solid rgba(16,185,129,.15)} .wk-banner{padding:8px 12px;border-left:3px solid var(--acc);background:rgba(99,102,241,.05);border-radius:0 8px 8px 0;margin-bottom:12px} .alt-wrap{padding:10px 13px 12px;background:rgba(245,158,11,.04);border-top:1px solid rgba(245,158,11,.12)} .alt-btn{display:block;width:100%;text-align:left;padding:8px 11px;background:var(--c2);border:1px solid var(--bdr);border-radius:9px;color:var(--tx);font-size:12px;font-weight:600;margin-bottom:5px;cursor:pointer} .big-bal{text-align:center;padding:22px 16px;background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(99,102,241,.05));border:1px solid rgba(16,185,129,.2);border-radius:14px;margin-bottom:14px}</style>
+<style>*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent} :root{--bg:#07070e;--c1:#0f1117;--c2:#161b26;--bdr:rgba(255,255,255,.08);--tx:#e8eaf0;--m1:#8892a4;--m2:#4a5568;--m3:#2d3748;--green:#10b981;--blue:#6366f1;--pink:#ec4899;--amber:#f59e0b;--red:#ef4444;--purple:#8b5cf6;--acc:#6366f1} html,body{height:100%;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased} input,textarea,select,button{font-family:inherit;-webkit-appearance:none;appearance:none;outline:none;border:none} input[type=number]{-moz-appearance:textfield} input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none} button{cursor:pointer;background:none;color:inherit} button:active{opacity:.75;transform:scale(.97)} textarea{resize:none} #app{min-height:100vh;padding-bottom:76px} .page{max-width:640px;margin:0 auto;padding:14px} .hdr{position:sticky;top:0;z-index:90;background:rgba(7,7,14,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);padding:12px 14px 0} .hdr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px} .hdr-sub{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--acc);font-weight:700;margin-bottom:2px} .hdr-title{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.5px} .dtabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;padding-bottom:0} .dtabs::-webkit-scrollbar{display:none} .dtab{padding:7px 12px;border-radius:7px 7px 0 0;font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--m1);white-space:nowrap;border:1px solid transparent;border-bottom:none;cursor:pointer} .dtab.on{background:var(--c1);border-color:var(--bdr);color:#fff} .bnav{position:fixed;bottom:0;left:0;right:0;background:rgba(7,7,14,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--bdr);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:100} .nb{flex:1;padding:9px 2px 7px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:8px;font-weight:600;letter-spacing:.3px;color:var(--m2);position:relative;text-transform:uppercase;cursor:pointer;background:none;border:none} .nb.on{color:var(--acc)} .nbi{font-size:18px;line-height:1} .nbd{position:absolute;top:5px;right:calc(50% - 16px);background:var(--red);color:#fff;font-size:8px;font-weight:800;min-width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:0 3px} .card{background:var(--c1);border:1px solid var(--bdr);border-radius:12px;overflow:hidden;margin-bottom:8px} .card-p{padding:13px} .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px} .scard{background:var(--c1);border:1px solid var(--bdr);border-radius:12px;padding:13px;cursor:pointer} .sv{font-size:28px;font-weight:900;line-height:1;margin-bottom:3px} .sl{font-size:10px;color:var(--m1)} .ss{font-size:9px;color:var(--m2);margin-top:2px} .lbl{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--m2);margin-bottom:5px} .inp{width:100%;background:var(--c2);border:1.5px solid var(--bdr);border-radius:10px;color:var(--tx);font-size:15px;padding:11px 12px;transition:border-color .15s;display:block} .inp:focus{border-color:var(--acc)} .sel{width:100%;background:var(--c2);border:1.5px solid var(--bdr);border-radius:10px;color:var(--tx);font-size:14px;padding:11px 12px;display:block} .row{margin-bottom:12px} .btn{display:block;width:100%;padding:13px;border-radius:11px;font-size:14px;font-weight:800;color:#fff;text-align:center;cursor:pointer;border:none;margin-bottom:8px} .btn-acc{background:var(--acc)} .btn-green{background:var(--green)} .btn-ghost{background:transparent;border:1.5px solid var(--bdr);color:var(--m1)} .btn-red{background:var(--red)} .btn-sm{padding:7px 13px;font-size:11px;font-weight:700;border-radius:8px;border:none;cursor:pointer;color:#fff} .pill{padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap} .p-green{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);color:#34d399} .p-amber{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);color:var(--amber)} .p-red{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#f87171} .p-blue{background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);color:#818cf8} .p-pink{background:rgba(236,72,153,.12);border:1px solid rgba(236,72,153,.25);color:#f472b6} .p-gray{background:var(--c2);border:1px solid var(--bdr);color:var(--m1)} .alert{padding:11px 13px;border-radius:11px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer} .alert-red{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2)} .alert-amber{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2)} .ccard{background:var(--c1);border:1px solid var(--bdr);border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer} .ccard:active{border-color:rgba(255,255,255,.2)} .cname{font-size:16px;font-weight:700;color:#fff;margin-bottom:4px} .cmeta{font-size:11px;color:var(--m1);display:flex;gap:8px;flex-wrap:wrap;align-items:center} .ex-card{background:var(--c1);border:1px solid var(--bdr);border-radius:12px;margin-bottom:8px;overflow:hidden} .ex-card.done{background:rgba(16,185,129,.04);border-color:rgba(16,185,129,.2)} .ex-hdr{padding:11px 13px;cursor:pointer} .ex-name{font-weight:700;font-size:14px;color:#fff;margin-bottom:3px} .ex-card.done .ex-name{color:var(--m2);text-decoration:line-through} .ex-info{font-size:11px;color:var(--m1)} .ex-cue{font-size:11px;color:var(--m2);line-height:1.6;padding:0 13px 10px;display:none} .ex-cue.show{display:block} .sets{display:flex;gap:6px;padding:0 13px 11px;flex-wrap:wrap} .sdot{width:36px;height:36px;border-radius:50%;border:2px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--m2);cursor:pointer;transition:all .15s;flex-direction:column;gap:1px} .sdot.done{color:#fff} .sdot.active{border-style:dashed} .sdot-w{font-size:8px;font-weight:600} .lpanel{padding:12px 13px 14px;background:rgba(0,0,0,.3);border-top:1px solid var(--bdr)} .lt{font-size:11px;font-weight:800;letter-spacing:1.5px;margin-bottom:8px} .two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px} .prev{font-size:10px;color:var(--m2);padding:6px 10px;background:var(--c2);border-radius:8px;margin-bottom:8px} .rpe-row{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;align-items:center} .rpe-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--bdr);background:var(--c2);font-size:11px;font-weight:700;color:var(--m1);cursor:pointer} .log-acts{display:flex;gap:6px} .sect{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--m2);margin:16px 0 10px} .sect:first-child{margin-top:0} .empty{text-align:center;padding:40px 20px;color:var(--m2);font-size:13px;line-height:1.6} .si{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bdr)} .si:last-child{border-bottom:none} .si-time{min-width:50px;text-align:center} .si-th{font-size:13px;font-weight:700;color:#fff} .si-td{font-size:10px;color:var(--m1);margin-top:1px} .si-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0} .si-info{flex:1} .si-name{font-size:13px;font-weight:600;color:#fff} .si-meta{font-size:10px;color:var(--m1);margin-top:2px} .pay-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--bdr)} .pay-row:last-child{border-bottom:none} .pay-amt{font-size:15px;font-weight:800;color:var(--green)} .pay-info{font-size:10px;color:var(--m1);margin-top:2px} .pr-brow{display:flex;align-items:center;gap:8px;margin-bottom:5px} .pr-bg{flex:1;height:8px;background:var(--m3);border-radius:4px;overflow:hidden} .pr-fill{height:100%;border-radius:4px;transition:width .4s} .pr-val{font-size:10px;color:var(--m1);min-width:50px;text-align:right} .pr-tag{font-size:8px;padding:1px 5px;border-radius:5px;background:rgba(245,158,11,.15);color:var(--amber);font-weight:700;margin-left:4px;border:1px solid rgba(245,158,11,.2)} .sk-card{background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(239,68,68,.05));border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:14px;margin-bottom:14px} .sk-nums{display:flex;gap:24px;margin-bottom:12px} .sk-n{font-size:38px;font-weight:900;color:var(--amber);line-height:1} .sk-l{font-size:9px;color:var(--m1);letter-spacing:1px;text-transform:uppercase;margin-top:2px} .sk-days{display:flex;gap:4px;flex-wrap:wrap} .sk-day{width:32px;height:32px;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px} .sk-day.done{background:rgba(245,158,11,.2);border:1px solid rgba(245,158,11,.35)} .sk-day.today{background:rgba(245,158,11,.35);border:1.5px solid var(--amber)} .sk-day.miss{background:var(--c2);border:1px solid var(--bdr)} .chat-wrap{max-height:52vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 0} .chat-msg{max-width:80%;display:flex;flex-direction:column} .from-me{align-self:flex-end} .from-them{align-self:flex-start} .bubble{padding:9px 12px;border-radius:12px;font-size:13px;line-height:1.5} .from-me .bubble{background:var(--acc);color:#fff;border-bottom-right-radius:3px} .from-them .bubble{background:var(--c2);color:var(--tx);border-bottom-left-radius:3px} .chat-ts{font-size:9px;color:var(--m2);margin-top:3px} .from-me .chat-ts{align-self:flex-end} .from-them .chat-ts{align-self:flex-start} .chat-bar{display:flex;gap:8px;align-items:flex-end;padding-top:10px;border-top:1px solid var(--bdr);margin-top:8px} .chat-ta{flex:1;background:var(--c2);border:1.5px solid var(--bdr);border-radius:12px;color:var(--tx);font-size:13px;padding:9px 12px;min-height:40px;max-height:100px;line-height:1.5} .chat-send{width:40px;height:40px;border-radius:12px;background:var(--acc);display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;flex-shrink:0;cursor:pointer;border:none} .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:flex-end} .modal-box{background:var(--c1);border-radius:18px 18px 0 0;padding:20px;width:100%;max-height:92vh;overflow-y:auto} .modal-title{font-size:18px;font-weight:800;color:#fff;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center} .toast-bar{position:fixed;top:0;left:0;right:0;z-index:999;padding:8px 16px;font-size:11px;font-weight:700;text-align:center;display:none;letter-spacing:.5px} .t-ok{background:rgba(16,185,129,.95);color:#fff} .t-err{background:rgba(239,68,68,.95);color:#fff} .t-info{background:rgba(99,102,241,.95);color:#fff} .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg)} .login-box{width:100%;max-width:400px} .login-logo{text-align:center;margin-bottom:28px} .role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px} .role-card{padding:16px;border-radius:13px;border:2px solid var(--bdr);background:var(--c1);cursor:pointer;text-align:center;transition:all .15s} .role-card.on{border-color:var(--acc);background:rgba(99,102,241,.08)} .err-msg{font-size:11px;color:#f87171;padding:8px 11px;background:rgba(239,68,68,.08);border-radius:8px;margin-bottom:10px;border:1px solid rgba(239,68,68,.15)} .ok-msg{font-size:11px;color:#34d399;padding:8px 11px;background:rgba(16,185,129,.08);border-radius:8px;margin-bottom:10px;border:1px solid rgba(16,185,129,.15)} .wk-banner{padding:8px 12px;border-left:3px solid var(--acc);background:rgba(99,102,241,.05);border-radius:0 8px 8px 0;margin-bottom:12px} .alt-wrap{padding:10px 13px 12px;background:rgba(245,158,11,.04);border-top:1px solid rgba(245,158,11,.12)} .alt-btn{display:block;width:100%;text-align:left;padding:8px 11px;background:var(--c2);border:1px solid var(--bdr);border-radius:9px;color:var(--tx);font-size:12px;font-weight:600;margin-bottom:5px;cursor:pointer} .big-bal{text-align:center;padding:22px 16px;background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(99,102,241,.05));border:1px solid rgba(16,185,129,.2);border-radius:14px;margin-bottom:14px}
+#rest-banner{position:fixed;left:0;right:0;bottom:calc(56px + env(safe-area-inset-bottom));z-index:95;padding:11px 16px;text-align:center;font-size:14px;font-weight:800;letter-spacing:.5px;display:none;cursor:pointer;transition:background .4s,color .4s}
+.rb-green{background:#059669;color:#fff}
+.rb-amber{background:#d97706;color:#fff}
+.rb-red{background:#dc2626;color:#fff}
+@keyframes rbpulse{0%,100%{opacity:1}50%{opacity:.45}}
+.rb-pulse{animation:rbpulse .8s infinite}
+</style>
 </head>
 <body>
 <div id="toast" class="toast-bar"></div>
+<div id="rest-banner" onclick="dismissRest()"></div>
 <div id="modal"></div>
 <div id="app">
 <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:#07070e;padding:20px;text-align:center">
@@ -92,6 +100,58 @@ var PROG = {
 };
 var WK = {"1":{"l":"FOUNDATION","c":"#60a5fa","n":"2-3 RIR. Establish patterns. Full ROM."},"2":{"l":"VOLUME","c":"#34d399","n":"+1 set on compounds. +2.5-5kg where form is solid."},"3":{"l":"INTENSITY","c":"#f59e0b","n":"+5% load. 3-second eccentric every rep."},"4":{"l":"OVERLOAD","c":"#f87171","n":"Drop set last isolation. 0-1 RIR. Deload next week."}};
 var CURRENCIES = ["GBP", "USD", "EUR", "AED", "SAR", "CHF", "CAD", "AUD"];
+var TIPS = [
+"Drink water before, during, and after every session. Dehydration cuts performance by 10-20%.",
+"Progressive overload is the key. Add 2.5kg when you hit the top of your rep range with clean form.",
+"Sleep 7-9 hours. Muscle is built during recovery, not during the workout.",
+"Protein target: 1.6-2.2g per kg of bodyweight daily for muscle growth.",
+"Warm up with 5-10 minutes of movement before touching weights.",
+"The best workout is the one you actually do consistently.",
+"Eat a meal with protein and carbs 1-2 hours before training.",
+"Track your lifts. What gets measured gets improved.",
+"Rest days are not wasted days. Your body gets stronger when it rests.",
+"Focus on compound movements first in your session when you have the most energy.",
+"A 10% calorie surplus is enough to build muscle without gaining excessive fat.",
+"Creatine monohydrate is the most well-researched supplement. 3-5g daily.",
+"Mind-muscle connection matters. Slow down and feel the muscle working.",
+"Consistency over 12 months beats any perfect program done for 4 weeks.",
+"Cold showers after training can reduce soreness and improve recovery.",
+"Eat enough carbohydrates. They are your muscles primary fuel source.",
+"Do not skip leg day. Your largest muscle groups drive your overall metabolism.",
+"A 5-minute stretch after training can significantly reduce next-day soreness.",
+"Your first set of the day is a warm-up set. Do not go to failure on it.",
+"Foam rolling for 5 minutes before a session improves range of motion.",
+"Eat whole foods 80% of the time. The remaining 20% will not derail progress.",
+"Breathing technique: exhale on the exertion, inhale on the return.",
+"Compound lifts like squat and deadlift release more anabolic hormones.",
+"If a muscle is sore, it does not mean it is growing. DOMS is not a requirement.",
+"Cardio helps recovery by increasing blood flow to sore muscles.",
+"Your grip strength often fails before your back on rows and deadlifts. Use straps.",
+"Eat something within 30-60 minutes after training to kick off recovery.",
+"Volume drives hypertrophy. More sets per muscle group per week means more growth.",
+"Perfect form on 60kg beats sloppy form on 100kg every time.",
+"Muscle groups need 48 hours minimum recovery before training them again.",
+"Magnesium before bed can improve sleep quality and reduce muscle cramps.",
+"A deload week every 4-6 weeks prevents overtraining and keeps progress coming.",
+"Stay in a calorie deficit of 300-500 to lose fat while preserving muscle.",
+"Caffeine 30-60 minutes before training can improve strength and endurance.",
+"Do not compare your beginning to someone else's middle.",
+"Free weights recruit more stabiliser muscles than machines.",
+"Time under tension matters. A 3-second negative increases muscle damage.",
+"Consistency with sleep is more important than any single night of extra rest.",
+"Chewing food properly improves digestion and nutrient absorption.",
+"The scale lies. Muscle weighs more than fat. Focus on how you look and feel.",
+"Lateral raises should be light. Heavy weight leads to traps taking over.",
+"Two litres of water per day is a minimum. Add 500ml per hour of exercise.",
+"Pre-exhaust a muscle with an isolation exercise to improve mind-muscle connection.",
+"Your core is engaged in every major lift. Train it with purpose.",
+"Walking 8,000 steps daily burns more total calories than one cardio session.",
+"Omega-3 fatty acids reduce inflammation and support joint health.",
+"Train the muscles you cannot see in the mirror. Back and hamstrings matter.",
+"A longer warm-up set takes you farther in your working sets.",
+"Do not train to failure on every set. Leave 1-2 reps in reserve on most sets.",
+"The best diet is one you can stick to for years, not weeks."
+];
 var EX_LIB = [
 {n:"Barbell Bench Press",m:"Chest, Front Delts, Triceps",t:"Compound",sets:4,r:"6-10",rest:"3min",note:"Retract scapula, slight arch, bar to lower chest."},
 {n:"Incline Dumbbell Press",m:"Upper Chest, Front Delts",t:"Compound",sets:3,r:"8-12",rest:"2min",note:"30-45 degree incline. Control the descent."},
@@ -226,12 +286,54 @@ var S = {
 scr: 'login',
 role: null, cid: null, lRole: 'trainer',
 tTab: 'dash', vCli: null, cliTab: 'log',
-cTab: 'workout',
+cTab: 'home',
 day: 0, week: 1, unit: 'kg',
 aSet: null, xNote: -1, xAlt: -1, rpe: null, swaps: {},
 logs: {}, exN: {}, sN: {}, msgs: [], streak: {cur:0,best:0,lastDate:null}, prs: {},
-clients: {}, unread: 0, expS: {}, cliData: {}
+clients: {}, unread: 0, expS: {}, cliData: {},
+restTimer: {secs:0, iv:null}
 };
+
+function parseRest(s) {
+if (!s) return 90;
+var str = String(s).trim().toLowerCase();
+if (str.indexOf('min') !== -1) return (parseInt(str) || 1) * 60;
+if (/^\d+m$/.test(str)) return parseInt(str) * 60;
+return parseInt(str) || 90;
+}
+function startRest(restStr) {
+stopRest();
+var secs = parseRest(restStr);
+if (!secs) return;
+S.restTimer.secs = secs;
+var el = document.getElementById('rest-banner');
+if (el) el.style.display = 'block';
+tickRest();
+S.restTimer.iv = setInterval(tickRest, 1000);
+}
+function stopRest() {
+if (S.restTimer.iv) { clearInterval(S.restTimer.iv); S.restTimer.iv = null; }
+S.restTimer.secs = 0;
+var el = document.getElementById('rest-banner');
+if (el) el.style.display = 'none';
+}
+function tickRest() {
+var el = document.getElementById('rest-banner');
+if (!el) { stopRest(); return; }
+if (S.restTimer.secs <= 0) {
+el.className = 'rb-red rb-pulse';
+el.innerHTML = '&#9200; REST DONE &#8212; Tap to dismiss';
+if (S.restTimer.iv) { clearInterval(S.restTimer.iv); S.restTimer.iv = null; }
+return;
+}
+var m = Math.floor(S.restTimer.secs / 60);
+var sec = S.restTimer.secs % 60;
+var ts = m > 0 ? m + ':' + (sec < 10 ? '0' : '') + sec : sec + 's';
+el.className = S.restTimer.secs > 30 ? 'rb-green' : 'rb-amber';
+el.innerHTML = '&#9201; REST: ' + ts + ' &#8212; Tap to skip';
+S.restTimer.secs--;
+}
+function dismissRest() { stopRest(); }
 
 var _toastT = null;
 function toast(msg, type) {
@@ -488,6 +590,7 @@ var html = '';
 if (S.scr === 'login') html = renderLogin();
 else if (S.scr === 'trainer') html = renderTrainer();
 else if (S.scr === 'client') html = renderClient();
+else if (S.scr === 'complete') html = renderComplete();
 app.innerHTML = html;
 var ml = document.getElementById('msgList');
 if (ml) setTimeout(function(){ ml.scrollTop = ml.scrollHeight; }, 50);
@@ -589,7 +692,7 @@ enterClient(match);
 }
 function enterClient(cid) {
 var cp = DB.get('cp_' + cid) || {};
-S.role='client'; S.scr='client'; S.cid=cid; S.cTab='workout';
+S.role='client'; S.scr='client'; S.cid=cid; S.cTab='home';
 S.unit=cp.unit||'kg'; S.week=cp.week||1;
 S.logs=DB.get('logs_'+cid)||{};
 S.exN=DB.get('exnotes_'+cid)||{};
@@ -702,17 +805,24 @@ cs.map(function(e){ var cid=e[0],c=e[1];
 var bal=c.balance||0;
 var pc=bal===0?'p-red':bal<=2?'p-amber':'p-green';
 var pt=bal===0?'NO SESSIONS':bal+' sessions left';
+var qbtn='width:28px;height:28px;border-radius:8px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0';
 return '<div class="ccard" onclick="openCli(\''+cid+'\')">' +
 '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">' +
 '<div class="cname">'+c.name+'</div>' +
-'<div style="display:flex;gap:5px">'+(c.msgCount>0?'<span class="pill p-red">💬 '+c.msgCount+'</span>':'')+
+'<div style="display:flex;gap:5px">'+(c.msgCount>0?'<span class="pill p-red">&#128172; '+c.msgCount+'</span>':'')+
 '<span class="pill '+pc+'">'+pt+'</span></div></div>' +
+'<div style="display:flex;justify-content:space-between;align-items:center">' +
 '<div class="cmeta">' +
 '<span class="pill '+(c.type==='online'?'p-blue':'p-green')+'">'+(c.type==='online'?'Online':'In Person')+'</span>' +
 (c.rate?'<span>'+currSym(cid)+c.rate+'/sess</span>':'') +
 '<span>Last: '+(c.lastActive?fmtD(c.lastActive):'Never')+'</span>' +
-(c.streak&&c.streak.cur>0?'<span style="color:var(--amber)">🔥 '+c.streak.cur+'</span>':'') +
-'</div></div>';
+(c.streak&&c.streak.cur>0?'<span style="color:var(--amber)">&#128293; '+c.streak.cur+'</span>':'') +
+'</div>' +
+'<div style="display:flex;gap:5px;flex-shrink:0;margin-left:8px">' +
+'<button onclick="event.stopPropagation();openQuickMsg(\''+cid+'\')" style="'+qbtn+';background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);color:#818cf8">&#128172;</button>' +
+'<button onclick="event.stopPropagation();openBookSess(\''+cid+'\')" style="'+qbtn+';background:rgba(236,72,153,.1);border:1px solid rgba(236,72,153,.2);color:#f472b6">&#128197;</button>' +
+'<button onclick="event.stopPropagation();openQuickPay(\''+cid+'\')" style="'+qbtn+';background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:#34d399">&#128176;</button>' +
+'</div></div></div>';
 }).join('') + '</div>' + trNav();
 }
 
@@ -902,9 +1012,10 @@ var sn = cd.sessNotes && cd.sessNotes[sess.sk];
 var accent = di?(di.accent||'#6366f1'):'#6366f1';
 return '<div class="card" style="border-color:'+(isExp?accent:'var(--bdr)')+';margin-bottom:8px">' +
 '<div style="padding:12px 13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="S.expS[\''+sess.sk+'\']=!S.expS[\''+sess.sk+'\'];R()">' +
-'<div><div style="font-weight:800;font-size:14px;color:'+accent+'">'+(di?di.title:'Session')+' <span style="font-size:11px;color:var(--m1);font-weight:400">Wk'+sess.w+'</span></div>' +
-'<div style="font-size:10px;color:var(--m1);margin-top:2px">'+setCnt+' sets'+(sess.ts?' - '+fmtD(new Date(sess.ts).toISOString().split('T')[0]):'')+'</div></div>' +
-'<span style="font-size:14px;color:var(--m2)">'+(isExp?'▴':'▾')+'</span></div>' +
+'<div><div style="font-weight:800;font-size:14px;color:'+accent+'">'+(di?di.title:'Session')+' <span style="font-size:11px;color:var(--m1);font-weight:400">Wk'+sess.w+'</span>' +
+(sn&&sn.rating?'<span style="font-size:11px;color:var(--amber);margin-left:6px">'+('&#11088;').repeat(sn.rating)+'</span>':'')+'</div>' +
+'<div style="font-size:10px;color:var(--m1);margin-top:2px">'+setCnt+' sets'+(sess.ts?' &#183; '+fmtD(new Date(sess.ts).toISOString().split('T')[0]):'')+'</div></div>' +
+'<span style="font-size:14px;color:var(--m2)">'+(isExp?'&#9652;':'&#9662;')+'</span></div>' +
 (isExp?'<div style="padding:12px 13px;border-top:1px solid var(--bdr)">' +
 Object.keys(sess.exLogs).sort(function(a,b){return parseInt(a)-parseInt(b);}).map(function(ei){
 var exLog=sess.exLogs[ei], ex=exLog.ex;
@@ -1120,6 +1231,40 @@ showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" o
 }
 function doDone(cid,sessId){completeSess(cid,sessId);closeModal();R();}
 
+function openQuickMsg(cid) {
+var c=S.clients[cid]||{};
+showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
+'<div class="modal-title">&#128172; Message '+c.name+' <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>' +
+'<div class="row"><textarea class="inp" id="qm_txt" rows="3" placeholder="Type a message..."></textarea></div>' +
+'<button class="btn btn-acc" onclick="doQuickMsg(\''+cid+'\')">SEND &#8594;</button>' +
+'<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
+'</div></div>');
+setTimeout(function(){var el=document.getElementById('qm_txt');if(el)el.focus();},100);
+}
+function doQuickMsg(cid) {
+var txt=((document.getElementById('qm_txt')||{}).value||'').trim();
+if(!txt){toast('Enter a message','err');return;}
+sendMsg(txt,'trainer',cid);
+if(S.cliData[cid])S.cliData[cid].messages=DB.get('msgs_'+cid)||{};
+closeModal(); toast('Sent to '+((S.clients[cid]||{}).name||'client'),'ok');
+}
+function openQuickPay(cid) {
+var c=S.clients[cid]||{};
+showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
+'<div class="modal-title">&#128176; Payment &#8212; '+c.name+' <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>' +
+'<div class="row"><div class="lbl">Amount ('+currSym(cid)+')</div><input class="inp" id="qp_amt" type="number" placeholder="e.g. 240" inputmode="decimal"></div>' +
+(c.rate?'<div style="font-size:11px;color:var(--m1);margin-bottom:12px">'+currSym(cid)+c.rate+'/session &#8212; sessions added = amount &#247; rate</div>':'') +
+'<button class="btn btn-green" onclick="doQuickPay(\''+cid+'\')">LOG PAYMENT &#10003;</button>' +
+'<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
+'</div></div>');
+}
+function doQuickPay(cid) {
+var amt=parseFloat((document.getElementById('qp_amt')||{}).value||'');
+if(!amt||amt<=0){toast('Enter a valid amount','err');return;}
+logPay(cid,amt,'');
+closeModal();
+}
+
 function openAddProg(cid) {
 var saved=DB.get('prog_templates')||[];
 var tkeys=Object.keys(PROG);
@@ -1206,8 +1351,11 @@ showModal('<div class="modal-bg"><div class="modal-box" style="max-height:94vh">
 p.days.map(function(d,di){
 return '<div style="background:var(--c2);border:1px solid var(--bdr);border-radius:12px;padding:12px;margin-bottom:10px">' +
 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">' +
-'<div style="font-size:14px;font-weight:700;color:'+d.accent+'">'+d.tag+' - '+d.title+'</div>' +
-'<button onclick="removeDay('+di+')" style="color:var(--red);font-size:18px;background:none;border:none;cursor:pointer">×</button></div>' +
+'<div style="font-size:14px;font-weight:700;color:'+d.accent+'">'+d.tag+' &#8212; '+d.title+'</div>' +
+'<div style="display:flex;gap:6px">' +
+'<button onclick="duplicateDay('+di+')" title="Copy day" style="color:var(--amber);font-size:12px;font-weight:700;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);border-radius:7px;padding:3px 8px;cursor:pointer">Copy</button>' +
+'<button onclick="removeDay('+di+')" style="color:var(--red);font-size:18px;background:none;border:none;cursor:pointer">&#215;</button>' +
+'</div></div>' +
 (d.ex.length>0?d.ex.map(function(ex,ei){
 return '<div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">' +
 '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:#fff">'+ex.n+'</div>' +
@@ -1228,6 +1376,13 @@ _bp.prog.days.push({tag:'Day '+(di+1),title:'Day '+(di+1),sub:'',accent:_accs[di
 showBuilder();
 }
 function removeDay(di){_bp.prog.days.splice(di,1);_bp.prog.days.forEach(function(d,i){d.tag='Day '+(i+1);});showBuilder();}
+function duplicateDay(di){
+var copy=JSON.parse(JSON.stringify(_bp.prog.days[di]));
+copy.tag='Day '+(_bp.prog.days.length+1);
+copy.title=copy.title+' (Copy)';
+_bp.prog.days.push(copy);
+showBuilder();
+}
 function removeEx(di,ei){_bp.prog.days[di].ex.splice(ei,1);showBuilder();}
 function filterEx(val) {
 var q=(val||'').toLowerCase().trim();
@@ -1254,9 +1409,15 @@ var box=document.getElementById('ae_suggestions');if(box){box.innerHTML='';box.s
 }
 function openAddEx(di) {
 _bpDay=di;
+var pills=EX_LIB.map(function(e){
+var safe=e.n.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+return '<button onclick="pickEx(\''+safe+'\')" style="display:inline-block;padding:5px 11px;background:var(--c2);border:1px solid var(--bdr);border-radius:20px;color:var(--m1);font-size:10px;font-weight:600;white-space:nowrap;cursor:pointer;flex-shrink:0">'+e.n+'</button>';
+}).join('');
 showModal('<div class="modal-bg"><div class="modal-box">' +
 '<div class="modal-title">Add Exercise - Day '+(di+1)+'</div>' +
-'<div class="row"><div class="lbl">Exercise Name — type to search library</div>' +
+'<div class="row" style="margin-bottom:8px"><div class="lbl">Quick Pick</div>' +
+'<div style="display:flex;gap:5px;overflow-x:auto;padding:4px 0;scrollbar-width:none">'+pills+'</div></div>' +
+'<div class="row"><div class="lbl">Exercise Name — or type to search</div>' +
 '<input class="inp" id="ae_n" placeholder="e.g. Barbell Back Squat" oninput="filterEx(this.value)" autocomplete="off">' +
 '<div id="ae_suggestions" style="display:none;border:1px solid var(--bdr);border-radius:0 0 10px 10px;overflow:hidden;margin-top:-2px;max-height:220px;overflow-y:auto"></div></div>' +
 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
@@ -1311,22 +1472,113 @@ closeModal(); toast(prog.name+' saved as template!','ok'); R();
 }
 }
 
+function renderComplete() {
+var d=getDay(), pr=sessP();
+var todayPRs=Object.values(S.prs).filter(function(p){return p.date===today();});
+var k=sk(S.week,S.day), sn=S.sN[k]||{};
+var accent=(d&&d.accent)||'var(--acc)';
+return '<div style="min-height:100vh;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center">' +
+'<div style="font-size:72px;margin-bottom:16px">&#127942;</div>' +
+'<div style="font-size:9px;letter-spacing:3px;color:var(--green);font-weight:700;margin-bottom:8px">SESSION COMPLETE</div>' +
+'<div style="font-size:64px;font-weight:900;color:#fff;line-height:1;margin-bottom:4px">'+S.streak.cur+'</div>' +
+'<div style="font-size:12px;color:var(--amber);font-weight:700;letter-spacing:1.5px;margin-bottom:24px">DAY STREAK &#128293;</div>' +
+'<div style="background:var(--c1);border:1px solid '+accent+';border-radius:16px;padding:16px 20px;width:100%;max-width:340px;margin-bottom:20px">' +
+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:'+(todayPRs.length?'14px':'0')+'">' +
+'<div><div style="font-size:32px;font-weight:900;color:var(--green)">'+pr.done+'</div><div style="font-size:9px;color:var(--m1);text-transform:uppercase;letter-spacing:1px">Sets Done</div></div>' +
+'<div><div style="font-size:32px;font-weight:900;color:'+accent+'">'+d.ex.length+'</div><div style="font-size:9px;color:var(--m1);text-transform:uppercase;letter-spacing:1px">Exercises</div></div>' +
+'</div>' +
+(todayPRs.length?'<div style="padding-top:12px;border-top:1px solid var(--bdr)">' +
+'<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--amber);margin-bottom:7px">&#127942; NEW PRs TODAY</div>' +
+todayPRs.map(function(p){return '<div style="font-size:12px;color:#fff;font-weight:600;margin-bottom:4px">'+p.exName+' &#8212; '+p.weight+S.unit+' x '+p.reps+'</div>';}).join('') +
+'</div>':'') +
+'</div>' +
+'<div style="width:100%;max-width:340px;margin-bottom:14px">' +
+'<div style="font-size:9px;font-weight:700;color:var(--m2);letter-spacing:1.5px;margin-bottom:6px;text-align:left">SESSION NOTE</div>' +
+'<textarea class="inp" id="comp_note" rows="3" placeholder="How did it feel? Any wins today?" style="margin-bottom:8px">'+((sn&&sn.client)||'')+'</textarea>' +
+'<button class="btn btn-green" style="margin-bottom:8px" onclick="doCompNote()">SAVE NOTE &#10003;</button>' +
+'</div>' +
+'<button class="btn btn-ghost" style="max-width:340px;width:100%" onclick="S.scr=\'client\';R()">Back to Workout</button>' +
+'</div>';
+}
+function doCompNote() {
+var ta=document.getElementById('comp_note');
+if(ta)saveSessNote(ta.value,'client');
+toast('Session note saved!','ok');
+var b=ta?ta.nextElementSibling:null;
+if(b){b.textContent='Saved! ✓';setTimeout(function(){if(b)b.textContent='SAVE NOTE ✓';},2000);}
+}
+
+function renderHome() {
+var hr=new Date().getHours();
+var greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
+var cp=DB.get('cp_'+S.cid)||{};
+var name=cp.name||'there';
+var d=getDay(), days=getDays();
+var tNote='';
+var snKeys=Object.keys(S.sN).sort();
+for(var i=snKeys.length-1;i>=0;i--){var sni=S.sN[snKeys[i]];if(sni&&sni.trainer){tNote=sni.trainer;break;}}
+var estMins=d?d.ex.reduce(function(t,ex){return t+(ex.sets||3)*4;},0):0;
+var d14=get14();
+return '<div class="hdr"><div class="hdr-top">' +
+'<div><div class="hdr-sub">Ahmed PT</div><div class="hdr-title">'+greet+'</div></div>' +
+(S.streak.cur>0?'<span class="pill p-amber">&#128293; '+S.streak.cur+'</span>':'') +
+'</div></div><div class="page">' +
+'<div style="margin-bottom:16px">' +
+'<div style="font-size:26px;font-weight:900;color:#fff;letter-spacing:-.5px">'+name+' &#128075;</div>' +
+'<div style="font-size:11px;color:var(--m1);margin-top:3px">'+new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})+'</div>' +
+'</div>' +
+(d?'<div style="background:var(--c1);border:1.5px solid '+(d.accent||'var(--bdr)')+';border-radius:14px;padding:16px;margin-bottom:14px">' +
+'<div style="font-size:9px;font-weight:700;letter-spacing:2px;color:'+(d.accent||'var(--acc)')+';margin-bottom:8px">TODAY\'S WORKOUT</div>' +
+'<div style="font-size:22px;font-weight:800;color:#fff;margin-bottom:4px">'+d.title+'</div>' +
+'<div style="font-size:11px;color:var(--m1);margin-bottom:14px">'+(d.sub||'')+' &#183; '+d.ex.length+' exercises &#183; ~'+estMins+' min</div>' +
+'<button class="btn" style="background:'+(d.accent||'var(--acc)')+';margin-bottom:0" onclick="S.cTab=\'workout\';R()">START WORKOUT &#8594;</button>' +
+'</div>':
+'<div style="background:var(--c1);border:1px solid var(--bdr);border-radius:14px;padding:16px;margin-bottom:14px;text-align:center"><div style="font-size:13px;color:var(--m2)">No program set yet &#8212; Ahmed will set this up for you.</div></div>') +
+'<div class="sk-card" style="margin-bottom:14px">' +
+'<div class="sk-nums">' +
+'<div><div class="sk-n">'+S.streak.cur+'</div><div class="sk-l">Streak &#128293;</div></div>' +
+'<div><div class="sk-n">'+S.streak.best+'</div><div class="sk-l">Best &#127942;</div></div>' +
+'</div>' +
+'<div style="font-size:10px;color:var(--m1);margin-bottom:8px;font-weight:600;letter-spacing:1px">LAST 14 DAYS</div>' +
+'<div class="sk-days">'+d14.map(function(dt){
+var isT=dt===today(), had=hadSess(dt)||(S.streak.lastDate===dt);
+return '<div class="sk-day '+(isT?'today':had?'done':'miss')+'">' +
+'<div style="font-size:7px;color:var(--m1)">'+new Date(dt+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short'}).slice(0,1)+'</div>' +
+'<div style="font-size:12px">'+(isT?'&#128205;':had?'&#9989;':'&#183;')+'</div>' +
+'<div style="font-size:7px;color:var(--m2)">'+new Date(dt+'T12:00:00').getDate()+'</div>' +
+'</div>';
+}).join('')+'</div></div>' +
+(tNote?'<div style="padding:12px 14px;background:rgba(99,102,241,.06);border-left:3px solid var(--blue);border-radius:0 10px 10px 0;margin-bottom:14px">' +
+'<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--blue);margin-bottom:5px">COACH AHMED</div>' +
+'<div style="font-size:12px;color:var(--m1);line-height:1.6;font-style:italic">'+tNote+'</div>' +
+'</div>':'') +
+(function(){
+var tip=TIPS[Math.floor(Date.now()/86400000)%TIPS.length];
+return '<div style="padding:12px 14px;background:rgba(245,158,11,.05);border-left:3px solid var(--amber);border-radius:0 10px 10px 0;margin-bottom:14px">' +
+'<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--amber);margin-bottom:5px">TODAY\'S TIP</div>' +
+'<div style="font-size:12px;color:var(--m1);line-height:1.6">'+tip+'</div>' +
+'</div>';
+})() +
+'</div>'+cliNav();
+}
+
 function renderClient() {
+if(S.cTab==='home')return renderHome();
 if(S.cTab==='workout')return renderWorkout();
 if(S.cTab==='progress')return renderProgress();
 if(S.cTab==='sessions')return renderMySess();
 if(S.cTab==='account')return renderMyAcct();
 if(S.cTab==='messages')return renderMsgs();
-return renderWorkout();
+return renderHome();
 }
 function cliNav() {
 var days=getDays();
 var tabs=[];
-days.forEach(function(d,i){tabs.push({id:'d'+i,icon:['💪','🦻','🔵','🟣','🟢'][i]||'💪',lbl:d.tag,di:i});});
-tabs.push({id:'sessions',icon:'📅',lbl:'Sessions'});
-tabs.push({id:'account',icon:'💳',lbl:'Account'});
-tabs.push({id:'progress',icon:'📈',lbl:'Progress'});
-tabs.push({id:'messages',icon:'💬',lbl:'Ahmed',badge:S.unread});
+tabs.push({id:'home',icon:'&#127968;',lbl:'Home'});
+days.forEach(function(d,i){tabs.push({id:'d'+i,icon:['&#128170;','&#128170;','&#128170;','&#128170;'][i]||'&#128170;',lbl:d.tag,di:i});});
+tabs.push({id:'sessions',icon:'&#128197;',lbl:'Sessions'});
+tabs.push({id:'progress',icon:'&#128200;',lbl:'Progress'});
+tabs.push({id:'messages',icon:'&#128172;',lbl:'Ahmed',badge:S.unread});
 return '<nav class="bnav">'+tabs.map(function(t){
 var on=t.di!==undefined?(S.cTab==='workout'&&S.day===t.di):(S.cTab===t.id);
 var color=on?(t.di!==undefined&&getDay()?getDay().accent||'var(--acc)':'var(--acc)'):'var(--m2)';
@@ -1398,6 +1650,7 @@ return '<div class="ex-card'+(allDone?' done':'')+'" id="exc_'+ei+'">' +
 '<span style="font-size:12px;color:var(--m2)">'+(showNote?'▴':'▾')+'</span>' +
 '</div></div></div>' +
 '<div class="ex-cue'+(showNote?' show':'')+'">'+ex.note+'</div>' +
+(exN&&exN.trainer?'<div style="padding:6px 13px 8px;border-left:3px solid var(--blue);margin:0 0 0 13px;background:rgba(99,102,241,.04);border-radius:0 6px 6px 0;font-size:11px;color:var(--m1);line-height:1.5;font-style:italic"><span style="font-weight:700;color:var(--blue);font-style:normal">Coach: </span>'+exN.trainer+'</div>':'') +
 (showAlt&&hasAlt?'<div class="alt-wrap"><div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--amber);margin-bottom:7px">SWAP EXERCISE</div>' +
 '<button class="alt-btn" onclick="doSwap('+ei+',undefined)" style="'+(S.swaps[S.day+'_'+ei]===undefined?'background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.3)':'')+'">'+origEx.n+' (original)</button>' +
 origEx.alt.map(function(a,ai){return '<button class="alt-btn" onclick="doSwap('+ei+','+ai+')" style="'+(S.swaps[S.day+'_'+ei]===ai?'background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.3)':'')+'">'+a+'</button>';}).join('') +
@@ -1448,41 +1701,90 @@ return '<div style="padding:10px 13px;background:rgba(0,0,0,.2)">' +
 '<button class="btn-sm btn-acc" onclick="doExNote('+ei+')">✓</button></div></div>';
 }
 function renderSessNoteBox() {
-var k=sk(S.week,S.day), sn=S.sN[k]||{}, tN=sn.trainer||'', cN=sn.client||'';
+var k=sk(S.week,S.day), sn=S.sN[k]||{}, tN=sn.trainer||'', cN=sn.client||'', rating=sn.rating||0;
 return '<div class="card" style="margin-top:12px"><div class="card-p">' +
-'<div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--m1);margin-bottom:10px;text-transform:uppercase">📋 Session Notes</div>' +
+'<div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--m1);margin-bottom:10px;text-transform:uppercase">&#128203; Session Notes</div>' +
 (tN?'<div style="margin-bottom:10px"><div class="lbl" style="color:var(--blue)">AHMED&#39;S FEEDBACK</div><div style="padding:8px 10px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.15);border-radius:9px;font-size:11px;color:var(--m1);line-height:1.6">'+tN+'</div></div>':'') +
 '<div class="lbl" style="color:var(--green)">YOUR NOTES</div>' +
 '<textarea class="inp" id="sn_inp" rows="3" placeholder="How did the session go?" style="min-height:60px;margin-bottom:8px">'+cN+'</textarea>' +
-'<button class="btn-sm btn-green" onclick="doSessNote()">Save ✓</button>' +
+'<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +
+'<div class="lbl" style="margin-bottom:0">RATE SESSION:</div>' +
+[1,2,3,4,5].map(function(v){return '<button onclick="doSessRating('+v+')" style="font-size:22px;background:none;border:none;cursor:pointer;padding:0;line-height:1;opacity:'+(v<=rating?'1':'.25')+'">'+(v<=rating?'&#11088;':'&#11088;')+'</button>';}).join('') +
+(rating?'<span style="font-size:11px;color:var(--amber);font-weight:700">'+rating+'/5</span>':'') +
+'</div>' +
+'<button class="btn-sm btn-green" onclick="doSessNote()">Save &#10003;</button>' +
 '</div></div>';
 }
+function doSessRating(v) {
+var k=sk(S.week,S.day);
+S.sN[k]=S.sN[k]||{};
+S.sN[k].rating=v;
+DB.set('sessnotes_'+S.cid,S.sN);
+toast('Rated '+v+' stars','ok');
+R();
+}
 
+function doLogBW() {
+var d=(document.getElementById('bw_d')||{}).value||today();
+var v=parseFloat((document.getElementById('bw_v')||{}).value||'');
+var u=(document.getElementById('bw_u')||{}).value||'kg';
+if(!v||v<=0){toast('Enter your weight','err');return;}
+var arr=DB.get('bodyweight_'+S.cid)||[];
+arr=arr.filter(function(e){return e.date!==d;});
+arr.push({date:d,weight:v,unit:u});
+arr.sort(function(a,b){return a.date.localeCompare(b.date);});
+DB.set('bodyweight_'+S.cid,arr);
+toast('Weight logged','ok'); R();
+}
+function renderBWSection() {
+var arr=DB.get('bodyweight_'+S.cid)||[];
+var max=0, min=99999;
+arr.forEach(function(e){if(e.weight>max)max=e.weight;if(e.weight<min)min=e.weight;});
+var range=max-min||1;
+return '<div class="sect">BODY WEIGHT</div>' +
+'<div class="card"><div class="card-p">' +
+'<div style="display:grid;grid-template-columns:1fr 1fr 70px;gap:8px;margin-bottom:8px">' +
+'<div><div class="lbl">Date</div><input class="inp" id="bw_d" type="date" value="'+today()+'" style="margin-bottom:0"></div>' +
+'<div><div class="lbl">Weight</div><input class="inp" id="bw_v" type="number" placeholder="e.g. 75" inputmode="decimal" style="margin-bottom:0"></div>' +
+'<div><div class="lbl">Unit</div><select class="sel" id="bw_u" style="margin-bottom:0"><option value="kg">kg</option><option value="lb">lb</option></select></div>' +
+'</div>' +
+'<button class="btn-sm btn-green" onclick="doLogBW()">Log Weight +</button>' +
+'</div></div>' +
+(arr.length?'<div style="padding:4px 0">'+arr.slice(-10).reverse().map(function(e){
+var pct=range>0?Math.round((e.weight-min)/range*80)+10:50;
+return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--bdr)">' +
+'<div style="min-width:74px;font-size:11px;color:var(--m1)">'+fmtD(e.date)+'</div>' +
+'<div style="flex:1;height:5px;background:var(--m3);border-radius:3px"><div style="height:100%;width:'+pct+'%;background:var(--green);border-radius:3px;transition:width .3s"></div></div>' +
+'<div style="min-width:52px;text-align:right;font-size:14px;font-weight:800;color:#fff">'+e.weight+'<span style="font-size:10px;color:var(--m1)">'+e.unit+'</span></div>' +
+'</div>';
+}).join('')+'</div>':'');
+}
 function renderProgress() {
 var d14=get14(), prs=Object.values(S.prs), pd=buildCliProgData();
 return '<div class="hdr"><div class="hdr-top">' +
 '<div><div class="hdr-sub">My Progress</div><div class="hdr-title">Progress</div></div>' +
-(S.streak.cur>0?'<span class="pill p-amber">🔥 '+S.streak.cur+'</span>':'') +
+(S.streak.cur>0?'<span class="pill p-amber">&#128293; '+S.streak.cur+'</span>':'') +
 '</div></div><div class="page">' +
 '<div class="sk-card">' +
-'<div class="sk-nums"><div><div class="sk-n">'+S.streak.cur+'</div><div class="sk-l">Current 🔥</div></div>' +
-'<div><div class="sk-n">'+S.streak.best+'</div><div class="sk-l">Best 🏆</div></div></div>' +
+'<div class="sk-nums"><div><div class="sk-n">'+S.streak.cur+'</div><div class="sk-l">Current &#128293;</div></div>' +
+'<div><div class="sk-n">'+S.streak.best+'</div><div class="sk-l">Best &#127942;</div></div></div>' +
 '<div style="font-size:10px;color:var(--m1);margin-bottom:8px;font-weight:600;letter-spacing:1px">LAST 14 DAYS</div>' +
 '<div class="sk-days">'+d14.map(function(d){
 var isT=d===today(), had=hadSess(d)||(S.streak.lastDate===d);
 return '<div class="sk-day '+(isT?'today':had?'done':'miss')+'">' +
 '<div style="font-size:7px;color:var(--m1)">'+new Date(d+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short'}).slice(0,1)+'</div>' +
-'<div style="font-size:12px">'+(isT?'📍':had?'✅':'·')+'</div>' +
+'<div style="font-size:12px">'+(isT?'&#128205;':had?'&#9989;':'&#183;')+'</div>' +
 '<div style="font-size:7px;color:var(--m2)">'+new Date(d+'T12:00:00').getDate()+'</div></div>';
 }).join('')+'</div></div>' +
-(prs.length?'<div class="sect">🏆 PERSONAL RECORDS</div>'+prs.map(function(pr){
+renderBWSection() +
+(prs.length?'<div class="sect">&#127942; PERSONAL RECORDS</div>'+prs.map(function(pr){
 return '<div class="card"><div class="card-p" style="display:flex;justify-content:space-between;align-items:center">' +
 '<div><div style="font-weight:600;font-size:13px;color:#fff">'+pr.exName+'</div><div style="font-size:10px;color:var(--m1)">'+fmtD(pr.date)+'</div></div>' +
 '<div style="text-align:right"><div style="font-size:15px;font-weight:800;color:var(--amber)">'+pr.weight+S.unit+' x '+pr.reps+'</div>' +
 '<div style="font-size:10px;color:var(--m2)">~'+Math.round(pr.est)+S.unit+' 1RM</div></div></div></div>';
 }).join(''):'') +
-'<div class="sect">WEIGHT PROGRESSION</div>' +
-(pd.length===0?'<div class="empty">Log sessions to see your progress.</div>':pd.map(function(p){return renderPBar(p,S.unit);}).join('')) +
+'<div class="sect">LIFT PROGRESSION</div>' +
+(pd.length===0?'<div class="empty">Log sessions to see your lift progress.</div>':pd.map(function(p){return renderPBar(p,S.unit);}).join('')) +
 renderHistLog() + '</div>' + cliNav();
 }
 function buildCliProgData() {
@@ -1630,7 +1932,16 @@ var r=(document.getElementById('inp_r')||{}).value;
 saveLog(ei,si,w,r,S.rpe);
 S.aSet=null;S.rpe=null;
 var d=getDay();
+var ex=getEx(ei);
+if(ex&&ex.rest)startRest(ex.rest);
 var sc=d&&d.ex[ei]?d.ex[ei].sets||3:3;
+var pr=sessP();
+if(pr.total>0&&pr.done>=pr.total){
+stopRest();
+S.scr='complete';
+R();
+return;
+}
 R();
 if(si+1<sc)setTimeout(function(){S.aSet={ei:ei,si:si+1};S.rpe=null;R();},150);
 }

@@ -313,7 +313,7 @@ app.innerHTML = html;
 var ml = document.getElementById(‘msgList’);
 if (ml) setTimeout(function(){ ml.scrollTop = ml.scrollHeight; }, 50);
 var d = getDay();
-if (d && d.accent) document.documentElement.style.setProperty(’–acc’, d.accent);
+if (d && d.accent) document.documentElement.style.setProperty(‘--acc’, d.accent);
 if (S.scr === ‘client’) {
 if (S.cTab === ‘sessions’) setTimeout(renderMySessData, 50);
 if (S.cTab === ‘account’) setTimeout(renderMyAcctData, 50);
@@ -759,12 +759,12 @@ function buildProgData(logs, cid) {
 var ex={}, progs=getProgs(cid);
 Object.keys(logs).forEach(function(key){
 var l=logs[key]; if(!l||!l.done||!l.weight)return;
-var p=key.split(’*’);
+var p=key.split(‘_’);
 var w=parseInt(p[0].replace(‘w’,’’)),d=parseInt(p[1].replace(‘d’,’’)),ei=parseInt(p[2].replace(‘e’,’’));
 var exName=l.exName;
 if(!exName){for(var pi=0;pi<progs.length;pi++){var pr=progs[pi];if(pr.days&&pr.days[d]&&pr.days[d].ex&&pr.days[d].ex[ei]){exName=pr.days[d].ex[ei].n;break;}}}
 if(!exName)return;
-var k=exName.replace(/[^a-zA-Z0-9]/g,’*’);
+var k=exName.replace(/[^a-zA-Z0-9]/g,’_’);
 if(!ex[k])ex[k]={name:exName,bw:{}};
 var wt=parseFloat(l.weight)||0;
 if(!ex[k].bw[w]||wt>ex[k].bw[w])ex[k].bw[w]=wt;
@@ -988,7 +988,7 @@ var _bp={cid:null,prog:null}, _bpDay=0;
 function startBuilder(cid) {
 var name=((document.getElementById(‘np_name’)||{}).value||’’).trim();
 if(!name){toast(‘Enter a program name first’,‘err’);return;}
-_bp.cid=cid; *bp.prog={id:’prog*’+Date.now(),name:name,days:[],created:Date.now()};
+_bp.cid=cid; _bp.prog={id:’prog_’+Date.now(),name:name,days:[],created:Date.now()};
 showBuilder();
 }
 function showBuilder() {
@@ -1055,16 +1055,16 @@ var note=((document.getElementById(‘ae_note’)||{}).value||’’).trim();
 var altRaw=((document.getElementById(‘ae_alt’)||{}).value||’’).trim();
 var alt=altRaw?altRaw.split(’,’).map(function(a){return a.trim();}).filter(Boolean):[];
 if(!n){toast(‘Enter exercise name’,‘err’);return;}
-_bp.prog.days[*bpDay].ex.push({n:n,sets:sets,r:r,t:t,m:m,rest:rest,note:note,alt:alt});
+_bp.prog.days[_bpDay].ex.push({n:n,sets:sets,r:r,t:t,m:m,rest:rest,note:note,alt:alt});
 showBuilder();
 }
 function doSaveBuilder() {
-var prog=*bp.prog, cid=*bp.cid;
-if(!prog.days.length){toast(‘Add at least one training day’,‘err’);return;}
+var prog=_bp.prog, cid=_bp.cid;
+if(!prog.days.length){toast(‘Add at least one training day’,’err’);return;}
 var progs=getProgs(cid); progs.push(prog);
-DB.set(’progs*’+cid,progs);
-var cp=DB.get(’cp*’+cid)||{}; cp.currentProgId=prog.id;
-DB.set(’cp*’+cid,cp);
+DB.set(‘progs_’+cid,progs);
+var cp=DB.get(‘cp_’+cid)||{}; cp.currentProgId=prog.id;
+DB.set(‘cp_’+cid,cp);
 var templates=DB.get(‘prog_templates’)||[];
 templates.push(JSON.parse(JSON.stringify(prog)));
 DB.set(‘prog_templates’,templates);
@@ -1089,8 +1089,8 @@ tabs.push({id:‘progress’,icon:’📈’,lbl:‘Progress’});
 tabs.push({id:‘messages’,icon:’💬’,lbl:‘Ahmed’,badge:S.unread});
 return ‘<nav class="bnav">’+tabs.map(function(t){
 var on=t.di!==undefined?(S.cTab===‘workout’&&S.day===t.di):(S.cTab===t.id);
-var color=on?(t.di!==undefined&&getDay()?getDay().accent||‘var(–acc)’:‘var(–acc)’):‘var(–m2)’;
-var click=t.di!==undefined?‘selDay(’+t.di+’)’:‘S.cTab='’+t.id+’';R()’;
+var color=on?(t.di!==undefined&&getDay()?getDay().accent||’var(--acc)’:’var(--acc)’):’var(--m2)’;
+var click=t.di!==undefined?’selDay(‘+t.di+’)’:’S.cTab=\’’+t.id+’\’;R()’;
 return ‘<button class="nb" onclick="'+click+'" style="color:'+color+'">’ +
 ‘<span class="nbi">’+t.icon+’</span>’+t.lbl+
 (t.badge&&t.badge>0?’<span class="nbd">’+t.badge+’</span>’:’’)+
@@ -1180,7 +1180,7 @@ function renderLogPanel(ei, si, d) {
 var ex=getEx(ei); if(!ex)return’’;
 var lg=getL(S.week,S.day,ei,si)||{};
 var prev=null;
-for(var w=S.week-1;w>=1;w–){var pl=getL(w,S.day,ei,si);if(pl&&pl.done){prev={data:pl,week:w};break;}}
+for(var w=S.week-1;w>=1;w--){var pl=getL(w,S.day,ei,si);if(pl&&pl.done){prev={data:pl,week:w};break;}}
 return ‘<div class="lpanel">’ +
 ‘<div class="lt" style="color:'+d.accent+'">SET ‘+(si+1)+’ - ‘+ex.n.toUpperCase()+’</div>’ +
 (prev?’<div class="prev">Wk’+prev.week+’: ‘+(prev.data.weight?’<strong>’+prev.data.weight+S.unit+’</strong>’:’’)+(prev.data.reps?’ x ‘+prev.data.reps:’’)+(prev.data.rpe?’ - RPE ‘+prev.data.rpe:’’)+’</div>’:’’) +
@@ -1249,12 +1249,12 @@ function buildCliProgData() {
 var ex={}, progs=getProgs();
 Object.keys(S.logs).forEach(function(key){
 var l=S.logs[key]; if(!l||!l.done||!l.weight)return;
-var p=key.split(’*’);
+var p=key.split(‘_’);
 var w=parseInt(p[0].replace(‘w’,’’)),d=parseInt(p[1].replace(‘d’,’’)),ei=parseInt(p[2].replace(‘e’,’’));
 var exName=l.exName;
 if(!exName){for(var pi=0;pi<progs.length;pi++){var pr=progs[pi];if(pr.days&&pr.days[d]&&pr.days[d].ex&&pr.days[d].ex[ei]){exName=pr.days[d].ex[ei].n;break;}}}
 if(!exName)return;
-var k=exName.replace(/[^a-zA-Z0-9]/g,’*’);
+var k=exName.replace(/[^a-zA-Z0-9]/g,’_’);
 if(!ex[k])ex[k]={name:exName,bw:{}};
 var wt=parseFloat(l.weight)||0;
 if(!ex[k].bw[w]||wt>ex[k].bw[w])ex[k].bw[w]=wt;
@@ -1265,7 +1265,7 @@ function renderHistLog() {
 var ss={};
 Object.keys(S.logs).forEach(function(k){
 var l=S.logs[k]; if(!l||!l.done)return;
-var p=k.split(’*’), k2=p[0]+’*’+p[1];
+var p=k.split(‘_’), k2=p[0]+’_’+p[1];
 if(!ss[k2])ss[k2]={w:p[0],d:p[1],sets:0,exs:{}};
 ss[k2].sets++; ss[k2].exs[p[2]]=1;
 });
@@ -1334,7 +1334,7 @@ var payEl=document.getElementById(‘pay_list’);
 var trainerClients=DB.get(‘tc’)||{};
 var clientData=trainerClients[S.cid]||{};
 var bal=clientData.balance||0;
-if(balEl){balEl.textContent=bal;balEl.style.color=bal===0?‘var(–red)’:bal<=2?‘var(–amber)’:‘var(–green)’;}
+if(balEl){balEl.textContent=bal;balEl.style.color=bal===0?’var(--red)’:bal<=2?’var(--amber)’:’var(--green)’;}
 if(msgEl){
 if(bal===0)msgEl.textContent=‘No sessions left - please arrange payment with Ahmed’;
 else if(bal<=2)msgEl.textContent=‘Only ‘+bal+’ session’+(bal===1?’’:‘s’)+’ left - time to top up’;
@@ -1376,14 +1376,14 @@ function setUnit(u){S.unit=u;var cp=DB.get(‘cp_’+S.cid)||{};cp.unit=u;DB.set
 function selDay(i){S.day=i;S.aSet=null;S.cTab=‘workout’;R();}
 function togNote(ei){S.xNote=(S.xNote===ei?-1:ei);R();}
 function togAlt(ei){S.xAlt=(S.xAlt===ei?-1:ei);R();}
-function doSwap(ei,idx){S.swaps[S.day+’*’+ei]=idx;S.xAlt=-1;R();}
+function doSwap(ei,idx){S.swaps[S.day+’_’+ei]=idx;S.xAlt=-1;R();}
 function openSet(ei,si){
 if(S.aSet&&S.aSet.ei===ei&&S.aSet.si===si){S.aSet=null;S.rpe=null;}
 else{S.aSet={ei:ei,si:si};var lg=getL(S.week,S.day,ei,si);S.rpe=lg?lg.rpe:null;}
 R();
-setTimeout(function(){var el=document.getElementById(’exc*’+ei);if(el){var lp=el.querySelector(’.lpanel’);if(lp)lp.scrollIntoView({behavior:‘smooth’,block:‘nearest’});}},60);
+setTimeout(function(){var el=document.getElementById(‘exc_’+ei);if(el){var lp=el.querySelector(‘.lpanel’);if(lp)lp.scrollIntoView({behavior:’smooth’,block:’nearest’});}},60);
 }
-function openYT(n){window.open(‘https://www.youtube.com/results?search_query=’+encodeURIComponent(n+’ exercise form tutorial’),’*blank’);}
+function openYT(n){window.open(‘https://www.youtube.com/results?search_query=’+encodeURIComponent(n+’ exercise form tutorial’),’_blank’);}
 function doLog(ei,si){
 var w=(document.getElementById(‘inp_w’)||{}).value;
 var r=(document.getElementById(‘inp_r’)||{}).value;
@@ -1395,7 +1395,7 @@ R();
 if(si+1<sc)setTimeout(function(){S.aSet={ei:ei,si:si+1};S.rpe=null;R();},150);
 }
 function doClear(ei,si){delLog(ei,si);S.aSet=null;S.rpe=null;R();}
-function doExNote(ei){var ta=document.getElementById(’exn*’+ei);if(!ta)return;saveExNote(ei,ta.value,‘client’);R();}
+function doExNote(ei){var ta=document.getElementById(‘exn_’+ei);if(!ta)return;saveExNote(ei,ta.value,’client’);R();}
 function doSessNote(){var ta=document.getElementById(‘sn_inp’);if(!ta)return;saveSessNote(ta.value,‘client’);var b=ta.nextElementSibling;if(b){b.textContent=‘Saved!’;setTimeout(function(){b.textContent=‘Save ✓’;},2000);}}
 
 function init() {

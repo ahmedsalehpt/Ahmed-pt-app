@@ -1834,6 +1834,7 @@ function useBuiltIn(cid, key) {
 var t=PROG[key]; if(!t)return;
 var prog=JSON.parse(JSON.stringify(t));
 prog.id='prog_'+Date.now(); prog.created=Date.now();
+if(!prog.duration)prog.duration=4;
 saveProg(cid,prog);
 }
 function useTemplate(cid, idx) {
@@ -1841,6 +1842,7 @@ var saved=DB.get('prog_templates')||[];
 var t=saved[idx]; if(!t)return;
 var prog=JSON.parse(JSON.stringify(t));
 prog.id='prog_'+Date.now(); prog.created=Date.now();
+if(!prog.duration)prog.duration=4;
 saveProg(cid,prog);
 }
 function delTemplate(idx) {
@@ -1879,7 +1881,7 @@ function startBuilder(cid) {
 if (!canUse('programBuilder')) { showUpgradeModal('programBuilder'); return; }
 var name=((document.getElementById('np_name')||{}).value||'').trim();
 if(!name){toast('Enter a program name first','err');return;}
-_bp.cid=cid; _bp.prog={id:'prog_'+Date.now(),name:name,days:[],created:Date.now()};
+_bp.cid=cid; _bp.prog={id:'prog_'+Date.now(),name:name,days:[],duration:4,created:Date.now()};
 showBuilder();
 }
 function showBuilder() {
@@ -1939,15 +1941,15 @@ return '<div style="display:flex;gap:8px;align-items:center;padding:6px 0;border
 }
 var _accs=['#ef4444','#10b981','#3b82f6','#a855f7','#ec4899','#f59e0b'];
 function addDay() {
+_syncBP();
 var di=_bp.prog.days.length;
-_bp.prog.days.push({tag:'Day '+(di+1),title:'Day '+(di+1),sub:'',accent:_accs[di%6],ex:[]});
+_bp.prog.days.push({tag:'Day '+(di+1),title:'New Workout',sub:'',accent:_accs[di%6],ex:[],weekdays:[]});
 showBuilder();
 }
-function removeDay(di){_bp.prog.days.splice(di,1);_bp.prog.days.forEach(function(d,i){d.tag='Day '+(i+1);});showBuilder();}
+function removeDay(di){_syncBP();_bp.prog.days.splice(di,1);showBuilder();}
 function duplicateDay(di){
 var copy=JSON.parse(JSON.stringify(_bp.prog.days[di]));
-copy.tag='Day '+(_bp.prog.days.length+1);
-copy.title=copy.title+' (Copy)';
+copy.weekdays=[];
 _bp.prog.days.push(copy);
 showBuilder();
 }
@@ -2018,6 +2020,7 @@ _bp.prog.days[_bpDay].ex.push({n:n,sets:sets,r:r,t:t,m:m,rest:rest,note:note,alt
 showBuilder();
 }
 function doSaveBuilder() {
+_syncBP();
 var prog=_bp.prog, cid=_bp.cid;
 if(!prog.days.length){toast('Add at least one training day','err');return;}
 var progs=getProgs(cid);
@@ -2082,7 +2085,9 @@ var hr=new Date().getHours();
 var greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
 var cp=DB.get('cp_'+S.cid)||{};
 var name=cp.name||'there';
-var d=getDay(), days=getDays();
+var todayIdx=getTodayWorkoutIdx();
+var d=todayIdx>=0?getDays()[todayIdx]:getDay();
+var days=getDays();
 var tNote='';
 var snKeys=Object.keys(S.sN).sort();
 for(var i=snKeys.length-1;i>=0;i--){var sni=S.sN[snKeys[i]];if(sni&&sni.trainer){tNote=sni.trainer;break;}}
@@ -2100,7 +2105,7 @@ return '<div class="hdr"><div class="hdr-top">' +
 '<div style="font-size:9px;font-weight:700;letter-spacing:2px;color:'+(d.accent||'var(--acc)')+';margin-bottom:8px">TODAY\'S WORKOUT</div>' +
 '<div style="font-size:22px;font-weight:800;color:#fff;margin-bottom:4px">'+d.title+'</div>' +
 '<div style="font-size:11px;color:var(--m1);margin-bottom:14px">'+(d.sub||'')+' &#183; '+d.ex.length+' exercises &#183; ~'+estMins+' min</div>' +
-'<button class="btn" style="background:'+(d.accent||'var(--acc)')+';margin-bottom:0" onclick="S.cTab=\'workout\';R()">START WORKOUT &#8594;</button>' +
+'<button class="btn" style="background:'+(d.accent||'var(--acc)')+';margin-bottom:0" onclick="'+(todayIdx>=0?'S.day='+todayIdx+';':'')+' S.cTab=\'workout\';R()">START WORKOUT &#8594;</button>' +
 '</div>':
 '<div style="background:var(--c1);border:1px solid var(--bdr);border-radius:14px;padding:16px;margin-bottom:14px;text-align:center"><div style="font-size:13px;color:var(--m2)">No program set yet &#8212; Ahmed will set this up for you.</div></div>') +
 '<div class="sk-card" style="margin-bottom:14px">' +
@@ -2151,7 +2156,8 @@ var tabs=[
 return '<nav class="bnav">'+tabs.map(function(t){
 var on=S.cTab===t.id;
 var color=on?'var(--acc)':'var(--m2)';
-return '<button class="nb" onclick="S.cTab=\''+t.id+'\';R()" style="color:'+color+'">' +
+var click=t.id==='workout'?'var _ti=getTodayWorkoutIdx();if(_ti>=0)S.day=_ti;S.cTab=\'workout\';R()':'S.cTab=\''+t.id+'\';R()';
+return '<button class="nb" onclick="'+click+'" style="color:'+color+'">' +
 '<span class="nbi">'+t.icon+'</span>'+t.lbl+
 (t.badge&&t.badge>0?'<span class="nbd">'+t.badge+'</span>':'')+
 '</button>';
@@ -2197,7 +2203,16 @@ return '<div class="hdr"><div class="hdr-top">' +
 '</div>' +
 '<div style="text-align:right"><div style="font-size:22px;font-weight:900;color:'+ac+'">'+pr.done+'<span style="color:var(--m2)">/'+pr.total+'</span></div>' +
 '<div style="width:80px;height:3px;background:var(--m3);border-radius:2px;margin-left:auto;margin-top:3px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+ac+';border-radius:2px;transition:width .3s"></div></div></div></div>' +
-(d.coach?'<div style="padding:8px 12px;background:'+ac+'0d;border-left:3px solid '+ac+';border-radius:0 8px 8px 0;margin-bottom:12px;font-size:11px;color:var(--m1);line-height:1.6"><strong style="color:'+ac+'">COACH: </strong>'+d.coach+'</div>':'') +
+(function(){
+var motiv=getDailyMotivation(d,S.streak.cur,S.week);
+var assignedDays=d.weekdays&&d.weekdays.length>0?d.weekdays.map(function(wd){return WD_NAMES[wd];}).join(', '):'';
+return (motiv?'<div style="padding:11px 14px;background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(236,72,153,.05));border:1px solid rgba(99,102,241,.15);border-radius:12px;margin-bottom:12px">' +
+'<div style="font-size:9px;font-weight:700;letter-spacing:2px;color:var(--acc);margin-bottom:5px">&#128170; AHMED PT</div>' +
+'<div style="font-size:13px;color:var(--tx);line-height:1.6;font-style:italic">&#8220;'+motiv+'&#8221;</div>' +
+(assignedDays?'<div style="font-size:10px;color:var(--m2);margin-top:6px">Scheduled: '+assignedDays+'</div>':'') +
+'</div>':'') +
+(d.coach?'<div style="padding:8px 12px;background:'+ac+'0d;border-left:3px solid '+ac+';border-radius:0 8px 8px 0;margin-bottom:12px;font-size:11px;color:var(--m1);line-height:1.6"><strong style="color:'+ac+'">COACH: </strong>'+d.coach+'</div>':'');
+})() +
 d.ex.map(function(ex,ei){return renderExCard(ex,ei,d);}).join('') +
 renderSessNoteBox()) +
 '</div>' + cliNav();

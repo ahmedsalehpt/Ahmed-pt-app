@@ -307,7 +307,8 @@ clients: {}, unread: 0, expS: {}, cliData: {},
 restTimer: {secs:0, iv:null},
 sub: {plan:'pro', status:'trial', trialEndsAt:null, currentPeriodEnd:null},
 clientPremium: false,
-referralCode: null
+referralCode: null,
+newPR: null
 };
 
 function getPlan() { return PLANS[S.sub.plan] || PLANS.free; }
@@ -544,34 +545,44 @@ S.streak = {cur:cur, best:Math.max(cur, s.best||0), lastDate:t};
 }
 function chkPR(ei, weight, reps) {
 var ex = getEx(ei); if (!ex || !weight) return;
-var k = ex.n.replace(/[^a-zA-Z0-9]/g, '*');
+var k = ex.n.replace(/[^a-zA-Z0-9]/g, '_');
 var wt = parseFloat(weight) || 0, rp = parseInt(reps) || 0;
 var est = wt * (1 + rp / 30);
 var x = S.prs[k];
-var isPR = !x || est > (x.est || 0);
-if (isPR) {
+if (!x || est > (x.est || 0)) {
 S.prs[k] = {weight:wt, reps:rp, est:est, date:today(), exName:ex.n};
-setTimeout(function(){ showPRCelebration(ex.n, wt, rp, est); }, 400);
+S.newPR = {exName:ex.n, weight:wt, reps:rp, est:Math.round(est)};
 }
 }
-function showPRCelebration(exName, weight, reps, est) {
-var modal = document.getElementById('modal');
-if (!modal) return;
-modal.innerHTML = '<div style="position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center" onclick="closePRModal()">' +
-'<div style="font-size:80px;margin-bottom:6px;animation:none">&#127942;</div>' +
+function renderPROverlay() {
+var pr = S.newPR; if (!pr) return;
+var el = document.createElement('div');
+el.id = 'pr_overlay';
+el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:24px;text-align:center';
+el.innerHTML =
+'<div style="font-size:72px;margin-bottom:8px">&#127942;</div>' +
 '<div style="font-size:10px;letter-spacing:4px;font-weight:800;color:var(--amber);margin-bottom:10px">NEW PERSONAL RECORD</div>' +
-'<div style="font-size:28px;font-weight:900;color:#fff;margin-bottom:6px">'+exName+'</div>' +
-'<div style="font-size:56px;font-weight:900;color:var(--amber);line-height:1;margin-bottom:4px">'+weight+S.unit+' &#215; '+reps+'</div>' +
-'<div style="font-size:13px;color:var(--m1);margin-bottom:8px">&#126;'+Math.round(est)+S.unit+' estimated 1RM</div>' +
-'<div style="font-size:12px;color:var(--m2);margin-bottom:28px;max-width:280px;line-height:1.8">You just proved what you\'re capable of.<br>Screenshot this. Remember this moment. &#128293;</div>' +
-'<div style="font-size:9px;color:var(--m2);margin-bottom:12px;letter-spacing:2px">AHMED PERSONAL TRAINING</div>' +
-'<button onclick="closePRModal()" style="padding:13px 36px;border-radius:12px;background:var(--amber);color:#000;font-size:14px;font-weight:800;border:none;cursor:pointer">LET\'S GO &#128293;</button>' +
-'<div style="font-size:10px;color:var(--m2);margin-top:14px">Tap anywhere to close</div>' +
-'</div>';
+'<div style="font-size:26px;font-weight:900;color:#fff;margin-bottom:6px">'+pr.exName+'</div>' +
+'<div style="font-size:48px;font-weight:900;color:var(--amber);line-height:1;margin-bottom:6px">'+pr.weight+S.unit+' &#215; '+pr.reps+'</div>' +
+'<div style="font-size:13px;color:var(--m1);margin-bottom:6px">Estimated 1RM: '+pr.est+S.unit+'</div>' +
+'<div style="font-size:12px;color:var(--m2);margin-bottom:24px;max-width:280px;line-height:1.7">You just proved what you\'re capable of.<br>Screenshot this. Remember this moment. &#128293;</div>' +
+'<div style="font-size:9px;color:var(--m2);letter-spacing:3px;margin-bottom:16px">AHMED PERSONAL TRAINING &#183; @Madridsta_</div>' +
+'<button id="pr_share_btn" style="padding:14px 28px;background:var(--amber);color:#000;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:10px">&#128248; Share This PR</button>' +
+'<button id="pr_cont_btn" style="padding:10px 20px;background:transparent;border:1px solid var(--bdr);color:var(--m1);border-radius:10px;font-size:13px;cursor:pointer">Continue Training</button>';
+document.body.appendChild(el);
+document.getElementById('pr_share_btn').onclick = function(){ dismissPR(true); };
+document.getElementById('pr_cont_btn').onclick = function(){ dismissPR(false); };
 }
-function closePRModal() {
-var modal = document.getElementById('modal');
-if (modal) modal.innerHTML = '';
+function dismissPR(share) {
+var pr = S.newPR;
+if (share && pr) {
+if (navigator.share) {
+navigator.share({title:'New PR &#8212; Ahmed PT', text:'Just hit a new PR on '+pr.exName+': '+pr.weight+S.unit+' x '+pr.reps+' reps. Estimated 1RM: '+pr.est+S.unit+'. Training with Ahmed PT &#8212; @Madridsta_ on Instagram.'}).catch(function(){});
+} else { toast('Screenshot and share!','info'); }
+}
+S.newPR = null;
+var el = document.getElementById('pr_overlay');
+if (el) el.parentNode.removeChild(el);
 }
 function get14() {
 var days = [];
@@ -652,6 +663,135 @@ function setBPAccent(di,color){
 _syncBP();
 _bp.prog.days[di].accent=color;
 showBuilder();
+}
+function getDayScheduled(d) { return d.scheduledDays || d.weekdays || []; }
+function getDurationWeeks(prog) { return prog ? (prog.durationWeeks || prog.duration || 4) : 4; }
+function getNextScheduledDay(prog) {
+if (!prog) return null;
+var days = prog.days || [];
+var wd = new Date().getDay();
+var best = null, bestDiff = 99;
+for (var i = 0; i < days.length; i++) {
+var sched = getDayScheduled(days[i]);
+for (var j = 0; j < sched.length; j++) {
+var diff = (sched[j] - wd + 7) % 7;
+if (diff > 0 && diff < bestDiff) { bestDiff = diff; best = {day: days[i], dayIdx: i, diff: diff, wd: sched[j]}; }
+}
+}
+return best;
+}
+function getCurrentWeek(cid) {
+var prog = getProg(cid); if (!prog) return S.week;
+if (!prog.startDate) return S.week;
+var daysSince = Math.floor((Date.now() - prog.startDate) / 86400000);
+return Math.min(Math.max(1, Math.floor(daysSince / 7) + 1), getDurationWeeks(prog));
+}
+function hasDayLog(weekNum, dayIdx) {
+var prefix = 'w' + weekNum + '_d' + dayIdx + '_';
+return Object.keys(S.logs).some(function(k) { return k.indexOf(prefix) === 0 && S.logs[k] && S.logs[k].done; });
+}
+function generateWorkoutMessage(clientName, dayName, exercises, streak, weekNum, totalWeeks) {
+var cacheKey = 'msg_' + S.cid + '_' + today();
+var cached = DB.get(cacheKey);
+if (cached) { showMotivCard(cached); return; }
+var apiKey = DB.get('anthropic_key') || '';
+var exList = (exercises || []).slice(0, 4).map(function(e) { return e.n; }).join(', ');
+var streakLine = streak > 2 ? 'They are on a ' + streak + ' day training streak &#8212; acknowledge it.' : '';
+var prompt = 'You are a motivational personal trainer. Write a short punchy message (2-3 sentences max) for a client named ' + clientName + ' who is about to start their ' + dayName + ' workout. They are on week ' + weekNum + ' of ' + totalWeeks + '. ' + streakLine + ' Main exercises: ' + exList + '. Be energetic, specific, make them feel unstoppable. No generic gym quotes. Under 40 words.';
+if (!apiKey) { showMotivCard(getFallbackMsg(clientName, dayName, streak, weekNum)); return; }
+fetch('https://api.anthropic.com/v1/messages', {
+method: 'POST',
+headers: {'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true'},
+body: JSON.stringify({model: 'claude-haiku-4-5-20251001', max_tokens: 100, messages: [{role: 'user', content: prompt}]})
+}).then(function(r) { return r.json(); }).then(function(data) {
+var msg = data.content && data.content[0] ? data.content[0].text : null;
+if (msg) { DB.set(cacheKey, msg); showMotivCard(msg); }
+else { showMotivCard(getFallbackMsg(clientName, dayName, streak, weekNum)); }
+}).catch(function() { showMotivCard(getFallbackMsg(clientName, dayName, streak, weekNum)); });
+}
+function getFallbackMsg(name, dayName, streak, weekNum) {
+var msgs = [
+name + ' &#8212; Week ' + weekNum + ', ' + dayName + '. You already showed up. That\'s 90% of it.',
+'Week ' + weekNum + '. ' + dayName + '. Every rep today is an investment in the person you\'re becoming.',
+name + ', your future self is watching. Make them proud today. Let\'s go.'
+];
+if (streak > 2) msgs.unshift(name + ', ' + streak + ' days straight. Most people don\'t get here. Keep building.');
+return msgs[Math.floor(Date.now() / 86400000) % msgs.length];
+}
+function showMotivCard(msg) {
+var el = document.getElementById('motiv_card');
+if (el) el.innerHTML = buildMotivInner(msg);
+}
+function buildMotivInner(msg) {
+return '<div style="font-size:9px;font-weight:700;letter-spacing:2px;color:var(--acc);margin-bottom:8px">AHMED SAYS</div>' +
+'<div style="font-size:15px;font-weight:600;color:#fff;line-height:1.5">' + msg + '</div>' +
+'<button onclick="shareMessage(\''+msg.replace(/'/g,'&#39;')+'\')" style="margin-top:10px;padding:5px 12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:20px;color:var(--m1);font-size:10px;font-weight:700;cursor:pointer">&#8679; Share</button>';
+}
+function shareMessage(msg) {
+if (navigator.share) {
+navigator.share({title: 'Ahmed PT', text: msg + '\n\n&#8212; Ahmed PT &#183; @Madridsta_ on Instagram'}).catch(function(){});
+} else { toast('Screenshot and share!', 'info'); }
+}
+function renderWeekStrip(prog) {
+if (!prog || !prog.days || !prog.days.length) return '';
+var wd = new Date().getDay();
+var dayLabels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+var cells = '';
+for (var i = 0; i < 7; i++) {
+var isToday = i === wd;
+var dayDays = [];
+for (var j = 0; j < prog.days.length; j++) {
+if (getDayScheduled(prog.days[j]).indexOf(i) >= 0) dayDays.push({idx: j, day: prog.days[j]});
+}
+var isRest = dayDays.length === 0;
+var isDone = false;
+var accentColor = 'var(--m2)';
+var label = '';
+if (!isRest) {
+var dd = dayDays[0];
+var dName = dd.day.name || dd.day.tag || ('Day '+(dd.idx+1));
+label = dName.length > 5 ? dName.slice(0,5) : dName;
+accentColor = dd.day.accent || 'var(--acc)';
+isDone = hasDayLog(S.week, dd.idx);
+}
+cells += '<div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:8px;background:'+(isToday?'rgba(99,102,241,.1)':'transparent')+';border:'+(isToday?'1px solid rgba(99,102,241,.3)':'1px solid transparent')+'">' +
+'<div style="font-size:8px;font-weight:700;color:'+(isToday?'var(--acc)':'var(--m2)')+'">'+dayLabels[i].toUpperCase()+'</div>' +
+'<div style="font-size:14px">'+(isToday?'&#128314;':isDone?'&#9989;':isRest?'&#183;':'&#8226;')+'</div>' +
+'<div style="font-size:8px;font-weight:600;color:'+(isRest?'var(--m2)':accentColor)+';text-align:center;white-space:nowrap;overflow:hidden;max-width:36px">'+( isRest?'Rest':label)+'</div>' +
+'</div>';
+}
+return '<div style="background:var(--c1);border:1px solid var(--bdr);border-radius:12px;padding:10px;margin-bottom:14px">' +
+'<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--m2);margin-bottom:8px">THIS WEEK</div>' +
+'<div style="display:flex;gap:2px">' + cells + '</div>' +
+'</div>';
+}
+function renderRestDay(prog) {
+var next = getNextScheduledDay(prog);
+var cp = DB.get('cp_' + S.cid) || {};
+var name = cp.name || 'there';
+var tips = [
+'Rest days are where the gains are made. Your muscles grow during recovery, not during the workout.',
+'Active recovery tip: a 20-minute walk today will improve tomorrow\'s performance significantly.',
+'Hydration and sleep are doing the work right now. Fuel your body, rest your body.',
+'Your CNS is recovering today. Tomorrow you\'ll be stronger than you were yesterday.',
+'Use today to foam roll, stretch, and mentally prep. The next session is going to be great.'
+];
+var tip = tips[Math.floor(Date.now() / 86400000) % tips.length];
+return '<div style="text-align:center;padding:28px 20px 20px">' +
+'<div style="font-size:52px;margin-bottom:12px">&#128564;</div>' +
+'<div style="font-size:22px;font-weight:900;color:#fff;margin-bottom:4px">Rest Day</div>' +
+'<div style="font-size:13px;color:var(--m1);margin-bottom:20px">' + name + ', recovery is part of the program.</div>' +
+(S.streak.cur > 0 ? '<span class="pill p-amber" style="font-size:13px;padding:6px 16px;margin-bottom:20px;display:inline-block">&#128293; ' + S.streak.cur + ' Day Streak &#8212; Keep it going!</span>' : '') +
+'</div>' +
+(next ? '<div style="background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.15);border-radius:12px;padding:14px;margin-bottom:14px;text-align:center">' +
+'<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--acc);margin-bottom:6px">NEXT WORKOUT</div>' +
+'<div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:4px">' + (next.day.name || next.day.title || next.day.tag) + '</div>' +
+'<div style="font-size:12px;color:var(--m1)">'+WD_NAMES[next.wd]+' &#8212; in ' + next.diff + ' day' + (next.diff === 1 ? '' : 's') + '</div>' +
+'</div>' : '') +
+'<div style="background:rgba(245,158,11,.05);border-left:3px solid var(--amber);border-radius:0 10px 10px 0;padding:12px 14px;margin-bottom:14px">' +
+'<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--amber);margin-bottom:5px">RECOVERY TIP</div>' +
+'<div style="font-size:12px;color:var(--m1);line-height:1.6">' + tip + '</div>' +
+'</div>';
 }
 function hadSess(d) {
 return Object.keys(S.logs).some(function(k) {
@@ -792,6 +932,7 @@ else if (S.scr === 'trainer') html = renderTrainer();
 else if (S.scr === 'client') html = renderClient();
 else if (S.scr === 'complete') html = renderComplete();
 app.innerHTML = html;
+if (S.newPR) renderPROverlay();
 var ml = document.getElementById('msgList');
 if (ml) setTimeout(function(){ ml.scrollTop = ml.scrollHeight; }, 50);
 var d = getDay();
@@ -1751,6 +1892,11 @@ showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" o
 '<div style="border-top:1px solid var(--bdr);padding-top:14px">' +
 '<div class="row"><div class="lbl">Display Name</div><input class="inp" id="tp_n" value="'+(tr.name||'')+'"></div>' +
 '<div class="row"><div class="lbl">New PIN (leave blank to keep)</div><input class="inp" id="tp_p" type="tel" maxlength="4" placeholder="4 digits" inputmode="numeric"></div>' +
+'<div style="border-top:1px solid var(--bdr);margin:12px 0;padding-top:12px">' +
+'<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--acc);margin-bottom:8px">AI MESSAGES (ANTHROPIC API)</div>' +
+'<div class="row"><div class="lbl">Anthropic API Key</div><input class="inp" id="tp_ak" value="'+(DB.get('anthropic_key')||'')+'" placeholder="sk-ant-..." type="password"></div>' +
+'<div style="font-size:10px;color:var(--m2);margin-bottom:10px;line-height:1.5">Powers personalised AI workout messages for clients. Leave blank to use built-in messages. Key is stored locally on this device only.</div>' +
+'</div>' +
 '<div id="tp_err"></div>' +
 '<button class="btn btn-acc" onclick="doSaveProfile()">SAVE &#10003;</button>' +
 '</div>' +
@@ -1760,6 +1906,7 @@ showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" o
 function doSaveProfile() {
 var name=((document.getElementById('tp_n')||{}).value||'').trim();
 var pin=((document.getElementById('tp_p')||{}).value||'').trim();
+var apiKey=((document.getElementById('tp_ak')||{}).value||'').trim();
 var err=document.getElementById('tp_err');
 if(!name){if(err)err.innerHTML='<div class="err-msg">Name is required</div>';return;}
 if(pin&&pin.length<4){if(err)err.innerHTML='<div class="err-msg">PIN must be 4 digits</div>';return;}
@@ -1767,6 +1914,8 @@ var tr=DB.get('trainer')||{};
 tr.name=name;
 if(pin)tr.pin=pin;
 DB.set('trainer',tr);
+if(apiKey)DB.set('anthropic_key',apiKey);
+else if(!apiKey&&DB.get('anthropic_key'))DB.del('anthropic_key');
 closeModal(); toast('Profile updated','ok'); R();
 }
 
@@ -1852,6 +2001,7 @@ toast('Template deleted','ok');
 if(S.vCli)openAddProg(S.vCli); else closeModal();
 }
 function saveProg(cid,prog) {
+if(!prog.startDate)prog.startDate=Date.now();
 var progs=getProgs(cid); progs.push(prog);
 DB.set('progs_'+cid,progs);
 var cp=DB.get('cp_'+cid)||{}; cp.currentProgId=prog.id;
@@ -2049,28 +2199,44 @@ var d=getDay(), pr=sessP();
 var todayPRs=Object.values(S.prs).filter(function(p){return p.date===today();});
 var k=sk(S.week,S.day), sn=S.sN[k]||{};
 var accent=(d&&d.accent)||'var(--acc)';
+var dName=d?(d.name||d.title||d.tag):'Workout';
 return '<div style="min-height:100vh;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center">' +
-'<div style="font-size:72px;margin-bottom:16px">&#127942;</div>' +
+'<div style="font-size:72px;margin-bottom:12px">&#127942;</div>' +
 '<div style="font-size:9px;letter-spacing:3px;color:var(--green);font-weight:700;margin-bottom:8px">SESSION COMPLETE</div>' +
 '<div style="font-size:64px;font-weight:900;color:#fff;line-height:1;margin-bottom:4px">'+S.streak.cur+'</div>' +
-'<div style="font-size:12px;color:var(--amber);font-weight:700;letter-spacing:1.5px;margin-bottom:24px">DAY STREAK &#128293;</div>' +
-'<div style="background:var(--c1);border:1px solid '+accent+';border-radius:16px;padding:16px 20px;width:100%;max-width:340px;margin-bottom:20px">' +
-'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:'+(todayPRs.length?'14px':'0')+'">' +
-'<div><div style="font-size:32px;font-weight:900;color:var(--green)">'+pr.done+'</div><div style="font-size:9px;color:var(--m1);text-transform:uppercase;letter-spacing:1px">Sets Done</div></div>' +
-'<div><div style="font-size:32px;font-weight:900;color:'+accent+'">'+d.ex.length+'</div><div style="font-size:9px;color:var(--m1);text-transform:uppercase;letter-spacing:1px">Exercises</div></div>' +
+'<div style="font-size:12px;color:var(--amber);font-weight:700;letter-spacing:1.5px;margin-bottom:20px">DAY STREAK &#128293;</div>' +
+'<div id="share_card" style="background:linear-gradient(135deg,#0f1117,#1a1040);border:1px solid rgba(99,102,241,.3);border-radius:20px;padding:22px;width:100%;max-width:340px;margin-bottom:16px;text-align:center">' +
+'<div style="font-size:9px;letter-spacing:3px;color:var(--acc);font-weight:700;margin-bottom:14px">AHMED PERSONAL TRAINING</div>' +
+'<div style="font-size:28px;font-weight:900;color:#fff;margin-bottom:3px">'+dName+' Done</div>' +
+'<div style="font-size:12px;color:var(--m1);margin-bottom:18px">Week '+S.week+'</div>' +
+'<div style="display:flex;justify-content:center;gap:24px;margin-bottom:16px">' +
+'<div><div style="font-size:36px;font-weight:900;color:var(--green)">'+pr.done+'</div><div style="font-size:9px;color:var(--m1);text-transform:uppercase;letter-spacing:1px">Sets Done</div></div>' +
+(todayPRs.length?'<div><div style="font-size:36px;font-weight:900;color:var(--amber)">'+todayPRs.length+'</div><div style="font-size:9px;color:var(--m1);text-transform:uppercase;letter-spacing:1px">New PRs</div></div>':'') +
+'<div><div style="font-size:36px;font-weight:900;color:var(--amber)">&#128293; '+S.streak.cur+'</div><div style="font-size:9px;color:var(--m1);text-transform:uppercase;letter-spacing:1px">Day Streak</div></div>' +
 '</div>' +
-(todayPRs.length?'<div style="padding-top:12px;border-top:1px solid var(--bdr)">' +
-'<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--amber);margin-bottom:7px">&#127942; NEW PRs TODAY</div>' +
-todayPRs.map(function(p){return '<div style="font-size:12px;color:#fff;font-weight:600;margin-bottom:4px">'+p.exName+' &#8212; '+p.weight+S.unit+' x '+p.reps+'</div>';}).join('') +
+(todayPRs.length?'<div style="padding:10px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;margin-bottom:12px">' +
+'<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--amber);margin-bottom:6px">&#127942; NEW PRs</div>' +
+todayPRs.map(function(p){return '<div style="font-size:12px;color:#fff;font-weight:600;margin-bottom:3px">'+p.exName+' &#8212; '+p.weight+S.unit+' x '+p.reps+'</div>';}).join('')+
 '</div>':'') +
+'<div style="font-size:10px;color:var(--m2)">@Madridsta_ on Instagram</div>' +
 '</div>' +
+'<button onclick="shareCard()" style="width:100%;max-width:340px;padding:14px;background:var(--acc);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:10px">&#128248; Share</button>' +
 '<div style="width:100%;max-width:340px;margin-bottom:14px">' +
 '<div style="font-size:9px;font-weight:700;color:var(--m2);letter-spacing:1.5px;margin-bottom:6px;text-align:left">SESSION NOTE</div>' +
 '<textarea class="inp" id="comp_note" rows="3" placeholder="How did it feel? Any wins today?" style="margin-bottom:8px">'+((sn&&sn.client)||'')+'</textarea>' +
 '<button class="btn btn-green" style="margin-bottom:8px" onclick="doCompNote()">SAVE NOTE &#10003;</button>' +
 '</div>' +
-'<button class="btn btn-ghost" style="max-width:340px;width:100%" onclick="S.scr=\'client\';R()">Back to Workout</button>' +
+'<button class="btn btn-ghost" style="max-width:340px;width:100%" onclick="S.scr=\'client\';R()">Back to Training</button>' +
 '</div>';
+}
+function shareCard() {
+var d=getDay();
+var dName=d?(d.name||d.title||d.tag):'Workout';
+var pr=sessP();
+var todayPRs=Object.values(S.prs).filter(function(p){return p.date===today();});
+var text=dName+' done! Week '+S.week+' &#8212; '+pr.done+' sets completed'+(S.streak.cur>1?', '+S.streak.cur+' day streak':'')+(todayPRs.length?' &#127942; '+todayPRs.length+' new PR'+(todayPRs.length>1?'s':''):'')+'. Training with Ahmed PT &#8212; @Madridsta_ on Instagram';
+if(navigator.share){navigator.share({title:'Ahmed PT &#8212; Session Complete',text:text}).catch(function(){});}
+else{toast('Screenshot and share!','info');}
 }
 function doCompNote() {
 var ta=document.getElementById('comp_note');
@@ -2165,57 +2331,79 @@ return '<button class="nb" onclick="'+click+'" style="color:'+color+'">' +
 }
 
 function renderWorkout() {
-var d=getDay(), days=getDays();
 var prog=getProg();
-var duration=Math.max(4, (prog&&prog.duration)||4);
+var days=getDays();
+var duration=getDurationWeeks(prog);
 var wkPhase=((S.week-1)%4)+1;
 var wk=WK[wkPhase]||WK[1];
-var pr=sessP(), pct=pr.total>0?(pr.done/pr.total*100):0;
+var todayWd=new Date().getDay();
+var todayDays=[];
+for(var ti=0;ti<days.length;ti++){if(getDayScheduled(days[ti]).indexOf(todayWd)>=0)todayDays.push(ti);}
+var isTrainingDay=todayDays.length>0;
+var d=getDay();
 var ac=d?(d.accent||'var(--acc)'):'var(--acc)';
+var pr=sessP(), pct=pr.total>0?(pr.done/pr.total*100):0;
+var cp=DB.get('cp_'+S.cid)||{};
+var clientName=cp.name||'there';
 var weekNav='<div style="display:flex;align-items:center;gap:6px;justify-content:center;margin-bottom:8px">' +
 '<button onclick="if(S.week>1){setWk(S.week-1);}" style="width:30px;height:30px;border-radius:8px;background:var(--c2);border:1px solid var(--bdr);color:var(--m1);font-size:18px;cursor:pointer;line-height:1">&#8249;</button>' +
-'<div style="text-align:center;min-width:100px">' +
+'<div style="text-align:center;min-width:110px">' +
 '<div style="font-size:13px;font-weight:800;color:'+wk.c+'">WEEK '+S.week+' / '+duration+'</div>' +
 '<div style="font-size:9px;color:var(--m1);letter-spacing:1px">'+wk.l+'</div>' +
 '</div>' +
 '<button onclick="if(S.week<'+duration+'){setWk(S.week+1);}" style="width:30px;height:30px;border-radius:8px;background:var(--c2);border:1px solid var(--bdr);color:var(--m1);font-size:18px;cursor:pointer;line-height:1">&#8250;</button>' +
 '</div>';
-var dayPills=days.length>0?'<div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:0 0 6px">' +
+var dayPills=days.length>0?'<div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:0 0 4px">' +
 days.map(function(dd,i){
 var on=i===S.day;
-return '<button onclick="selDay('+i+')" style="flex-shrink:0;padding:6px 16px;border-radius:20px;border:'+(on?'2px solid '+(dd.accent||'var(--acc)'):'1px solid var(--bdr)')+';background:'+(on?(dd.accent||'var(--acc)')+'22':'transparent')+';color:'+(on?(dd.accent||'var(--acc)'):'var(--m1)')+';font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer">'+dd.tag+'</button>';
+var isTodayDay=todayDays.indexOf(i)>=0;
+var dName=dd.name||dd.title||dd.tag;
+return '<button onclick="selDay('+i+')" style="flex-shrink:0;padding:5px 14px;border-radius:20px;border:'+(on?'2px solid '+(dd.accent||'var(--acc)'):'1px solid var(--bdr)')+';background:'+(on?(dd.accent||'var(--acc)')+'22':'transparent')+';color:'+(on?(dd.accent||'var(--acc)'):'var(--m1)')+';font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer">'+dName+(isTodayDay?' &#128314;':'')+'</button>';
 }).join('')+'</div>':'';
-return '<div class="hdr"><div class="hdr-top">' +
+var hdr='<div class="hdr"><div class="hdr-top">' +
 '<div><div class="hdr-sub">Ahmed PT</div><div class="hdr-title">'+(prog?prog.name.split('-')[0].trim():'My Training')+'</div></div>' +
 '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">' +
 (S.streak.cur>0?'<span class="pill p-amber">&#128293; '+S.streak.cur+'</span>':'') +
 '<div style="display:flex;gap:3px"><button onclick="setUnit(\'kg\')" style="padding:2px 7px;border-radius:8px;border:1px solid '+(S.unit==='kg'?'var(--acc)':'var(--bdr)')+';background:'+(S.unit==='kg'?'rgba(99,102,241,.15)':'transparent')+';color:'+(S.unit==='kg'?'var(--acc)':'var(--m2)')+';font-size:10px;font-weight:700;cursor:pointer">KG</button>' +
 '<button onclick="setUnit(\'lb\')" style="padding:2px 7px;border-radius:8px;border:1px solid '+(S.unit==='lb'?'var(--acc)':'var(--bdr)')+';background:'+(S.unit==='lb'?'rgba(99,102,241,.15)':'transparent')+';color:'+(S.unit==='lb'?'var(--acc)':'var(--m2)')+';font-size:10px;font-weight:700;cursor:pointer">LB</button></div>' +
 '</div></div>' +
-'<div style="padding:10px 14px 4px">'+weekNav+dayPills+'</div>' +
-'</div>' +
-'<div class="page">' +
-(!d?'<div class="empty">No workouts yet.<br>Ahmed will set up your program.</div>':
-'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">' +
-'<div><div style="font-size:24px;font-weight:800;color:#fff;letter-spacing:-.5px">'+d.title+'</div>' +
+'<div style="padding:8px 14px 4px">'+weekNav+dayPills+'</div>' +
+'</div>';
+if(!prog||!days.length){
+return hdr+'<div class="page"><div class="empty">No program yet.<br>Ahmed will set up your workouts.</div></div>'+cliNav();
+}
+if(!isTrainingDay&&S.cTab==='workout'&&todayDays.length===0&&S.day===S.day){
+var viewingNonToday=true;
+}
+var pageBody='';
+if(!d){
+pageBody=renderRestDay(prog)+renderWeekStrip(prog);
+}else{
+var dName=d.name||d.title||d.tag;
+var isActiveTodayDay=todayDays.indexOf(S.day)>=0;
+pageBody=
+'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">' +
+'<div><div style="font-size:24px;font-weight:800;color:#fff;letter-spacing:-.5px">'+dName+'</div>' +
 '<div style="font-size:10px;color:var(--m2);letter-spacing:1px;text-transform:uppercase;margin-top:2px">'+(d.sub||'')+'</div>' +
-'<div style="font-size:10px;color:var(--m1);margin-top:3px">'+d.ex.length+' exercises &#183; '+wk.n+'</div>' +
+'<div style="font-size:10px;color:var(--m1);margin-top:2px">'+d.ex.length+' exercises &#183; '+wk.n+'</div>' +
 '</div>' +
 '<div style="text-align:right"><div style="font-size:22px;font-weight:900;color:'+ac+'">'+pr.done+'<span style="color:var(--m2)">/'+pr.total+'</span></div>' +
 '<div style="width:80px;height:3px;background:var(--m3);border-radius:2px;margin-left:auto;margin-top:3px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+ac+';border-radius:2px;transition:width .3s"></div></div></div></div>' +
-(function(){
-var motiv=getDailyMotivation(d,S.streak.cur,S.week);
-var assignedDays=d.weekdays&&d.weekdays.length>0?d.weekdays.map(function(wd){return WD_NAMES[wd];}).join(', '):'';
-return (motiv?'<div style="padding:11px 14px;background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(236,72,153,.05));border:1px solid rgba(99,102,241,.15);border-radius:12px;margin-bottom:12px">' +
-'<div style="font-size:9px;font-weight:700;letter-spacing:2px;color:var(--acc);margin-bottom:5px">&#128170; AHMED PT</div>' +
-'<div style="font-size:13px;color:var(--tx);line-height:1.6;font-style:italic">&#8220;'+motiv+'&#8221;</div>' +
-(assignedDays?'<div style="font-size:10px;color:var(--m2);margin-top:6px">Scheduled: '+assignedDays+'</div>':'') +
-'</div>':'') +
-(d.coach?'<div style="padding:8px 12px;background:'+ac+'0d;border-left:3px solid '+ac+';border-radius:0 8px 8px 0;margin-bottom:12px;font-size:11px;color:var(--m1);line-height:1.6"><strong style="color:'+ac+'">COACH: </strong>'+d.coach+'</div>':'');
-})() +
+(!isActiveTodayDay?'<div style="padding:8px 12px;background:rgba(255,255,255,.04);border:1px solid var(--bdr);border-radius:9px;font-size:11px;color:var(--m2);margin-bottom:12px">&#128196; Viewing &#8212; this is not today\'s scheduled workout</div>':'') +
+'<div id="motiv_card" style="background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(236,72,153,.08));border:1px solid rgba(99,102,241,.25);border-radius:14px;padding:16px;margin-bottom:14px">' +
+buildMotivInner(getDailyMotivation(d,S.streak.cur,S.week)) +
+'</div>' +
+(d.coach?'<div style="padding:8px 12px;background:'+ac+'0d;border-left:3px solid '+ac+';border-radius:0 8px 8px 0;margin-bottom:12px;font-size:11px;color:var(--m1);line-height:1.6"><strong style="color:'+ac+'">COACH: </strong>'+d.coach+'</div>':'') +
 d.ex.map(function(ex,ei){return renderExCard(ex,ei,d);}).join('') +
-renderSessNoteBox()) +
-'</div>' + cliNav();
+renderSessNoteBox();
+if(isActiveTodayDay){
+setTimeout(function(){
+generateWorkoutMessage(clientName, dName, d.ex, S.streak.cur, S.week, duration);
+}, 200);
+}
+pageBody+=renderWeekStrip(prog);
+}
+return hdr+'<div class="page">'+pageBody+'</div>'+cliNav();
 }
 
 function renderExCard(origEx, ei, d) {

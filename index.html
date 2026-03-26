@@ -548,7 +548,30 @@ var k = ex.n.replace(/[^a-zA-Z0-9]/g, '*');
 var wt = parseFloat(weight) || 0, rp = parseInt(reps) || 0;
 var est = wt * (1 + rp / 30);
 var x = S.prs[k];
-if (!x || est > (x.est || 0)) S.prs[k] = {weight:wt, reps:rp, est:est, date:today(), exName:ex.n};
+var isPR = !x || est > (x.est || 0);
+if (isPR) {
+S.prs[k] = {weight:wt, reps:rp, est:est, date:today(), exName:ex.n};
+setTimeout(function(){ showPRCelebration(ex.n, wt, rp, est); }, 400);
+}
+}
+function showPRCelebration(exName, weight, reps, est) {
+var modal = document.getElementById('modal');
+if (!modal) return;
+modal.innerHTML = '<div style="position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center" onclick="closePRModal()">' +
+'<div style="font-size:80px;margin-bottom:6px;animation:none">&#127942;</div>' +
+'<div style="font-size:10px;letter-spacing:4px;font-weight:800;color:var(--amber);margin-bottom:10px">NEW PERSONAL RECORD</div>' +
+'<div style="font-size:28px;font-weight:900;color:#fff;margin-bottom:6px">'+exName+'</div>' +
+'<div style="font-size:56px;font-weight:900;color:var(--amber);line-height:1;margin-bottom:4px">'+weight+S.unit+' &#215; '+reps+'</div>' +
+'<div style="font-size:13px;color:var(--m1);margin-bottom:8px">&#126;'+Math.round(est)+S.unit+' estimated 1RM</div>' +
+'<div style="font-size:12px;color:var(--m2);margin-bottom:28px;max-width:280px;line-height:1.8">You just proved what you\'re capable of.<br>Screenshot this. Remember this moment. &#128293;</div>' +
+'<div style="font-size:9px;color:var(--m2);margin-bottom:12px;letter-spacing:2px">AHMED PERSONAL TRAINING</div>' +
+'<button onclick="closePRModal()" style="padding:13px 36px;border-radius:12px;background:var(--amber);color:#000;font-size:14px;font-weight:800;border:none;cursor:pointer">LET\'S GO &#128293;</button>' +
+'<div style="font-size:10px;color:var(--m2);margin-top:14px">Tap anywhere to close</div>' +
+'</div>';
+}
+function closePRModal() {
+var modal = document.getElementById('modal');
+if (modal) modal.innerHTML = '';
 }
 function get14() {
 var days = [];
@@ -557,6 +580,78 @@ var dt = new Date(); dt.setDate(dt.getDate() - i);
 days.push(dt.toISOString().split('T')[0]);
 }
 return days;
+}
+var WD_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function getTodayWorkoutIdx() {
+var wd=new Date().getDay();
+var days=getDays();
+for(var i=0;i<days.length;i++){
+var d=days[i];
+if(d.weekdays&&d.weekdays.indexOf(wd)>=0)return i;
+}
+return -1;
+}
+function getDailyMotivation(d, streak, weekNum) {
+if(!d)return'';
+var tag=(d.tag||'').toLowerCase();
+var phase=((weekNum-1)%4)+1;
+var pool=[];
+if(streak>=30)pool.push('30 days straight. You are literally built different. This is what elite looks like.');
+else if(streak>=14)pool.push('Two weeks solid. Most people quit by now. You didn\'t. That\'s everything.');
+else if(streak>=7)pool.push('A full week without missing. Consistency is your superpower right now. Protect it.');
+else if(streak>=3)pool.push('Three in a row. The momentum is real. Don\'t let it slip today.');
+else if(streak===1)pool.push('You showed up yesterday. Let\'s make it two. One session at a time.');
+else pool.push('Every session is a vote for the person you\'re becoming. Cast it today.');
+if(tag.indexOf('push')>=0||tag.indexOf('chest')>=0){
+pool.push('Push day. Every controlled rep is sculpting the physique you\'re working towards.');
+pool.push('Chest and shoulders today. Full range, slow eccentric. Make it count.');
+}else if(tag.indexOf('pull')>=0||tag.indexOf('back')>=0){
+pool.push('Pull day. The back you build today is the foundation for everything else.');
+pool.push('Lats, rear delts, biceps. Train the back like it deserves to be trained.');
+}else if(tag.indexOf('leg')>=0||tag.indexOf('lower')>=0||tag.indexOf('squat')>=0){
+pool.push('Leg day. The ones who skip this stay average. You\'re not average.');
+pool.push('Lower body session. Full depth. Drive through heels. Champions are made here.');
+}else if(tag.indexOf('glute')>=0||tag.indexOf('hip')>=0){
+pool.push('Glute day. Mind-muscle connection is everything. Feel every single rep.');
+}else if(tag.indexOf('full')>=0){
+pool.push('Full body today. Hit every muscle, leave nothing in the tank.');
+}else{
+pool.push('Today\'s session is a deposit into your future self. Make it a big one.');
+}
+if(phase===1)pool.push('Foundation week. Perfect form over everything today. The weight follows the technique.');
+else if(phase===2)pool.push('Volume week. Your body is adapting fast. Push a little more than last week.');
+else if(phase===3)pool.push('Intensity week. This is where real growth happens. Embrace the challenge.');
+else if(phase===4)pool.push('Overload week. Final push of the block. Give everything you have today.');
+return pool[Math.floor(Date.now()/86400000)%pool.length];
+}
+function _syncBP() {
+if(!_bp.prog)return;
+_bp.prog.days.forEach(function(d,di){
+var tagEl=document.getElementById('bd_tag_'+di);
+var titleEl=document.getElementById('bd_title_'+di);
+var subEl=document.getElementById('bd_sub_'+di);
+var coachEl=document.getElementById('bd_coach_'+di);
+if(tagEl&&tagEl.value.trim())d.tag=tagEl.value.trim();
+if(titleEl&&titleEl.value.trim())d.title=titleEl.value.trim();
+if(subEl)d.sub=subEl.value;
+if(coachEl)d.coach=coachEl.value;
+});
+var durEl=document.getElementById('bp_dur');
+if(durEl)_bp.prog.duration=parseInt(durEl.value)||4;
+}
+function toggleBPDay(di,wd){
+_syncBP();
+var d=_bp.prog.days[di]; if(!d)return;
+d.weekdays=d.weekdays||[];
+var idx=d.weekdays.indexOf(wd);
+if(idx>=0)d.weekdays.splice(idx,1);
+else{d.weekdays.push(wd);d.weekdays.sort();}
+showBuilder();
+}
+function setBPAccent(di,color){
+_syncBP();
+_bp.prog.days[di].accent=color;
+showBuilder();
 }
 function hadSess(d) {
 return Object.keys(S.logs).some(function(k) {
@@ -1788,31 +1883,58 @@ _bp.cid=cid; _bp.prog={id:'prog_'+Date.now(),name:name,days:[],created:Date.now(
 showBuilder();
 }
 function showBuilder() {
+_syncBP();
 var p=_bp.prog;
+var dur=p.duration||4;
+var accs=['#ef4444','#10b981','#3b82f6','#a855f7','#ec4899','#f59e0b'];
 showModal('<div class="modal-bg"><div class="modal-box" style="max-height:94vh">' +
 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">' +
 '<div style="font-size:18px;font-weight:800;color:#fff">'+p.name+'</div>' +
-'<div style="display:flex;gap:6px"><button class="btn-sm btn-green" onclick="doSaveBuilder()">Save ✓</button>' +
+'<div style="display:flex;gap:6px"><button class="btn-sm btn-green" onclick="doSaveBuilder()">Save &#10003;</button>' +
 '<button class="btn-sm btn-ghost" onclick="closeModal()">Cancel</button></div></div>' +
+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">' +
+'<div><div class="lbl">Program Duration</div>' +
+'<select class="sel" id="bp_dur" style="margin-bottom:0">' +
+[4,5,6,7,8,9,10,11,12].map(function(n){return '<option value="'+n+'"'+(n===dur?' selected':'')+'>'+n+' Weeks</option>';}).join('') +
+'</select></div>' +
+'<div style="display:flex;align-items:flex-end"><div style="font-size:10px;color:var(--m1);line-height:1.5">Program repeats weekly for the set duration. Logs are saved per week.</div></div>' +
+'</div>' +
 p.days.map(function(d,di){
-return '<div style="background:var(--c2);border:1px solid var(--bdr);border-radius:12px;padding:12px;margin-bottom:10px">' +
+var wds=d.weekdays||[];
+return '<div style="background:var(--c2);border:1.5px solid '+(d.accent||'var(--bdr)')+';border-radius:12px;padding:12px;margin-bottom:10px">' +
 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">' +
-'<div style="font-size:14px;font-weight:700;color:'+d.accent+'">'+d.tag+' &#8212; '+d.title+'</div>' +
+'<div style="font-size:11px;font-weight:700;color:'+(d.accent||'var(--acc)')+'">WORKOUT '+(di+1)+'</div>' +
 '<div style="display:flex;gap:6px">' +
-'<button onclick="duplicateDay('+di+')" title="Copy day" style="color:var(--amber);font-size:12px;font-weight:700;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);border-radius:7px;padding:3px 8px;cursor:pointer">Copy</button>' +
-'<button onclick="removeDay('+di+')" style="color:var(--red);font-size:18px;background:none;border:none;cursor:pointer">&#215;</button>' +
+'<button onclick="_syncBP();duplicateDay('+di+')" style="color:var(--amber);font-size:11px;font-weight:700;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);border-radius:7px;padding:3px 8px;cursor:pointer">Copy</button>' +
+'<button onclick="_syncBP();removeDay('+di+')" style="color:var(--red);font-size:18px;background:none;border:none;cursor:pointer">&#215;</button>' +
+'</div></div>' +
+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">' +
+'<div><div class="lbl">Short Name</div><input class="inp" id="bd_tag_'+di+'" value="'+d.tag+'" placeholder="e.g. Push" style="margin-bottom:0;font-size:13px"></div>' +
+'<div><div class="lbl">Full Name</div><input class="inp" id="bd_title_'+di+'" value="'+d.title+'" placeholder="e.g. Upper Push" style="margin-bottom:0;font-size:13px"></div>' +
+'</div>' +
+'<div style="margin-bottom:8px"><div class="lbl">Description (optional)</div><input class="inp" id="bd_sub_'+di+'" value="'+(d.sub||'')+'" placeholder="e.g. Chest / Shoulders / Triceps" style="margin-bottom:0;font-size:12px"></div>' +
+'<div style="margin-bottom:8px"><div class="lbl">Coach Note (shown in workout)</div><input class="inp" id="bd_coach_'+di+'" value="'+(d.coach||'')+'" placeholder="e.g. Focus on slow eccentrics today" style="margin-bottom:0;font-size:12px"></div>' +
+'<div style="margin-bottom:8px"><div class="lbl">Training Days</div>' +
+'<div style="display:flex;gap:5px;flex-wrap:wrap">' +
+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(function(n,i){
+var on=wds.indexOf(i)>=0;
+return '<button onclick="toggleBPDay('+di+','+i+')" style="padding:4px 9px;border-radius:8px;border:'+(on?'1.5px solid '+(d.accent||'var(--acc)'):'1px solid var(--bdr)')+';background:'+(on?(d.accent||'var(--acc)')+'22':'transparent')+';color:'+(on?(d.accent||'var(--acc)'):'var(--m1)')+';font-size:10px;font-weight:700;cursor:pointer">'+n+'</button>';
+}).join('') +
+'</div></div>' +
+'<div style="margin-bottom:8px"><div class="lbl">Colour</div>' +
+'<div style="display:flex;gap:6px">' +
+accs.map(function(c){return '<button onclick="setBPAccent('+di+',\''+c+'\')" style="width:22px;height:22px;border-radius:50%;background:'+c+';border:'+(d.accent===c?'3px solid #fff':'2px solid transparent')+';cursor:pointer"></button>';}).join('') +
 '</div></div>' +
 (d.ex.length>0?d.ex.map(function(ex,ei){
 return '<div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">' +
 '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:#fff">'+ex.n+'</div>' +
-'<div style="font-size:10px;color:var(--m1)">'+ex.sets+' sets - '+ex.r+'</div></div>' +
-'<button onclick="removeEx('+di+','+ei+')" style="color:var(--red);background:none;border:none;cursor:pointer;font-size:14px">×</button></div>';
-}).join(''):'<div style="font-size:11px;color:var(--m2);padding:4px 0">No exercises yet</div>') +
-'<button onclick="openAddEx('+di+')" style="width:100%;padding:7px;background:rgba(99,102,241,.06);border:1px dashed rgba(99,102,241,.25);border-radius:8px;color:var(--acc);font-size:11px;font-weight:700;margin-top:8px;cursor:pointer">+ Add Exercise</button>' +
+'<div style="font-size:10px;color:var(--m1)">'+ex.sets+' sets &#8212; '+ex.r+'</div></div>' +
+'<button onclick="_syncBP();removeEx('+di+','+ei+')" style="color:var(--red);background:none;border:none;cursor:pointer;font-size:16px">&#215;</button></div>';
+}).join(''):'<div style="font-size:11px;color:var(--m2);padding:4px 0">No exercises yet &#8212; add some below</div>') +
+'<button onclick="_syncBP();openAddEx('+di+')" style="width:100%;padding:7px;background:rgba(99,102,241,.06);border:1px dashed rgba(99,102,241,.25);border-radius:8px;color:var(--acc);font-size:11px;font-weight:700;margin-top:8px;cursor:pointer">+ Add Exercise</button>' +
 '</div>';
 }).join('') +
-'<button onclick="addDay()" style="width:100%;padding:10px;background:rgba(16,185,129,.06);border:1px dashed rgba(16,185,129,.25);border-radius:10px;color:var(--green);font-size:12px;font-weight:700;margin-bottom:12px;cursor:pointer">+ Add Training Day</button>' +
-'<div style="padding:9px 11px;background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.12);border-radius:8px;font-size:10px;color:var(--m1)">Saved programs become reusable templates for all clients.</div>' +
+'<button onclick="_syncBP();addDay()" style="width:100%;padding:10px;background:rgba(16,185,129,.06);border:1px dashed rgba(16,185,129,.25);border-radius:10px;color:var(--green);font-size:12px;font-weight:700;margin-bottom:12px;cursor:pointer">+ Add Workout Day</button>' +
 '</div></div>');
 }
 var _accs=['#ef4444','#10b981','#3b82f6','#a855f7','#ec4899','#f59e0b'];
@@ -2019,52 +2141,63 @@ if(S.cTab==='messages')return renderMsgs();
 return renderHome();
 }
 function cliNav() {
-var days=getDays();
-var tabs=[];
-tabs.push({id:'home',icon:'&#127968;',lbl:'Home'});
-days.forEach(function(d,i){tabs.push({id:'d'+i,icon:['&#128170;','&#128170;','&#128170;','&#128170;'][i]||'&#128170;',lbl:d.tag,di:i});});
-tabs.push({id:'sessions',icon:'&#128197;',lbl:'Sessions'});
-tabs.push({id:'progress',icon:'&#128200;',lbl:'Progress'});
-tabs.push({id:'messages',icon:'&#128172;',lbl:'Ahmed',badge:S.unread});
+var tabs=[
+{id:'home',icon:'&#127968;',lbl:'Home'},
+{id:'workout',icon:'&#128170;',lbl:'Workouts'},
+{id:'progress',icon:'&#128200;',lbl:'Progress'},
+{id:'sessions',icon:'&#128197;',lbl:'Sessions'},
+{id:'messages',icon:'&#128172;',lbl:'Ahmed',badge:S.unread}
+];
 return '<nav class="bnav">'+tabs.map(function(t){
-var on=t.di!==undefined?(S.cTab==='workout'&&S.day===t.di):(S.cTab===t.id);
-var color=on?(t.di!==undefined&&getDay()?getDay().accent||'var(--acc)':'var(--acc)'):'var(--m2)';
-var click=t.di!==undefined?'selDay('+t.di+')':'S.cTab=\''+t.id+'\';R()';
-return '<button class="nb" onclick="'+click+'" style="color:'+color+'">' +
+var on=S.cTab===t.id;
+var color=on?'var(--acc)':'var(--m2)';
+return '<button class="nb" onclick="S.cTab=\''+t.id+'\';R()" style="color:'+color+'">' +
 '<span class="nbi">'+t.icon+'</span>'+t.lbl+
 (t.badge&&t.badge>0?'<span class="nbd">'+t.badge+'</span>':'')+
 '</button>';
-}).join('')+'<button class="nb" onclick="doLogout()"><span class="nbi">🚪</span>Logout</button></nav>';
+}).join('')+'<button class="nb" onclick="doLogout()"><span class="nbi">&#128682;</span>Logout</button></nav>';
 }
 
 function renderWorkout() {
-var d=getDay(), wk=WK[S.week]||WK[1];
+var d=getDay(), days=getDays();
+var prog=getProg();
+var duration=Math.max(4, (prog&&prog.duration)||4);
+var wkPhase=((S.week-1)%4)+1;
+var wk=WK[wkPhase]||WK[1];
 var pr=sessP(), pct=pr.total>0?(pr.done/pr.total*100):0;
+var ac=d?(d.accent||'var(--acc)'):'var(--acc)';
+var weekNav='<div style="display:flex;align-items:center;gap:6px;justify-content:center;margin-bottom:8px">' +
+'<button onclick="if(S.week>1){setWk(S.week-1);}" style="width:30px;height:30px;border-radius:8px;background:var(--c2);border:1px solid var(--bdr);color:var(--m1);font-size:18px;cursor:pointer;line-height:1">&#8249;</button>' +
+'<div style="text-align:center;min-width:100px">' +
+'<div style="font-size:13px;font-weight:800;color:'+wk.c+'">WEEK '+S.week+' / '+duration+'</div>' +
+'<div style="font-size:9px;color:var(--m1);letter-spacing:1px">'+wk.l+'</div>' +
+'</div>' +
+'<button onclick="if(S.week<'+duration+'){setWk(S.week+1);}" style="width:30px;height:30px;border-radius:8px;background:var(--c2);border:1px solid var(--bdr);color:var(--m1);font-size:18px;cursor:pointer;line-height:1">&#8250;</button>' +
+'</div>';
+var dayPills=days.length>0?'<div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:0 0 6px">' +
+days.map(function(dd,i){
+var on=i===S.day;
+return '<button onclick="selDay('+i+')" style="flex-shrink:0;padding:6px 16px;border-radius:20px;border:'+(on?'2px solid '+(dd.accent||'var(--acc)'):'1px solid var(--bdr)')+';background:'+(on?(dd.accent||'var(--acc)')+'22':'transparent')+';color:'+(on?(dd.accent||'var(--acc)'):'var(--m1)')+';font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer">'+dd.tag+'</button>';
+}).join('')+'</div>':'';
 return '<div class="hdr"><div class="hdr-top">' +
-'<div><div class="hdr-sub">Ahmed PT</div><div class="hdr-title">'+(getProg()?getProg().name.split('-')[0].trim():'My Training')+'</div></div>' +
+'<div><div class="hdr-sub">Ahmed PT</div><div class="hdr-title">'+(prog?prog.name.split('-')[0].trim():'My Training')+'</div></div>' +
 '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">' +
-(S.streak.cur>0?'<span class="pill p-amber">🔥 '+S.streak.cur+' days</span>':'') +
-'<div style="display:flex;gap:3px">'+[1,2,3,4].map(function(w){
-return '<button onclick="setWk('+w+')" style="width:26px;height:26px;border-radius:50%;border:'+(w===S.week?'2px solid '+(wk.c||'#fff'):'1px solid var(--bdr)')+';background:'+(w===S.week?(wk.c||'#fff')+'22':'transparent')+';color:'+(w===S.week?(wk.c||'#fff'):'var(--m2)')+';font-size:11px;font-weight:700;cursor:pointer">'+w+'</button>';
-}).join('')+'</div>' +
+(S.streak.cur>0?'<span class="pill p-amber">&#128293; '+S.streak.cur+'</span>':'') +
 '<div style="display:flex;gap:3px"><button onclick="setUnit(\'kg\')" style="padding:2px 7px;border-radius:8px;border:1px solid '+(S.unit==='kg'?'var(--acc)':'var(--bdr)')+';background:'+(S.unit==='kg'?'rgba(99,102,241,.15)':'transparent')+';color:'+(S.unit==='kg'?'var(--acc)':'var(--m2)')+';font-size:10px;font-weight:700;cursor:pointer">KG</button>' +
 '<button onclick="setUnit(\'lb\')" style="padding:2px 7px;border-radius:8px;border:1px solid '+(S.unit==='lb'?'var(--acc)':'var(--bdr)')+';background:'+(S.unit==='lb'?'rgba(99,102,241,.15)':'transparent')+';color:'+(S.unit==='lb'?'var(--acc)':'var(--m2)')+';font-size:10px;font-weight:700;cursor:pointer">LB</button></div>' +
 '</div></div>' +
-'<div class="wk-banner" style="border-color:'+wk.c+';background:'+wk.c+'0a">' +
-'<div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:'+wk.c+'">WK'+S.week+' - '+wk.l+'</div>' +
-'<div style="font-size:10px;color:var(--m1);margin-top:2px">'+wk.n+'</div></div>' +
-'<div class="dtabs">'+getDays().map(function(dd,i){
-var on=i===S.day&&S.cTab==='workout';
-return '<button class="dtab'+(on?' on':'')+'" onclick="selDay('+i+')" style="'+(on?'background:'+dd.accent+';border-color:'+dd.accent+';color:#fff':'')+'">'+dd.tag+'</button>';
-}).join('')+'</div></div>' +
+'<div style="padding:10px 14px 4px">'+weekNav+dayPills+'</div>' +
+'</div>' +
 '<div class="page">' +
-(!d?'<div class="empty">No program yet.<br>Ahmed will set up your program.</div>':
+(!d?'<div class="empty">No workouts yet.<br>Ahmed will set up your program.</div>':
 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">' +
 '<div><div style="font-size:24px;font-weight:800;color:#fff;letter-spacing:-.5px">'+d.title+'</div>' +
-'<div style="font-size:10px;color:var(--m2);letter-spacing:1px;text-transform:uppercase;margin-top:2px">'+(d.sub||'')+'</div></div>' +
-'<div style="text-align:right"><div style="font-size:22px;font-weight:900;color:'+d.accent+'">'+pr.done+'<span style="color:var(--m2)">/'+pr.total+'</span></div>' +
-'<div style="width:80px;height:3px;background:var(--m3);border-radius:2px;margin-left:auto;margin-top:3px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+d.accent+';border-radius:2px;transition:width .3s"></div></div></div></div>' +
-(d.coach?'<div style="padding:8px 12px;background:'+d.accent+'0d;border-left:3px solid '+d.accent+';border-radius:0 8px 8px 0;margin-bottom:12px;font-size:11px;color:var(--m1);line-height:1.6"><strong style="color:'+d.accent+'">COACH: </strong>'+d.coach+'</div>':'') +
+'<div style="font-size:10px;color:var(--m2);letter-spacing:1px;text-transform:uppercase;margin-top:2px">'+(d.sub||'')+'</div>' +
+'<div style="font-size:10px;color:var(--m1);margin-top:3px">'+d.ex.length+' exercises &#183; '+wk.n+'</div>' +
+'</div>' +
+'<div style="text-align:right"><div style="font-size:22px;font-weight:900;color:'+ac+'">'+pr.done+'<span style="color:var(--m2)">/'+pr.total+'</span></div>' +
+'<div style="width:80px;height:3px;background:var(--m3);border-radius:2px;margin-left:auto;margin-top:3px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+ac+';border-radius:2px;transition:width .3s"></div></div></div></div>' +
+(d.coach?'<div style="padding:8px 12px;background:'+ac+'0d;border-left:3px solid '+ac+';border-radius:0 8px 8px 0;margin-bottom:12px;font-size:11px;color:var(--m1);line-height:1.6"><strong style="color:'+ac+'">COACH: </strong>'+d.coach+'</div>':'') +
 d.ex.map(function(ex,ei){return renderExCard(ex,ei,d);}).join('') +
 renderSessNoteBox()) +
 '</div>' + cliNav();

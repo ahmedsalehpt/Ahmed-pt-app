@@ -18,6 +18,16 @@
 .rb-red{background:#dc2626;color:#fff}
 @keyframes rbpulse{0%,100%{opacity:1}50%{opacity:.45}}
 .rb-pulse{animation:rbpulse .8s infinite}
+
+.sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:150;display:flex;animation:fadeIn .15s}
+.sidebar{width:220px;background:var(--c1);height:100%;border-right:1px solid var(--bdr);display:flex;flex-direction:column;overflow-y:auto;animation:slideIn .18s}
+.sbr-item{display:flex;align-items:center;gap:11px;padding:11px 14px;cursor:pointer;color:var(--m1);font-size:13px;font-weight:600;border-radius:10px;margin:2px 8px;transition:all .12s}
+.sbr-item.on{background:rgba(99,102,241,.12);color:var(--acc)}
+.sbr-item:active{opacity:.75}
+.tr-topbar{position:sticky;top:0;z-index:90;background:rgba(7,7,14,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideIn{from{transform:translateX(-100%)}to{transform:translateX(0)}}
+.dash-section{padding:2px 0}
 </style>
 </head>
 <body>
@@ -310,7 +320,13 @@ clientPremium: false,
 referralCode: null,
 newPR: null,
 nutriDate: null,
-addFoodMeal: null
+addFoodMeal: null,
+sidebarOpen: false,
+schedDate: null,
+schedView: 'week',
+clientFilter: 'all',
+dashCollapsed: {},
+incomeMonth: null
 };
 
 function getPlan() { return PLANS[S.sub.plan] || PLANS.free; }
@@ -548,14 +564,22 @@ S.streak = {cur:cur, best:Math.max(cur, s.best||0), lastDate:t};
 function chkPR(ei, weight, reps) {
 var ex = getEx(ei); if (!ex || !weight) return;
 var k = ex.n.replace(/[^a-zA-Z0-9]/g, '_');
-var wt = parseFloat(weight) || 0, rp = parseInt(reps) || 0;
+var wt = parseFloat(weight)||0, rp = parseInt(reps)||0;
+if (wt <= 0) return;
 var est = wt * (1 + rp / 30);
 var x = S.prs[k];
-if (!x || est > (x.est || 0)) {
+if (!x || est > (x.est||0)) {
 S.prs[k] = {weight:wt, reps:rp, est:est, date:today(), exName:ex.n};
-S.newPR = {exName:ex.n, weight:wt, reps:rp, est:Math.round(est)};
+// Collect for session completion display only
+if (!S.sessionPRs) S.sessionPRs = [];
+var already = S.sessionPRs.some(function(p){ return p.exName === ex.n; });
+if (!already) S.sessionPRs.push({exName:ex.n, weight:wt, reps:rp, est:Math.round(est)});
+DB.set('prs_'+S.cid, S.prs);
+if (DB._fb) DB._fb.ref('clients/'+S.cid+'/prs/'+k).set(S.prs[k]);
+// No mid-workout popup - show at session completion
 }
 }
+
 function renderPROverlay() {
 var pr = S.newPR; if (!pr) return;
 var existing = document.getElementById('pr_overlay');
@@ -1074,17 +1098,56 @@ if (S.tTab === 'sched') return renderSched();
 if (S.tTab === 'finance') return renderFinance();
 return renderDash();
 }
-function trNav() {
+function trNav() { return renderSidebar(); }
+
+function trTopBar(title) {
 var totalUnread = Object.keys(S.clients).reduce(function(acc, cid) {
 var msgs = DB.get('msgs_'+cid)||[];
 return acc + msgs.filter(function(m){return m.from==='client'&&!m.read;}).length;
 }, 0);
-var tabs = [{id:'dash',icon:'&#128202;',lbl:'Overview'},{id:'clients',icon:'&#128101;',lbl:'Clients'},{id:'chats',icon:'&#128172;',lbl:'Chats',badge:totalUnread},{id:'sched',icon:'&#128197;',lbl:'Schedule'},{id:'finance',icon:'&#128176;',lbl:'Finance'}];
-return '<nav class="bnav">' + tabs.map(function(t){
-var on = S.tTab===t.id && !S.vCli;
-var badge = t.badge&&t.badge>0?'<span class="nbd">'+t.badge+'</span>':'';
-return '<button class="nb'+(on?' on':'')+'" onclick="S.tTab=\''+t.id+'\';S.vCli=null;R()"><span class="nbi">'+t.icon+'</span>'+badge+t.lbl+'</button>';
-}).join('') + '<button class="nb" onclick="doLogout()"><span class="nbi">&#128682;</span>Logout</button></nav>';
+return '<div class="tr-topbar">' +
+'<button onclick="S.sidebarOpen=true;R()" style="width:34px;height:34px;background:var(--c2);border:1px solid var(--bdr);border-radius:8px;color:#fff;font-size:18px;cursor:pointer;flex-shrink:0">&#9776;</button>' +
+'<div style="font-size:16px;font-weight:800;color:#fff;flex:1;text-align:center">' + title + '</div>' +
+'<div style="display:flex;align-items:center;gap:6px">' +
+(totalUnread > 0 ? '<div style="position:relative"><button onclick="S.tTab=&quot;chats&quot;;S.sidebarOpen=false;R()" style="width:34px;height:34px;background:var(--c2);border:1px solid var(--bdr);border-radius:8px;color:var(--m1);font-size:16px;cursor:pointer">&#128172;</button><span style="position:absolute;top:-2px;right:-2px;background:var(--red);color:#fff;font-size:8px;font-weight:800;min-width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:0 3px">' + totalUnread + '</span></div>' : '') +
+'<button onclick="openTrainerProfile()" style="width:34px;height:34px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.25);border-radius:50%;color:var(--acc);font-size:14px;cursor:pointer">&#128100;</button>' +
+'</div></div>';
+}
+
+function renderSidebar() {
+if (!S.sidebarOpen) return '';
+var page = S.tTab || 'dash';
+var items = [
+{id:'dash', icon:'&#128202;', lbl:'Dashboard'},
+{id:'clients', icon:'&#128101;', lbl:'Clients'},
+{id:'sched', icon:'&#128197;', lbl:'Schedule'},
+{id:'finance', icon:'&#128176;', lbl:'Finance'},
+{id:'chats', icon:'&#128172;', lbl:'Messages'}
+];
+return '<div class="sidebar-overlay" onclick="S.sidebarOpen=false;R()">' +
+'<div class="sidebar" onclick="event.stopPropagation()">' +
+'<div style="padding:18px 16px 12px;border-bottom:1px solid var(--bdr)">' +
+'<div style="font-size:9px;letter-spacing:2px;color:var(--acc);font-weight:700;margin-bottom:2px">AHMED PT</div>' +
+'<div style="font-size:20px;font-weight:900;color:#fff">Menu</div>' +
+'</div>' +
+'<div style="padding:8px 0;flex:1">' +
+items.map(function(item) {
+var on = page === item.id && !S.vCli;
+return '<div class="sbr-item' + (on ? ' on' : '') + '" onclick="goSidebarTab(this)" data-tab="' + item.id + '">' +
+'<span style="font-size:18px">' + item.icon + '</span>' +
+'<span>' + item.lbl + '</span></div>';
+}).join('') +
+'</div>' +
+'<div style="padding:12px;border-top:1px solid var(--bdr)">' +
+'<div class="sbr-item" onclick="doLogout()" style="color:var(--red)">' +
+'<span style="font-size:18px">&#128682;</span><span>Logout</span></div>' +
+'</div></div></div>';
+}
+
+function goSidebarTab(el) {
+var tab = el.getAttribute('data-tab');
+S.tTab = tab; S.vCli = null; S.sidebarOpen = false;
+R();
 }
 
 function getUpcoming() {
@@ -1234,8 +1297,7 @@ var last=msgs.length?msgs[msgs.length-1]:null;
 var unread=msgs.filter(function(m){return m.from==='client'&&!m.read;}).length;
 return {cid:cid,name:c.name,last:last,unread:unread};
 }).filter(function(x){return x.last;}).sort(function(a,b){return(b.last?b.last.ts:0)-(a.last?a.last.ts:0);});
-return '<div class="hdr"><div class="hdr-top">' +
-'<div><div class="hdr-sub">Messages</div><div class="hdr-title">Client Chats</div></div></div></div>' +
+return trTopBar('Chats') +
 '<div class="page">' +
 (allChats.length===0?'<div class="empty">No messages yet.<br>Start a conversation from a client profile.</div>':
 allChats.map(function(x){
@@ -1253,34 +1315,204 @@ return '<div class="ccard" onclick="openCli(\''+x.cid+'\');S.cliTab=\'chat\';R()
 '</div>' + trNav();
 }
 function renderDash() {
-var ms = monthStats();
-var up = getUpcoming().slice(0,5);
-return '<div class="hdr"><div class="hdr-top">' +
-'<div><div class="hdr-sub">Trainer</div><div class="hdr-title">Ahmed PT</div></div>' +
-'<div style="display:flex;align-items:center;gap:8px">' +
-'<div style="font-size:11px;color:var(--m1);font-weight:600">'+fmtMon(today())+'</div>' +
-'<button onclick="openTrainerProfile()" style="width:30px;height:30px;border-radius:50%;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.25);color:var(--acc);font-size:14px;cursor:pointer">&#9881;</button>' +
-'</div></div></div>' +
+if (!S.dashCollapsed) S.dashCollapsed = {};
+if (!S.incomeMonth) S.incomeMonth = getCurrentMonthKey();
+return trTopBar('Dashboard') +
 '<div class="page">' +
 renderSubBanner() +
-'<div class="sgrid">' +
-'<div class="scard"><div class="sv" style="color:var(--green)">'+currSym()+ms.rev.toLocaleString()+'</div><div class="sl">This Month</div><div class="ss">'+Object.keys(S.clients).length+' clients</div></div>' +
-'<div class="scard"><div class="sv" style="color:var(--blue)">'+ms.sessDone+'</div><div class="sl">Sessions Done</div><div class="ss">This month</div></div>' +
-'<div class="scard" onclick="S.tTab=\'sched\';R()"><div class="sv" style="color:var(--amber)">'+getUpcoming().length+'</div><div class="sl">Upcoming</div><div class="ss">Tap to view</div></div>' +
-'<div class="scard" onclick="S.tTab=\'clients\';R()"><div class="sv" style="color:var(--red)">'+ms.needPay+'</div><div class="sl">Need Payment</div><div class="ss">Tap to view</div></div>' +
-'</div>' +
-ms.alerts.map(function(a){
-return '<div class="alert alert-'+(a.type==='zero'?'red':'amber')+'" onclick="openCli(\''+a.cid+'\')">' +
-'<div style="font-size:20px">'+(a.type==='zero'?'&#128680;':'&#9888;&#65039;')+'</div>' +
-'<div style="flex:1"><div style="font-weight:700;font-size:13px;color:#fff">'+a.name+'</div><div style="font-size:11px;color:var(--m1)">'+a.msg+'</div></div>' +
-'<div style="font-size:12px;color:var(--m2)">&#8594;</div></div>';
-}).join('') +
-renderAIInsights() +
-(up.length>0?'<div class="sect">TODAY&#39;S SESSIONS</div><div class="card"><div class="card-p">'+
-up.map(function(s){return sessRow(s);}).join('')+'</div></div>':'<div class="empty">No upcoming sessions.<br>Book from a client profile.</div>') +
-renderReferralCard() +
+renderIncomeSection() +
+renderTodaySessions() +
+renderNeedsAttention() +
+renderUpdatesFeed() +
 '</div>' + trNav();
 }
+
+function getCurrentMonthKey() {
+var n = new Date();
+return n.getFullYear() + '-' + String(n.getMonth()+1).padStart(2,'0');
+}
+
+function getMonthsSinceJoining() {
+var now = new Date();
+var months = [];
+var d = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+while (d <= now) {
+var key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+var label = d.toLocaleDateString('en-GB', {month:'short', year:'2-digit'});
+months.push({key:key, label:label});
+d.setMonth(d.getMonth() + 1);
+}
+return months.reverse();
+}
+
+function getIncomeStats(monthKey) {
+var payments = [];
+var total = 0, outstanding = 0, newClients = 0;
+Object.keys(S.clients).forEach(function(cid) {
+var c = S.clients[cid];
+Object.values(c.payments || {}).forEach(function(p) {
+if (p.date && p.date.startsWith(monthKey)) {
+var row = {clientName:c.name, date:p.date, amount:p.amount||0, sessions:p.sessions||0, ts:p.ts||0};
+payments.push(row);
+total += p.amount || 0;
+}
+});
+if ((c.balance||0) <= 0 && c.type !== 'online') outstanding += (c.rate || 0) * 2;
+});
+payments.sort(function(a,b){ return (b.ts||0) - (a.ts||0); });
+var ms = monthStats();
+return {total:total, outstanding:outstanding, newClients:newClients, payments:payments, sessionsDone:ms.sessDone};
+}
+
+function toggleDashSection(key) {
+if (!S.dashCollapsed) S.dashCollapsed = {};
+S.dashCollapsed[key] = !S.dashCollapsed[key];
+R();
+}
+
+function renderIncomeSection() {
+var collapsed = S.dashCollapsed && S.dashCollapsed.income;
+var stats = getIncomeStats(S.incomeMonth || getCurrentMonthKey());
+var months = getMonthsSinceJoining();
+return '<div class="dash-section">' +
+'<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;cursor:pointer" onclick="toggleDashSection(&apos;income&apos;)">' +
+'<div><div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2)">INCOME THIS MONTH</div>' +
+'<div style="font-size:20px;font-weight:800;color:var(--green);margin-top:2px">' +
+currSym() + stats.total.toLocaleString() +
+'<span style="font-size:12px;color:var(--m1);font-weight:400;margin-left:6px">' + stats.sessionsDone + ' sessions done</span>' +
+'</div></div>' +
+'<span style="font-size:18px;color:var(--m2)">' + (collapsed ? '&#9663;' : '&#9650;') + '</span>' +
+'</div>' +
+(!collapsed ?
+'<div>' +
+'<div style="display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-bottom:8px;margin-bottom:10px">' +
+months.map(function(m) {
+var on = S.incomeMonth === m.key;
+return '<button onclick="setIncomeMonth(this)" data-month="' + m.key + '" style="flex-shrink:0;padding:5px 12px;border-radius:20px;border:1px solid ' + (on?'var(--acc)':'var(--bdr)') + ';background:' + (on?'rgba(99,102,241,.15)':'transparent') + ';color:' + (on?'var(--acc)':'var(--m1)') + ';font-size:11px;font-weight:700;cursor:pointer">' + m.label + '</button>';
+}).join('') + '</div>' +
+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">' +
+'<div style="background:var(--c2);border-radius:10px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:800;color:var(--green)">' + currSym() + stats.total.toLocaleString() + '</div><div style="font-size:9px;color:var(--m2)">Received</div></div>' +
+'<div style="background:var(--c2);border-radius:10px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:800;color:var(--amber)">' + currSym() + stats.outstanding.toLocaleString() + '</div><div style="font-size:9px;color:var(--m2)">Outstanding</div></div>' +
+'</div>' +
+(stats.payments.length > 0 ?
+'<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--m2);margin-bottom:8px">PAYMENTS</div>' +
+stats.payments.slice(0,6).map(function(p) {
+return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bdr)">' +
+'<div><div style="font-size:12px;font-weight:600;color:#fff">' + p.clientName + '</div>' +
+'<div style="font-size:10px;color:var(--m1)">' + (p.date ? fmtD(p.date) : '') + '</div></div>' +
+'<div style="font-size:14px;font-weight:800;color:var(--green)">+' + currSym() + p.amount + '</div></div>';
+}).join('') : '<div style="font-size:12px;color:var(--m2);padding:8px 0">No payments this month</div>') +
+'</div>' : '') +
+'</div><div style="height:1px;background:var(--bdr);margin-bottom:12px"></div>';
+}
+
+function renderTodaySessions() {
+var collapsed = S.dashCollapsed && S.dashCollapsed.sessions;
+var todaySess = getUpcoming().filter(function(s){ return s.date === today(); });
+return '<div class="dash-section">' +
+'<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0">' +
+'<div style="display:flex;align-items:center;gap:8px">' +
+'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2)">TODAY&#39;S SESSIONS</div>' +
+'<span style="background:var(--acc);color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:10px">' + todaySess.length + '</span>' +
+'</div>' +
+'<div style="display:flex;gap:8px;align-items:center">' +
+'<button onclick="goTab(&apos;sched&apos;)" style="font-size:11px;color:var(--acc);font-weight:600;background:none;border:none;cursor:pointer">All &#8594;</button>' +
+'<button onclick="toggleDashSection(&apos;sessions&apos;)" style="font-size:16px;color:var(--m2);background:none;border:none;cursor:pointer">' + (collapsed?'&#9663;':'&#9650;') + '</button>' +
+'</div></div>' +
+(!collapsed ?
+(todaySess.length === 0 ?
+'<div style="padding:10px 0;font-size:12px;color:var(--m2)">No sessions today. <button onclick="openBookSess(null)" style="color:var(--acc);background:none;border:none;cursor:pointer;font-size:12px;font-weight:600">Book one?</button></div>' :
+'<div style="margin-bottom:4px">' +
+todaySess.map(function(s) {
+var c = S.clients[s.clientId] || {};
+return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bdr);cursor:pointer" onclick="openCli(&apos;"+s.clientId+"&apos;)">' +
+'<div style="min-width:44px;text-align:center"><div style="font-size:12px;font-weight:700;color:#fff">' + (s.time||'--') + '</div></div>' +
+'<div style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:' + (c.type==='online'?'var(--blue)':'var(--green)') + '"></div>' +
+'<div style="flex:1"><div style="font-size:13px;font-weight:600;color:#fff">' + c.name + '</div>' +
+'<div style="font-size:10px;color:var(--m1)">' + (c.type==='online'?'Online':'In Person') + (s.workoutName?' &bull; '+s.workoutName:'') + '</div></div>' +
+'<button onclick="event.stopPropagation();confirmDone(&apos;"+s.clientId+"&apos;,&apos;"+s.id+"&apos;)" style="padding:5px 10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);border-radius:8px;color:var(--green);font-size:10px;font-weight:700;cursor:pointer">Done &#10003;</button>' +
+'</div>';
+}).join('') + '</div>') : '') +
+'</div><div style="height:1px;background:var(--bdr);margin-bottom:12px"></div>';
+}
+
+function renderNeedsAttention() {
+var items = [];
+Object.keys(S.clients).forEach(function(cid) {
+var c = S.clients[cid];
+var bal = c.balance || 0;
+if (c.type !== 'online') {
+if (bal <= 0) {
+items.push({type:'unpaid',cid:cid,name:c.name,msg:'No sessions remaining'});
+} else if (bal <= 2) {
+items.push({type:'low',cid:cid,name:c.name,msg:bal+' session'+(bal===1?'':'s')+' left'});
+}
+}
+var last = c.lastActive;
+if (last) {
+var daysSince = Math.floor((Date.now() - new Date(last).getTime()) / 86400000);
+if (daysSince >= 5) {
+items.push({type:'inactive',cid:cid,name:c.name,msg:'No activity in '+daysSince+' days'});
+}
+}
+});
+if (items.length === 0) return '';
+return '<div class="dash-section">' +
+'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2);margin-bottom:8px">NEEDS ATTENTION</div>' +
+items.slice(0,4).map(function(item) {
+var icon = item.type==='unpaid'?'&#128679;':item.type==='low'?'&#9888;&#65039;':'&#128164;';
+var action = item.type==='inactive'?'Message':'Remind';
+var actionOnclick = item.type==='inactive' ?
+'onclick="openQuickMsg(this.getAttribute(&apos;data-cid&apos;))" data-cid="'+item.cid+'"' :
+'onclick="sendPayReminder(this.getAttribute(&apos;data-cid&apos;))" data-cid="'+item.cid+'"';
+return '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,.02);border:1px solid var(--bdr);border-radius:10px;margin-bottom:6px;cursor:pointer" onclick="openCliById(this)" data-cid="' + item.cid + '">' +
+'<span style="font-size:16px">' + icon + '</span>' +
+'<div style="flex:1"><div style="font-size:12px;font-weight:700;color:#fff">' + item.name + '</div>' +
+'<div style="font-size:10px;color:var(--m1)">' + item.msg + '</div></div>' +
+'<button ' + actionOnclick + ' style="padding:5px 10px;background:transparent;border:1px solid var(--bdr);border-radius:8px;color:var(--m1);font-size:10px;font-weight:700;cursor:pointer" onclick="event.stopPropagation()">' + action + '</button>' +
+'</div>';
+}).join('') +
+'</div><div style="height:1px;background:var(--bdr);margin-bottom:12px"></div>';
+}
+
+function openCliById(el) {
+var cid = el.getAttribute('data-cid');
+if (cid) openCli(cid);
+}
+
+
+function renderUpdatesFeed() {
+var feed = (S.workoutFeed || []).slice(0, 6);
+if (feed.length === 0) {
+return '<div class="dash-section">' + renderAIInsights() + '</div>';
+}
+return '<div class="dash-section">' +
+'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2);margin-bottom:8px">UPDATES</div>' +
+feed.map(function(n) {
+return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer" onclick="openCliById(this)" data-cid="' + (n.cid||'') + '">' +
+'<div style="width:32px;height:32px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0">' + ((n.clientName||'?').charAt(0)) + '</div>' +
+'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:#fff">' + (n.clientName||'Client') + ' finished ' + (n.dayName||'session') + '</div>' +
+'<div style="font-size:10px;color:var(--m1)">' + getTimeAgo(n.ts) + (n.prsHit&&n.prsHit.length?' &bull; &#127942; '+n.prsHit.length+' PR':'') + '</div>' +
+(n.sessionNote?'<div style="font-size:10px;color:var(--m2);margin-top:2px;font-style:italic">&ldquo;' + n.sessionNote.substring(0,50) + (n.sessionNote.length>50?'..':'') + '&rdquo;</div>':'') +
+'</div></div>';
+}).join('') + '</div>';
+}
+
+function sendPayReminder(cid) {
+var c = S.clients[cid] || {};
+openQuickMsg(cid);
+}
+
+function getTimeAgo(ts) {
+if (!ts) return '';
+var diff = Date.now() - ts;
+var mins = Math.floor(diff / 60000);
+if (mins < 60) return mins + 'm ago';
+var hrs = Math.floor(diff / 3600000);
+if (hrs < 24) return hrs + 'h ago';
+return Math.floor(diff / 86400000) + 'd ago';
+}
+
 function sessRow(s) {
 return '<div class="si">' +
 '<div class="si-time"><div class="si-th">'+(s.time||'&#8211;:&#8211;')+'</div><div class="si-td">'+fmtD(s.date)+'</div></div>' +
@@ -1295,56 +1527,213 @@ return '<div class="si">' +
 }
 
 function renderClients() {
+if (!S.clientFilter) S.clientFilter = 'all';
 var cs = Object.entries(S.clients);
-return '<div class="hdr"><div class="hdr-top">' +
-'<div><div class="hdr-sub">All Clients</div><div class="hdr-title">Clients</div></div>' +
-'<button class="btn-sm btn-green" onclick="openAddClient()">+ Add</button>' +
-'</div></div>' +
+var allCount = cs.length;
+var inpCount = cs.filter(function(e){return e[1].type==='inperson';}).length;
+var onlineCount = cs.filter(function(e){return e[1].type==='online';}).length;
+var unpaidCount = cs.filter(function(e){return (e[1].balance||0)<=0 && e[1].type!=='online';}).length;
+var filtered = cs.filter(function(e) {
+if (S.clientFilter === 'inperson') return e[1].type === 'inperson';
+if (S.clientFilter === 'online') return e[1].type === 'online';
+if (S.clientFilter === 'unpaid') return (e[1].balance||0) <= 0 && e[1].type !== 'online';
+return true;
+});
+var filters = [
+{id:'all',lbl:'All ('+allCount+')'},
+{id:'inperson',lbl:'In Person ('+inpCount+')'},
+{id:'online',lbl:'Online ('+onlineCount+')'},
+{id:'unpaid',lbl:'Unpaid ('+unpaidCount+')'}
+];
+return trTopBar('Clients') +
+'<div style="display:flex;border-bottom:1px solid var(--bdr);background:rgba(7,7,14,.94);position:sticky;top:52px;z-index:80;overflow-x:auto;scrollbar-width:none">' +
+filters.map(function(f) {
+var on = S.clientFilter === f.id;
+return '<button onclick="S.clientFilter=\'' + f.id + '\';R()" style="flex-shrink:0;padding:10px 12px;border:none;border-bottom:2px solid ' + (on?'var(--acc)':'transparent') + ';background:transparent;color:' + (on?'var(--acc)':'var(--m1)') + ';font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">' + f.lbl + '</button>';
+}).join('') + '</div>' +
 '<div class="page">' +
-'<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">' +
-'<span class="pill p-gray">'+cs.length+' total</span>' +
-'<span class="pill p-blue">Online: '+cs.filter(function(x){return x[1].type==='online';}).length+'</span>' +
-'<span class="pill p-green">In-Person: '+cs.filter(function(x){return x[1].type==='inperson';}).length+'</span>' +
-'</div>' +
-(cs.length===0?'<div class="empty">No clients yet.<br>Tap + Add to get started.</div>':'') +
-cs.map(function(e){ var cid=e[0],c=e[1];
-var bal=c.balance||0;
-var pc=bal===0?'p-red':bal<=2?'p-amber':'p-green';
-var pt=bal===0?'NO SESSIONS':bal+' sessions left';
-var qbtn='width:28px;height:28px;border-radius:8px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0';
-return '<div class="ccard" onclick="openCli(\''+cid+'\')">' +
-'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">' +
-'<div class="cname">'+c.name+'</div>' +
-'<div style="display:flex;gap:5px">'+(c.msgCount>0?'<span class="pill p-red">&#128172; '+c.msgCount+'</span>':'')+
-'<span class="pill '+pc+'">'+pt+'</span></div></div>' +
-'<div style="display:flex;justify-content:space-between;align-items:center">' +
+'<div style="display:flex;justify-content:flex-end;margin-bottom:12px">' +
+'<button class="btn-sm btn-green" onclick="openAddClient()">+ Add Client</button></div>' +
+(filtered.length === 0 ? '<div class="empty">No clients in this filter.</div>' : '') +
+filtered.map(function(e) {
+var cid = e[0], c = e[1];
+var bal = c.balance || 0;
+var isOnline = c.type === 'online';
+var balDisplay = isOnline ?
+'<span class="pill ' + (c.subscriptionActive?'p-green':'p-red') + '">' + (c.subscriptionActive?'Active':'Inactive') + '</span>' :
+'<span class="pill ' + (bal<=0?'p-red':bal<=2?'p-amber':'p-green') + '">' + (bal<=0?'No sessions':bal+' sessions') + '</span>';
+return '<div class="ccard" onclick="openCli(&apos;"+cid+"&apos;)">' +
+'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">' +
+'<div style="display:flex;align-items:center;gap:8px">' +
+'<div style="width:38px;height:38px;border-radius:50%;background:' + (isOnline?'rgba(99,102,241,.3)':'rgba(16,185,129,.3)') + ';display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0">' + c.name.charAt(0).toUpperCase() + '</div>' +
+'<div><div class="cname" style="margin-bottom:2px">' + c.name + '</div>' +
+'<span class="pill ' + (isOnline?'p-blue':'p-green') + '" style="font-size:9px">' + (isOnline?'&#127760; Online':'&#127947; In Person') + '</span></div></div>' +
+'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">' + balDisplay +
+(c.msgCount > 0 ? '<span class="pill p-red">&#128172; ' + c.msgCount + '</span>' : '') +
+'</div></div>' +
 '<div class="cmeta">' +
-'<span class="pill '+(c.type==='online'?'p-blue':'p-green')+'">'+(c.type==='online'?'Online':'In Person')+'</span>' +
-(c.rate?'<span>'+currSym(cid)+c.rate+'/sess</span>':'') +
-'<span>Last: '+(c.lastActive?fmtD(c.lastActive):'Never')+'</span>' +
-(c.streak&&c.streak.cur>0?'<span style="color:var(--amber)">&#128293; '+c.streak.cur+'</span>':'') +
+(c.rate ? '<span>' + currSym(cid) + c.rate + (isOnline?'/mo':'/sess') + '</span>' : '') +
+'<span>Last: ' + (c.lastActive ? fmtD(c.lastActive) : 'Never') + '</span>' +
+(c.streak&&c.streak.cur>2 ? '<span style="color:var(--amber)">&#128293; ' + c.streak.cur + '</span>' : '') +
 '</div>' +
-'<div style="display:flex;gap:5px;flex-shrink:0;margin-left:8px">' +
-'<button onclick="event.stopPropagation();openQuickMsg(\''+cid+'\')" style="'+qbtn+';background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);color:#818cf8">&#128172;</button>' +
-'<button onclick="event.stopPropagation();openBookSess(\''+cid+'\')" style="'+qbtn+';background:rgba(236,72,153,.1);border:1px solid rgba(236,72,153,.2);color:#f472b6">&#128197;</button>' +
-'<button onclick="event.stopPropagation();openQuickPay(\''+cid+'\')" style="'+qbtn+';background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:#34d399">&#128176;</button>' +
-'</div></div></div>';
-}).join('') + '</div>' + trNav();
+'<div style="display:flex;gap:6px;margin-top:8px;border-top:1px solid var(--bdr);padding-top:8px">' +
+'<button onclick="event.stopPropagation();openQuickMsg(&apos;"+cid+"&apos;)" style="flex:1;padding:6px;background:var(--c2);border:1px solid var(--bdr);border-radius:8px;color:var(--m1);font-size:10px;font-weight:700;cursor:pointer">&#128172; Msg</button>' +
+(isOnline ? '' : '<button onclick="event.stopPropagation();openBookSess(\'' + cid + '\')" style="flex:1;padding:6px;background:var(--c2);border:1px solid var(--bdr);border-radius:8px;color:var(--m1);font-size:10px;font-weight:700;cursor:pointer">&#128197; Book</button>') +
+'<button onclick="event.stopPropagation();openQuickPay(\'' + cid + '\')" style="flex:1;padding:6px;background:var(--c2);border:1px solid var(--bdr);border-radius:8px;color:var(--m1);font-size:10px;font-weight:700;cursor:pointer">&#128176; Pay</button>' +
+'</div></div>';
+}).join('') +
+'</div>' + trNav();
 }
 
 function renderSched() {
-var all = getUpcoming();
-var td = all.filter(function(s){return s.date===today();});
-var fut = all.filter(function(s){return s.date>today();});
-return '<div class="hdr"><div class="hdr-top">' +
-'<div><div class="hdr-sub">Schedule</div><div class="hdr-title">Sessions</div></div>' +
+if (!S.schedDate) S.schedDate = today();
+if (!S.schedView) S.schedView = 'week';
+return trTopBar('Schedule') +
+'<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:rgba(7,7,14,.94);position:sticky;top:52px;z-index:80;border-bottom:1px solid var(--bdr)">' +
+'<div style="display:flex;gap:4px">' +
+['day','week','month'].map(function(v) {
+var on = S.schedView === v;
+return '<button onclick="S.schedView=\'' + v + '\';R()" style="padding:5px 12px;border-radius:8px;border:1px solid ' + (on?'var(--acc)':'var(--bdr)') + ';background:' + (on?'rgba(99,102,241,.15)':'transparent') + ';color:' + (on?'var(--acc)':'var(--m1)') + ';font-size:11px;font-weight:700;cursor:pointer">' + v.charAt(0).toUpperCase() + v.slice(1) + '</button>';
+}).join('') + '</div>' +
 '<button class="btn-sm" style="background:var(--pink)" onclick="openBookSess(null)">+ Book</button>' +
-'</div></div><div class="page">' +
-(td.length>0?'<div class="sect">TODAY - '+fmtD(today())+'</div><div class="card"><div class="card-p">'+td.map(sessRow).join('')+'</div></div>':'') +
-'<div class="sect">UPCOMING</div>' +
-(all.length===0?'<div class="empty">No sessions scheduled.</div>':'') +
-fut.map(function(s){return '<div class="card" style="margin-bottom:8px"><div class="card-p">'+sessRow(s)+'</div></div>';}).join('') +
+'</div>' +
+'<div class="page">' +
+(S.schedView === 'day' ? renderDayView() : '') +
+(S.schedView === 'week' ? renderWeekView() : '') +
+(S.schedView === 'month' ? renderMonthView() : '') +
 '</div>' + trNav();
+}
+
+function getAllSessions() {
+var all = [];
+Object.keys(S.clients).forEach(function(cid) {
+var c = S.clients[cid];
+Object.values(c.sessions||{}).forEach(function(s) {
+var item = {clientId:cid, clientName:c.name, clientType:c.type||'inperson'};
+Object.keys(s).forEach(function(k){ item[k]=s[k]; });
+all.push(item);
+});
+});
+return all;
+}
+
+function renderDateNav() {
+return '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
+'<button onclick="changeSchedDate(-1)" style="background:var(--c2);border:1px solid var(--bdr);border-radius:8px;padding:6px 14px;color:var(--tx);cursor:pointer;font-size:16px">&#8249;</button>' +
+'<div style="font-size:14px;font-weight:700;color:#fff">' + (S.schedDate===today()?'Today &mdash; ':'') + fmtD(S.schedDate) + '</div>' +
+'<button onclick="changeSchedDate(1)" style="background:var(--c2);border:1px solid var(--bdr);border-radius:8px;padding:6px 14px;color:var(--tx);cursor:pointer;font-size:16px">&#8250;</button>' +
+'</div>';
+}
+
+function changeSchedDate(delta) {
+var d = new Date(S.schedDate + 'T12:00:00');
+d.setDate(d.getDate() + delta);
+S.schedDate = d.toISOString().split('T')[0];
+R();
+}
+
+function changeSchedMonth(delta) {
+var d = new Date(S.schedDate + 'T12:00:00');
+d.setMonth(d.getMonth() + delta);
+d.setDate(1);
+S.schedDate = d.toISOString().split('T')[0];
+R();
+}
+
+function renderDayView() {
+var allSess = getAllSessions().filter(function(s){ return s.date === S.schedDate; });
+allSess.sort(function(a,b){ return (a.time||'').localeCompare(b.time||''); });
+var hours = [];
+for (var h = 6; h <= 21; h++) hours.push(h);
+return renderDateNav() +
+'<div style="position:relative">' +
+hours.map(function(h) {
+var sess = allSess.filter(function(s){ return s.time && parseInt(s.time.split(':')[0]) === h; });
+return '<div style="display:flex;gap:10px;min-height:48px;border-bottom:1px solid rgba(255,255,255,.03)">' +
+'<div style="min-width:40px;text-align:right;font-size:10px;color:var(--m2);padding-top:4px">' + String(h).padStart(2,'0') + ':00</div>' +
+'<div style="flex:1;padding:2px 0">' +
+sess.map(function(s) {
+var c = S.clients[s.clientId] || {};
+return '<div onclick="openCli(&apos;"+s.clientId+"&apos;)" style="padding:6px 10px;background:' + (s.clientType==='online'?'rgba(99,102,241,.15)':'rgba(16,185,129,.15)') + ';border-left:3px solid ' + (s.clientType==='online'?'var(--blue)':'var(--green)') + ';border-radius:0 8px 8px 0;margin-bottom:3px;cursor:pointer">' +
+'<div style="font-size:12px;font-weight:700;color:#fff">' + (c.name||'Client') + '</div>' +
+'<div style="font-size:10px;color:var(--m1)">' + (s.workoutName||s.clientType==='online'?'Online':'In Person') + '</div></div>';
+}).join('') + '</div></div>';
+}).join('') + '</div>';
+}
+
+function renderWeekView() {
+var d = new Date(S.schedDate + 'T12:00:00');
+var dow = d.getDay();
+var mon = new Date(d); mon.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1));
+var days = [];
+for (var i = 0; i < 7; i++) {
+var day = new Date(mon); day.setDate(mon.getDate() + i);
+days.push(day.toISOString().split('T')[0]);
+}
+var allSess = getAllSessions();
+var monD = new Date(days[0]+'T12:00:00');
+var sunD = new Date(days[6]+'T12:00:00');
+return '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">' +
+'<button onclick="changeSchedDate(-7)" style="background:var(--c2);border:1px solid var(--bdr);border-radius:8px;padding:6px 12px;color:var(--tx);cursor:pointer">&#8249;</button>' +
+'<div style="font-size:13px;font-weight:700;color:#fff">' + monD.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) + ' &ndash; ' + sunD.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) + '</div>' +
+'<button onclick="changeSchedDate(7)" style="background:var(--c2);border:1px solid var(--bdr);border-radius:8px;padding:6px 12px;color:var(--tx);cursor:pointer">&#8250;</button>' +
+'</div>' +
+'<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:14px">' +
+days.map(function(dateStr) {
+var isToday = dateStr === today();
+var isSelected = dateStr === S.schedDate;
+var daySess = allSess.filter(function(s){ return s.date === dateStr; });
+var d2 = new Date(dateStr + 'T12:00:00');
+return '<div onclick="setSchedDay(this)" data-date="' + dateStr + '"" style="background:' + (isSelected?'var(--acc)':isToday?'rgba(99,102,241,.1)':'var(--c2)') + ';border:1px solid ' + (isToday?'var(--acc)':'var(--bdr)') + ';border-radius:10px;padding:7px 4px;text-align:center;cursor:pointer;min-height:64px">' +
+'<div style="font-size:9px;color:' + (isSelected?'rgba(255,255,255,.7)':'var(--m2)') + '">' + ['Su','Mo','Tu','We','Th','Fr','Sa'][d2.getDay()] + '</div>' +
+'<div style="font-size:15px;font-weight:800;color:#fff;margin:3px 0">' + d2.getDate() + '</div>' +
+daySess.slice(0,3).map(function(s) {
+return '<div style="height:4px;border-radius:2px;background:' + (s.clientType==='online'?'var(--blue)':'var(--green)') + ';margin:1px 2px"></div>';
+}).join('') +
+(daySess.length > 3 ? '<div style="font-size:8px;color:' + (isSelected?'rgba(255,255,255,.6)':'var(--m2)') + '">+' + (daySess.length-3) + '</div>' : '') +
+'</div>';
+}).join('') + '</div>' +
+'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2);margin-bottom:8px">' + fmtD(S.schedDate).toUpperCase() + '</div>' +
+renderDaySessionList(S.schedDate);
+}
+
+function renderDaySessionList(dateStr) {
+var sessions = getAllSessions().filter(function(s){ return s.date === dateStr; });
+sessions.sort(function(a,b){ return (a.time||'').localeCompare(b.time||''); });
+if (sessions.length === 0) return '<div style="font-size:12px;color:var(--m2);padding:12px 0">No sessions this day.</div>';
+return '<div class="card"><div class="card-p">' + sessions.map(function(s){ return sessRow(s); }).join('') + '</div></div>';
+}
+
+function renderMonthView() {
+var d = new Date(S.schedDate + 'T12:00:00');
+var year = d.getFullYear(), month = d.getMonth();
+var firstDay = new Date(year, month, 1);
+var lastDay = new Date(year, month + 1, 0);
+var allSess = getAllSessions();
+var startDow = firstDay.getDay();
+var cells = [];
+for (var i = 0; i < startDow; i++) cells.push(null);
+for (var day = 1; day <= lastDay.getDate(); day++) cells.push(day);
+while (cells.length % 7 !== 0) cells.push(null);
+return '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">' +
+'<button onclick="changeSchedMonth(-1)" style="background:var(--c2);border:1px solid var(--bdr);border-radius:8px;padding:5px 12px;color:var(--tx);cursor:pointer">&#8249;</button>' +
+'<div style="font-size:14px;font-weight:700;color:#fff">' + d.toLocaleDateString('en-GB',{month:'long',year:'numeric'}) + '</div>' +
+'<button onclick="changeSchedMonth(1)" style="background:var(--c2);border:1px solid var(--bdr);border-radius:8px;padding:5px 12px;color:var(--tx);cursor:pointer">&#8250;</button>' +
+'</div>' +
+'<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">' +
+['Su','Mo','Tu','We','Th','Fr','Sa'].map(function(l){ return '<div style="text-align:center;font-size:9px;color:var(--m2);font-weight:700;padding:4px">' + l + '</div>'; }).join('') + '</div>' +
+'<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">' +
+cells.map(function(day) {
+if (!day) return '<div></div>';
+var dateStr = year + '-' + String(month+1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+var isToday = dateStr === today();
+var daySess = allSess.filter(function(s){ return s.date === dateStr; });
+return '<div onclick="setSchedDay(this)" data-date="' + dateStr + '"" style="background:' + (isToday?'rgba(99,102,241,.15)':'var(--c2)') + ';border:1px solid ' + (isToday?'var(--acc)':'var(--bdr)') + ';border-radius:8px;padding:5px;text-align:center;min-height:42px;cursor:pointer">' +
+'<div style="font-size:12px;font-weight:700;color:' + (isToday?'var(--acc)':'#fff') + '">' + day + '</div>' +
+daySess.slice(0,2).map(function(s) {
+return '<div style="height:3px;border-radius:2px;background:' + (s.clientType==='online'?'var(--blue)':'var(--green)') + ';margin-top:2px"></div>';
+}).join('') + '</div>';
+}).join('') + '</div>';
 }
 
 function renderFinance() {
@@ -1359,10 +1748,7 @@ Object.values(c.payments||{}).forEach(function(p){if(p.date&&p.date.startsWith(m
 totalRev+=rev;
 return {cid:cid, name:c.name, type:c.type, rate:c.rate||0, rev:rev, balance:c.balance||0};
 });
-return '<div class="hdr"><div class="hdr-top">' +
-'<div><div class="hdr-sub">Finance</div><div class="hdr-title">Money</div></div>' +
-'<div style="font-size:11px;color:var(--m1);font-weight:600">'+fmtMon(today())+'</div>' +
-'</div></div><div class="page">' +
+return trTopBar('Finance') + '<div class="page">' +
 '<div class="sgrid">' +
 '<div class="scard"><div class="sv" style="color:var(--green)">'+totalRev.toLocaleString()+'</div><div class="sl">This Month</div></div>' +
 '<div class="scard"><div class="sv" style="color:var(--amber)">'+allRev.toLocaleString()+'</div><div class="sl">All Time</div></div>' +
@@ -2202,40 +2588,46 @@ closeModal(); toast(prog.name+' saved as template!','ok'); R();
 }
 
 function renderComplete() {
-var d=getDay(), pr=sessP();
-var todayPRs=Object.values(S.prs).filter(function(p){return p.date===today();});
-var k=sk(S.week,S.day), sn=S.sN[k]||{};
-var accent=(d&&d.accent)||'var(--acc)';
-var dName=d?(d.name||d.title||d.tag):'Workout';
-return '<div style="min-height:100vh;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center">' +
-'<div style="font-size:72px;margin-bottom:12px">&#127942;</div>' +
-'<div style="font-size:9px;letter-spacing:3px;color:var(--green);font-weight:700;margin-bottom:8px">SESSION COMPLETE</div>' +
-'<div style="font-size:64px;font-weight:900;color:#fff;line-height:1;margin-bottom:4px">'+S.streak.cur+'</div>' +
-'<div style="font-size:12px;color:var(--amber);font-weight:700;letter-spacing:1.5px;margin-bottom:20px">DAY STREAK &#128293;</div>' +
-'<div id="share_card" style="background:linear-gradient(135deg,#0f1117,#1a1040);border:1px solid rgba(99,102,241,.3);border-radius:20px;padding:22px;width:100%;max-width:340px;margin-bottom:16px;text-align:center">' +
-'<div style="font-size:9px;letter-spacing:3px;color:var(--acc);font-weight:700;margin-bottom:14px">AHMED PERSONAL TRAINING</div>' +
-'<div style="font-size:28px;font-weight:900;color:#fff;margin-bottom:3px">'+dName+' Done</div>' +
-'<div style="font-size:12px;color:var(--m1);margin-bottom:18px">Week '+S.week+'</div>' +
-'<div style="display:flex;justify-content:center;gap:24px;margin-bottom:16px">' +
-'<div><div style="font-size:36px;font-weight:900;color:var(--green)">'+pr.done+'</div><div style="font-size:9px;color:var(--m1);text-transform:uppercase;letter-spacing:1px">Sets Done</div></div>' +
-(todayPRs.length?'<div><div style="font-size:36px;font-weight:900;color:var(--amber)">'+todayPRs.length+'</div><div style="font-size:9px;color:var(--m1);text-transform:uppercase;letter-spacing:1px">New PRs</div></div>':'') +
-'<div><div style="font-size:36px;font-weight:900;color:var(--amber)">&#128293; '+S.streak.cur+'</div><div style="font-size:9px;color:var(--m1);text-transform:uppercase;letter-spacing:1px">Day Streak</div></div>' +
-'</div>' +
-(todayPRs.length?'<div style="padding:10px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;margin-bottom:12px">' +
-'<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--amber);margin-bottom:6px">&#127942; NEW PRs</div>' +
-todayPRs.map(function(p){return '<div style="font-size:12px;color:#fff;font-weight:600;margin-bottom:3px">'+p.exName+' &#8212; '+p.weight+S.unit+' x '+p.reps+'</div>';}).join('')+
-'</div>':'') +
-'<div style="font-size:10px;color:var(--m2)">@Madridsta_ on Instagram</div>' +
-'</div>' +
-'<button onclick="shareCard()" style="width:100%;max-width:340px;padding:14px;background:var(--acc);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:10px">&#128248; Share</button>' +
-'<div style="width:100%;max-width:340px;margin-bottom:14px">' +
-'<div style="font-size:9px;font-weight:700;color:var(--m2);letter-spacing:1.5px;margin-bottom:6px;text-align:left">SESSION NOTE</div>' +
-'<textarea class="inp" id="comp_note" rows="3" placeholder="How did it feel? Any wins today?" style="margin-bottom:8px">'+((sn&&sn.client)||'')+'</textarea>' +
-'<button class="btn btn-green" style="margin-bottom:8px" onclick="doCompNote()">SAVE NOTE &#10003;</button>' +
-'</div>' +
-'<button class="btn btn-ghost" style="max-width:340px;width:100%" onclick="S.scr=\'client\';R()">Back to Training</button>' +
-'</div>';
+var prs = S.sessionPRs || [];
+var prog = sessP();
+return '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:24px;background:var(--bg);text-align:center">' +
+'<div style="font-size:64px;margin-bottom:16px">&#127942;</div>' +
+'<div style="font-size:10px;letter-spacing:3px;color:var(--acc);font-weight:700;margin-bottom:8px">SESSION COMPLETE</div>' +
+'<div style="font-size:32px;font-weight:900;color:#fff;margin-bottom:6px">' + (S.activeDay?S.activeDay.title||S.activeDay.name:'Session') + '</div>' +
+'<div style="font-size:14px;color:var(--m1);margin-bottom:24px">' + prog.done + ' sets &bull; Week ' + S.week + '</div>' +
+(prs.length > 0 ?
+'<div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);border-radius:14px;padding:16px;width:100%;margin-bottom:20px;max-width:400px">' +
+'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--amber);margin-bottom:10px">&#127942; NEW PERSONAL RECORDS</div>' +
+prs.map(function(pr) {
+return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.06)">' +
+'<div style="font-size:12px;color:#fff">' + pr.exName + '</div>' +
+'<div style="font-size:14px;font-weight:800;color:var(--amber)">' + pr.weight + S.unit + ' &times; ' + pr.reps + '</div></div>';
+}).join('') + '</div>' : '') +
+'<div style="width:100%;max-width:400px">' +
+'<div style="font-size:13px;color:var(--m1);margin-bottom:8px;font-weight:600">Add a session note?</div>' +
+'<textarea class="inp" id="complete_note" rows="3" placeholder="How did it feel? Any wins or struggles?" style="margin-bottom:14px;text-align:left"></textarea>' +
+'<button class="btn btn-green" style="margin-bottom:8px" onclick="finishSession()">FINISH &#10003;</button>' +
+'<button onclick="shareCompletion()" style="width:100%;padding:12px;background:transparent;border:1px solid var(--bdr);border-radius:12px;color:var(--m1);font-size:13px;cursor:pointer">&#128248; Share Progress</button>' +
+'</div></div>';
 }
+
+function finishSession() {
+var note = document.getElementById('complete_note') ? document.getElementById('complete_note').value : '';
+if (note) saveSessNote(note, 'client');
+fireWorkoutCompleteNotification(
+S.activeDay ? S.activeDay.title||S.activeDay.name : 'Session',
+S.week,
+sessP().done,
+S.sessionPRs || [],
+note
+);
+S.sessionPRs = [];
+S.newPR = null;
+S.scr = 'client';
+S.cTab = 'home';
+R();
+}
+
 function shareCard() {
 var d=getDay();
 var dName=d?(d.name||d.title||d.tag):'Workout';
@@ -2254,72 +2646,64 @@ if(b){b.textContent='Saved! ✓';setTimeout(function(){if(b)b.textContent='SAVE 
 }
 
 function renderHome() {
-var hr=new Date().getHours();
-var greet=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
-var cp=DB.get('cp_'+S.cid)||{};
-var name=cp.name||'there';
-var todayIdx=getTodayWorkoutIdx();
-var d=todayIdx>=0?getDays()[todayIdx]:getDay();
-var days=getDays();
-var tNote='';
-var snKeys=Object.keys(S.sN).sort();
-for(var i=snKeys.length-1;i>=0;i--){var sni=S.sN[snKeys[i]];if(sni&&sni.trainer){tNote=sni.trainer;break;}}
-var estMins=d?d.ex.reduce(function(t,ex){return t+(ex.sets||3)*4;},0):0;
-var d14=get14();
+var hr = new Date().getHours();
+var greet = hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
+var cp = DB.get('cp_'+S.cid)||{};
+var name = (cp.name||'').split(' ')[0] || 'there';
+var todayIdx = getTodayWorkoutIdx();
+var d = todayIdx >= 0 ? getDays()[todayIdx] : null;
+var tNote = '';
+var snKeys = Object.keys(S.sN).sort();
+for (var i = snKeys.length-1; i >= 0; i--) { var sni = S.sN[snKeys[i]]; if (sni&&sni.trainer) { tNote=sni.trainer; break; } }
+
+// Calorie data
+var targets = DB.get('bio_'+S.cid) || {};
+var macros = targets.macros || {};
+var dateStr = today();
+var nutData = DB.get('nutrition_'+S.cid) || {};
+var todayNut = nutData[dateStr] || {meals:{},water:0};
+var calToday = Object.values(todayNut.meals||{}).reduce(function(acc, meal) {
+return acc + Object.values(meal||{}).reduce(function(s,item){ return s+(item.calories||0); }, 0);
+}, 0);
+
 return '<div class="hdr"><div class="hdr-top">' +
-'<div><div class="hdr-sub">Ahmed PT</div><div class="hdr-title">'+greet+'</div></div>' +
+'<div><div class="hdr-sub">Ahmed PT</div><div class="hdr-title">' + greet + '</div></div>' +
 (S.streak.cur>0?'<span class="pill p-amber">&#128293; '+S.streak.cur+'</span>':'') +
 '</div></div><div class="page">' +
-'<div style="margin-bottom:16px">' +
-'<div style="font-size:26px;font-weight:900;color:#fff;letter-spacing:-.5px">'+name+' &#128075;</div>' +
+'<div style="margin-bottom:14px">' +
+'<div style="font-size:24px;font-weight:900;color:#fff;letter-spacing:-.5px">' + name + ' &#128075;</div>' +
 '<div style="font-size:11px;color:var(--m1);margin-top:3px">'+new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})+'</div>' +
 '</div>' +
-(d?'<div style="background:var(--c1);border:1.5px solid '+(d.accent||'var(--bdr)')+';border-radius:14px;padding:16px;margin-bottom:14px">' +
-'<div style="font-size:9px;font-weight:700;letter-spacing:2px;color:'+(d.accent||'var(--acc)')+';margin-bottom:8px">TODAY\'S WORKOUT</div>' +
-'<div style="font-size:22px;font-weight:800;color:#fff;margin-bottom:4px">'+d.title+'</div>' +
-'<div style="font-size:11px;color:var(--m1);margin-bottom:14px">'+(d.sub||'')+' &#183; '+d.ex.length+' exercises &#183; ~'+estMins+' min</div>' +
-'<button class="btn" style="background:'+(d.accent||'var(--acc)')+';margin-bottom:0" onclick="'+(todayIdx>=0?'S.day='+todayIdx+';':'')+' S.cTab=\'workout\';R()">START WORKOUT &#8594;</button>' +
-'</div>':
-'<div style="background:var(--c1);border:1px solid var(--bdr);border-radius:14px;padding:16px;margin-bottom:14px;text-align:center"><div style="font-size:13px;color:var(--m2)">No program set yet &#8212; Ahmed will set this up for you.</div></div>') +
-'<div class="sk-card" style="margin-bottom:14px">' +
-'<div class="sk-nums">' +
-'<div><div class="sk-n">'+S.streak.cur+'</div><div class="sk-l">Streak &#128293;</div></div>' +
-'<div><div class="sk-n">'+S.streak.best+'</div><div class="sk-l">Best &#127942;</div></div>' +
-'</div>' +
-'<div style="font-size:10px;color:var(--m1);margin-bottom:8px;font-weight:600;letter-spacing:1px">LAST 14 DAYS</div>' +
-'<div class="sk-days">'+d14.map(function(dt){
-var isT=dt===today(), had=hadSess(dt)||(S.streak.lastDate===dt);
-return '<div class="sk-day '+(isT?'today':had?'done':'miss')+'">' +
-'<div style="font-size:7px;color:var(--m1)">'+new Date(dt+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short'}).slice(0,1)+'</div>' +
-'<div style="font-size:12px">'+(isT?'&#128205;':had?'&#9989;':'&#183;')+'</div>' +
-'<div style="font-size:7px;color:var(--m2)">'+new Date(dt+'T12:00:00').getDate()+'</div>' +
-'</div>';
-}).join('')+'</div></div>' +
-(tNote?'<div style="padding:12px 14px;background:rgba(99,102,241,.06);border-left:3px solid var(--blue);border-radius:0 10px 10px 0;margin-bottom:14px">' +
-'<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--blue);margin-bottom:5px">COACH AHMED</div>' +
-'<div style="font-size:12px;color:var(--m1);line-height:1.6;font-style:italic">'+tNote+'</div>' +
-'</div>':'') +
-(function(){
-var tip=TIPS[Math.floor(Date.now()/86400000)%TIPS.length];
-return '<div style="padding:12px 14px;background:rgba(245,158,11,.05);border-left:3px solid var(--amber);border-radius:0 10px 10px 0;margin-bottom:14px">' +
-'<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--amber);margin-bottom:5px">TODAY\'S TIP</div>' +
-'<div style="font-size:12px;color:var(--m1);line-height:1.6">'+tip+'</div>' +
-'</div>';
-})() +
+
+// Training day OR rest day card
+(d ? renderTodayWorkoutCard(d, todayIdx) : renderRestDayCard()) +
+
+// Calorie mini-card if targets set
+(macros.calories ? renderHomeCalsCard(calToday, macros) : '') +
+
+// Recovery prompt
 (function(){
 var recAll=DB.get('recovery_'+S.cid)||{};
 var todayRec=recAll[today()]||null;
-return (!todayRec?'<div onclick="S.cTab=\'recovery\';R()" style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:12px;margin-bottom:8px;cursor:pointer">' +
+return (!todayRec?'<div onclick="setCTab(&apos;recovery&apos;)" style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:12px;margin-bottom:8px;cursor:pointer">' +
 '<div style="font-size:28px">&#128526;</div>' +
 '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:#fff">Morning Check-In</div>' +
 '<div style="font-size:11px;color:var(--m1)">How are you feeling today?</div></div>' +
 '<div style="font-size:16px;color:var(--acc)">&#8594;</div></div>':'');
 })() +
+
+// Coach note
+(tNote?'<div style="padding:12px 14px;background:rgba(99,102,241,.06);border-left:3px solid var(--blue);border-radius:0 10px 10px 0;margin-bottom:10px">' +
+'<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--blue);margin-bottom:5px">COACH AHMED</div>' +
+'<div style="font-size:12px;color:var(--m1);line-height:1.6;font-style:italic">'+tNote+'</div>' +
+'</div>':'') +
+
+// Quick action 2x2 grid
 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">' +
 (function(){
 var goals=DB.get('goals_'+S.cid)||[];
 var active=goals.filter(function(g){return !g.achieved;});
-return '<div onclick="S.cTab=\'goals\';R()" style="padding:12px;background:var(--c1);border:1px solid var(--bdr);border-radius:12px;cursor:pointer">' +
+return '<div onclick="setCTab(&apos;goals&apos;)" style="padding:12px;background:var(--c1);border:1px solid var(--bdr);border-radius:12px;cursor:pointer">' +
 '<div style="font-size:24px;margin-bottom:4px">&#127919;</div>' +
 '<div style="font-size:12px;font-weight:700;color:#fff">Goals</div>' +
 '<div style="font-size:10px;color:var(--m1);margin-top:2px">'+(active.length?active.length+' active':'No goals yet')+'</div>' +
@@ -2329,23 +2713,69 @@ return '<div onclick="S.cTab=\'goals\';R()" style="padding:12px;background:var(-
 var habitData=DB.get('habits_'+S.cid)||{list:[],logs:{}};
 var list=habitData.list||[];
 var todayLogs=(habitData.logs||{})[today()]||[];
-return '<div onclick="S.cTab=\'habits\';R()" style="padding:12px;background:var(--c1);border:1px solid var(--bdr);border-radius:12px;cursor:pointer">' +
+return '<div onclick="setCTab(&apos;habits&apos;)" style="padding:12px;background:var(--c1);border:1px solid var(--bdr);border-radius:12px;cursor:pointer">' +
 '<div style="font-size:24px;margin-bottom:4px">&#9989;</div>' +
 '<div style="font-size:12px;font-weight:700;color:#fff">Habits</div>' +
-'<div style="font-size:10px;color:var(--m1);margin-top:2px">'+(list.length?todayLogs.length+'/'+list.length+' done today':'No habits yet')+'</div>' +
+'<div style="font-size:10px;color:var(--m1);margin-top:2px">'+(list.length?todayLogs.length+'/'+list.length+' done':'No habits yet')+'</div>' +
 '</div>';
 })() +
-'<div onclick="S.cTab=\'measurements\';R()" style="padding:12px;background:var(--c1);border:1px solid var(--bdr);border-radius:12px;cursor:pointer">' +
+'<div onclick="setCTab(&apos;measurements&apos;)" style="padding:12px;background:var(--c1);border:1px solid var(--bdr);border-radius:12px;cursor:pointer">' +
 '<div style="font-size:24px;margin-bottom:4px">&#128207;</div>' +
 '<div style="font-size:12px;font-weight:700;color:#fff">Measurements</div>' +
 '<div style="font-size:10px;color:var(--m1);margin-top:2px">Track your body</div>' +
 '</div>' +
-'<div onclick="S.cTab=\'nutrition\';R()" style="padding:12px;background:var(--c1);border:1px solid var(--bdr);border-radius:12px;cursor:pointer">' +
+'<div onclick="setCTab(&apos;nutrition&apos;)" style="padding:12px;background:var(--c1);border:1px solid var(--bdr);border-radius:12px;cursor:pointer">' +
 '<div style="font-size:24px;margin-bottom:4px">&#127869;</div>' +
 '<div style="font-size:12px;font-weight:700;color:#fff">Nutrition</div>' +
 '<div style="font-size:10px;color:var(--m1);margin-top:2px">Log your meals</div>' +
 '</div></div>' +
-'</div>'+cliNav();
+
+'</div>' + cliNav();
+}
+
+function renderTodayWorkoutCard(d, idx) {
+var prog = getProg();
+var estMins = d.ex ? d.ex.reduce(function(t,ex){return t+(ex.sets||3)*4;},0) : 0;
+return '<div style="background:linear-gradient(135deg,rgba(99,102,241,.18),rgba(236,72,153,.08));border:1px solid rgba(99,102,241,.35);border-radius:16px;padding:18px;margin-bottom:12px">' +
+'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--acc);margin-bottom:8px">TODAY&#39;S WORKOUT</div>' +
+'<div style="font-size:26px;font-weight:900;color:#fff;letter-spacing:-.5px;margin-bottom:4px">' + (d.title||d.name||'Workout') + '</div>' +
+'<div style="font-size:12px;color:var(--m1);margin-bottom:4px">' +
+(d.ex ? d.ex.length + ' exercises &bull; ~' + estMins + ' min' : '') +
+'</div>' +
+'<button class="btn btn-acc" style="margin-bottom:0;font-size:15px" onclick="startWorkout(' + idx + ')">START WORKOUT &#8594;</button>' +
+'</div>';
+}
+
+function renderRestDayCard() {
+return '<div style="background:var(--c1);border:1px solid var(--bdr);border-radius:14px;padding:16px;margin-bottom:12px">' +
+'<div style="display:flex;align-items:center;gap:12px">' +
+'<div style="font-size:36px">&#128564;</div>' +
+'<div>' +
+'<div style="font-size:17px;font-weight:800;color:#fff;margin-bottom:2px">Rest Day</div>' +
+'<div style="font-size:12px;color:var(--m1)">Focus on sleep, hydration and nutrition today.</div>' +
+'<div style="font-size:11px;color:var(--m2);margin-top:4px">No workout scheduled.</div>' +
+'</div></div></div>';
+}
+
+function renderHomeCalsCard(calToday, macros) {
+var target = macros.calories || 0;
+if (!target) return '';
+var remaining = target - calToday;
+var pct = Math.min(100, Math.round(calToday / target * 100));
+var over = remaining < 0;
+return '<div style="background:var(--c1);border:1px solid var(--bdr);border-radius:14px;padding:14px;margin-bottom:10px;cursor:pointer" onclick="setCTab(&apos;nutrition&apos;)">' +
+'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
+'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2)">CALORIES TODAY</div>' +
+'<div style="font-size:11px;color:var(--acc);font-weight:600">Log food &#8594;</div>' +
+'</div>' +
+'<div style="display:flex;align-items:center;gap:12px">' +
+'<div><div style="font-size:24px;font-weight:900;color:' + (over?'var(--red)':'#fff') + '">' + calToday + '</div>' +
+'<div style="font-size:10px;color:var(--m1)">of ' + target + ' kcal</div></div>' +
+'<div style="flex:1">' +
+'<div style="height:8px;background:var(--m3);border-radius:4px;overflow:hidden;margin-bottom:4px">' +
+'<div style="height:100%;width:' + pct + '%;background:' + (over?'var(--red)':'var(--green)') + ';border-radius:4px"></div></div>' +
+'<div style="font-size:11px;color:var(--m1)">' + (over ? Math.abs(remaining) + ' kcal over' : remaining + ' kcal left') + '</div>' +
+'</div></div></div>';
 }
 
 function renderClient() {
@@ -2596,49 +3026,131 @@ return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;borde
 }).join('')+'</div>':'');
 }
 function renderProgress() {
-var d14=get14(), prs=Object.values(S.prs), pd=buildCliProgData();
 return '<div class="hdr"><div class="hdr-top">' +
-'<div><div class="hdr-sub">My Progress</div><div class="hdr-title">Progress</div></div>' +
-(S.streak.cur>0?'<span class="pill p-amber">&#128293; '+S.streak.cur+'</span>':'') +
+'<div><div class="hdr-sub">Ahmed PT</div><div class="hdr-title">Progress</div></div>' +
 '</div></div><div class="page">' +
-'<div class="sk-card">' +
-'<div class="sk-nums"><div><div class="sk-n">'+S.streak.cur+'</div><div class="sk-l">Current &#128293;</div></div>' +
-'<div><div class="sk-n">'+S.streak.best+'</div><div class="sk-l">Best &#127942;</div></div></div>' +
+renderStreakCard() +
+renderPRMiniBoard() +
+renderProgressSection() +
+renderMeasurementsSummary() +
+renderHistorySummary() +
+'</div>' + cliNav();
+}
+
+function renderStreakCard() {
+var d14 = get14();
+return '<div class="sk-card" style="margin-bottom:14px">' +
+'<div class="sk-nums">' +
+'<div><div class="sk-n">'+S.streak.cur+'</div><div class="sk-l">Streak &#128293;</div></div>' +
+'<div><div class="sk-n">'+S.streak.best+'</div><div class="sk-l">Best &#127942;</div></div>' +
+'</div>' +
 '<div style="font-size:10px;color:var(--m1);margin-bottom:8px;font-weight:600;letter-spacing:1px">LAST 14 DAYS</div>' +
-'<div class="sk-days">'+d14.map(function(d){
-var isT=d===today(), had=hadSess(d)||(S.streak.lastDate===d);
+'<div class="sk-days">'+d14.map(function(dt){
+var isT=dt===today(), had=hadSess(dt)||(S.streak.lastDate===dt);
 return '<div class="sk-day '+(isT?'today':had?'done':'miss')+'">' +
-'<div style="font-size:7px;color:var(--m1)">'+new Date(d+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short'}).slice(0,1)+'</div>' +
+'<div style="font-size:7px;color:var(--m1)">'+new Date(dt+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short'}).slice(0,1)+'</div>' +
 '<div style="font-size:12px">'+(isT?'&#128205;':had?'&#9989;':'&#183;')+'</div>' +
-'<div style="font-size:7px;color:var(--m2)">'+new Date(d+'T12:00:00').getDate()+'</div></div>';
-}).join('')+'</div></div>' +
-renderBWSection() +
-(prs.length?'<div class="sect">&#127942; PERSONAL RECORDS</div>'+prs.map(function(pr){
-return '<div class="card"><div class="card-p" style="display:flex;justify-content:space-between;align-items:center">' +
-'<div><div style="font-weight:600;font-size:13px;color:#fff">'+pr.exName+'</div><div style="font-size:10px;color:var(--m1)">'+fmtD(pr.date)+'</div></div>' +
-'<div style="text-align:right"><div style="font-size:15px;font-weight:800;color:var(--amber)">'+pr.weight+S.unit+' x '+pr.reps+'</div>' +
-'<div style="font-size:10px;color:var(--m2)">~'+Math.round(pr.est)+S.unit+' 1RM</div></div></div></div>';
-}).join(''):'') +
-'<div class="sect">LIFT PROGRESSION</div>' +
-(pd.length===0?'<div class="empty">Log sessions to see your lift progress.</div>':pd.map(function(p){return renderPBar(p,S.unit);}).join('')) +
-renderHistLog() + '</div>' + cliNav();
+'<div style="font-size:7px;color:var(--m2)">'+new Date(dt+'T12:00:00').getDate()+'</div>' +
+'</div>';
+}).join('')+'</div></div>';
 }
-function buildCliProgData() {
-var ex={}, progs=getProgs();
-Object.keys(S.logs).forEach(function(key){
-var l=S.logs[key]; if(!l||!l.done||!l.weight)return;
-var p=key.split('_');
-var w=parseInt(p[0].replace('w','')),d=parseInt(p[1].replace('d','')),ei=parseInt(p[2].replace('e',''));
-var exName=l.exName;
-if(!exName){for(var pi=0;pi<progs.length;pi++){var pr=progs[pi];if(pr.days&&pr.days[d]&&pr.days[d].ex&&pr.days[d].ex[ei]){exName=pr.days[d].ex[ei].n;break;}}}
-if(!exName)return;
-var k=exName.replace(/[^a-zA-Z0-9]/g,'_');
-if(!ex[k])ex[k]={name:exName,bw:{}};
-var wt=parseFloat(l.weight)||0;
-if(!ex[k].bw[w]||wt>ex[k].bw[w])ex[k].bw[w]=wt;
+
+function renderPRMiniBoard() {
+var prs = Object.values(S.prs).sort(function(a,b){ return new Date(b.date||0)-new Date(a.date||0); });
+if (!prs.length) return '';
+var collapsed = S.prBoardCollapsed;
+return '<div style="background:linear-gradient(135deg,rgba(245,158,11,.06),rgba(239,68,68,.03));border:1px solid rgba(245,158,11,.15);border-radius:12px;padding:12px;margin-bottom:14px">' +
+'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:' + (collapsed?'0':'10px') + ';cursor:pointer" onclick="S.prBoardCollapsed=!S.prBoardCollapsed;R()">' +
+'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--amber)">&#127942; PERSONAL RECORDS</div>' +
+'<span style="font-size:14px;color:var(--m2)">' + (collapsed?'&#9663;':'&#9650;') + '</span>' +
+'</div>' +
+(!collapsed ?
+'<div style="display:flex;flex-direction:column;gap:6px">' +
+prs.slice(0, S.prShowAll ? prs.length : Math.min(5, prs.length)).map(function(pr) {
+return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">' +
+'<div style="font-size:12px;font-weight:600;color:#fff">' + pr.exName + '</div>' +
+'<div style="text-align:right"><div style="font-size:13px;font-weight:800;color:var(--amber)">' + pr.weight + S.unit + ' &times; ' + pr.reps + '</div>' +
+'<div style="font-size:9px;color:var(--m2)">~' + Math.round(pr.est||0) + S.unit + ' 1RM</div></div></div>';
+}).join('') +
+(prs.length > 5 ? '<button onclick="S.prShowAll=!S.prShowAll;R()" style="font-size:11px;color:var(--m1);background:none;border:none;cursor:pointer;padding:4px 0">' + (S.prShowAll?'Show less &#9650;':'See all '+prs.length+' records &#9660;') + '</button>' : '') +
+'</div>' : '') +
+'</div>';
+}
+
+function renderProgressSection() {
+var pd = buildCliProgData();
+if (!pd.length) return '<div style="padding:12px 0;font-size:12px;color:var(--m2)">Log sessions to see weight progression.</div>';
+var showing = S.progShowAll ? pd.length : Math.min(3, pd.length);
+return '<div style="margin-bottom:14px">' +
+'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">' +
+'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2)">WEIGHT PROGRESSION</div>' +
+(pd.length > 3 ? '<button onclick="S.progShowAll=!S.progShowAll;R()" style="font-size:11px;color:var(--acc);background:none;border:none;cursor:pointer">' + (S.progShowAll?'Show less':'See all '+pd.length+' &#9660;') + '</button>' : '') +
+'</div>' +
+pd.slice(0, showing).map(function(p){ return renderPBar(p, S.unit); }).join('') +
+'</div>';
+}
+
+function renderMeasurementsSummary() {
+var entries = DB.get('measurements_'+S.cid) || [];
+var latest = entries[entries.length-1];
+if (!latest) {
+return '<div style="background:var(--c1);border:1px solid var(--bdr);border-radius:12px;padding:12px;margin-bottom:14px;cursor:pointer" onclick="openLogMeasurements()">' +
+'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2);margin-bottom:4px">MEASUREMENTS</div>' +
+'<div style="font-size:12px;color:var(--m1)">Tap to log your first measurements</div>' +
+'</div>';
+}
+var fields = [{k:'weight',l:'Weight'},{k:'waist',l:'Waist'},{k:'chest',l:'Chest'}];
+return '<div style="background:var(--c1);border:1px solid var(--bdr);border-radius:12px;padding:12px;margin-bottom:14px">' +
+'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">' +
+'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2)">MEASUREMENTS</div>' +
+'<button onclick="openLogMeasurements()" style="font-size:11px;color:var(--acc);background:none;border:none;cursor:pointer">+ Log</button>' +
+'</div>' +
+'<div style="display:flex;gap:8px">' +
+fields.map(function(f) {
+var v = latest[f.k];
+return v ? '<div style="flex:1;text-align:center;background:var(--c2);border-radius:8px;padding:8px">' +
+'<div style="font-size:16px;font-weight:800;color:#fff">' + v + '</div>' +
+'<div style="font-size:9px;color:var(--m2)">' + f.l + '</div></div>' : '';
+}).join('') +
+'</div><div style="font-size:10px;color:var(--m2);margin-top:8px;text-align:right">' + fmtD(latest.date) + '</div></div>';
+}
+
+function renderHistorySummary() {
+var ss = buildHistoryMap();
+var entries = Object.entries(ss).reverse();
+if (!entries.length) return '';
+var showing = S.histShowAll ? entries.length : Math.min(3, entries.length);
+return '<div>' +
+'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">' +
+'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2)">HISTORY</div>' +
+(entries.length > 3 ? '<button onclick="S.histShowAll=!S.histShowAll;R()" style="font-size:11px;color:var(--acc);background:none;border:none;cursor:pointer">' + (S.histShowAll?'Less':'See all '+entries.length+' &#9660;') + '</button>' : '') +
+'</div>' +
+entries.slice(0,showing).map(function(e) {
+var s = e[1];
+var prog = getProg(), dn = parseInt((s.d||'d0').replace('d','')), di = prog&&prog.days?prog.days[dn]:null;
+var sn = S.sN[s.w+'_'+s.d];
+return '<div class="card"><div class="card-p" style="padding:10px 12px">' +
+'<div style="display:flex;justify-content:space-between;align-items:center">' +
+'<div><div style="font-size:13px;font-weight:700;color:#fff">' + (di?di.title||di.name:'Session') + '</div>' +
+'<div style="font-size:10px;color:var(--m1)">Wk' + (s.w||'').replace('w','') + ' &bull; ' + s.sets + ' sets</div></div>' +
+'</div>' +
+(sn&&sn.trainer?'<div style="font-size:10px;color:var(--m1);padding:5px 0;border-top:1px solid var(--bdr);margin-top:6px">Ahmed: ' + sn.trainer.substring(0,60) + (sn.trainer.length>60?'...':'') + '</div>':'') +
+'</div></div>';
+}).join('') + '</div>';
+}
+
+function buildHistoryMap() {
+var ss = {};
+Object.keys(S.logs).forEach(function(k) {
+var l=S.logs[k]; if(!l||!l.done)return;
+var p=k.split('_'); if(p.length<3)return;
+var k2=p[0]+'_'+p[1];
+if(!ss[k2])ss[k2]={w:p[0],d:p[1],sets:0,exs:{}};
+ss[k2].sets++;ss[k2].exs[p[2]]=1;
 });
-return Object.values(ex).filter(function(e){return Object.keys(e.bw).length>0;});
+return ss;
 }
+
 function renderHistLog() {
 var ss={};
 Object.keys(S.logs).forEach(function(k){
@@ -3410,6 +3922,210 @@ all[today()]=txt;
 DB.set('nutr_notes_'+cid,all);
 toast('Nutrition note sent to client','ok');
 }
+
+function openPhotoCalorie() {
+showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
+'<div class="modal-title">Photo Calorie Count</div>' +
+'<div style="padding:12px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:10px;margin-bottom:16px">' +
+'<div style="font-size:11px;font-weight:700;color:var(--amber);margin-bottom:4px">&#9888;&#65039; Accuracy Disclaimer</div>' +
+'<div style="font-size:11px;color:var(--m1);line-height:1.6">Photo estimates are approximate. Portion sizes, cooking methods, and hidden ingredients affect calories in ways photos cannot show. Always verify.</div>' +
+'</div>' +
+'<input type="file" id="photo_input" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoUpload(event)">' +
+'<button class="btn btn-acc" style="margin-bottom:8px" onclick="document.getElementById(&apos;photo_input&apos;).click()">&#128248; Take / Choose Photo</button>' +
+'<div id="photo_preview" style="display:none;margin-bottom:14px"><img id="photo_img" style="width:100%;border-radius:12px;max-height:200px;object-fit:cover"></div>' +
+'<div id="photo_questions" style="display:none">' +
+'<div class="sect" style="margin-top:0">REFINE ESTIMATE</div>' +
+'<div class="row"><div class="lbl">Cooking method</div><select class="sel" id="pq_cook"><option value="grilled">Grilled / Baked</option><option value="fried">Fried</option><option value="raw">Raw / No cooking</option><option value="boiled">Boiled / Steamed</option><option value="unknown">Not sure</option></select></div>' +
+'<div class="row"><div class="lbl">Oils / Butter added?</div><select class="sel" id="pq_oil"><option value="none">None</option><option value="light">Light (1 tsp)</option><option value="moderate">Moderate (1-2 tbsp)</option><option value="heavy">Heavy</option></select></div>' +
+'<div class="row"><div class="lbl">Sauces / Dressings</div><input class="inp" id="pq_sauces" placeholder="e.g. ketchup, mayo, dressing"></div>' +
+'<div class="row"><div class="lbl">Portion size</div><select class="sel" id="pq_portion"><option value="small">Small</option><option value="normal">Normal</option><option value="large">Large</option><option value="double">Double</option></select></div>' +
+'<div class="row"><div class="lbl">Add to meal</div><select class="sel" id="pq_meal"><option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="dinner">Dinner</option><option value="snacks">Snacks</option></select></div>' +
+'<div id="photo_result" style="display:none;margin-top:12px"></div>' +
+'<button class="btn btn-acc" id="analyze_btn" onclick="analyzePhoto()" style="display:none">ANALYZE NOW &#129302;</button>' +
+'</div>' +
+'<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
+'</div></div>');
+}
+
+function handlePhotoUpload(event) {
+var file = event.target.files[0];
+if (!file) return;
+var reader = new FileReader();
+reader.onload = function(e) {
+S._photoData = e.target.result.split(',')[1];
+var prev = document.getElementById('photo_preview');
+var img = document.getElementById('photo_img');
+var qs = document.getElementById('photo_questions');
+var btn = document.getElementById('analyze_btn');
+if (prev) { prev.style.display='block'; img.src=e.target.result; }
+if (qs) qs.style.display='block';
+if (btn) btn.style.display='block';
+};
+reader.readAsDataURL(file);
+}
+
+function getVal(id) {
+var el = document.getElementById(id);
+return el ? el.value : '';
+}
+
+function analyzePhoto() {
+var cook = getVal('pq_cook');
+var oil = getVal('pq_oil');
+var sauces = getVal('pq_sauces');
+var portion = getVal('pq_portion');
+var resultEl = document.getElementById('photo_result');
+var btn = document.getElementById('analyze_btn');
+if (resultEl) { resultEl.style.display='block'; resultEl.innerHTML='<div style="text-align:center;padding:12px;color:var(--m1);font-size:12px">Analyzing... &#129302;</div>'; }
+if (btn) btn.disabled=true;
+var ctx = 'Cooking: ' + cook + '. Oil: ' + oil + (sauces?'. Sauces: '+sauces:'') + '. Portion: ' + portion + '.';
+var apiKey = DB.get('anthropic_key') || '';
+if (!apiKey) {
+if (resultEl) resultEl.innerHTML='<div style="color:var(--amber);font-size:12px;padding:8px;background:rgba(245,158,11,.08);border-radius:8px">API key not set. Go to Settings to add your Anthropic API key.</div>';
+if (btn) btn.disabled=false;
+return;
+}
+var prompt = 'Analyze this food photo and estimate nutrition. Context: ' + ctx + ' Respond in JSON only: {foodName, calories, protein, carbs, fat, confidence (low/medium/high), notes}';
+fetch('https://api.anthropic.com/v1/messages', {
+method:'POST',
+headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+body:JSON.stringify({
+model:'claude-opus-4-5',
+max_tokens:300,
+messages:[{role:'user',content:[
+{type:'image',source:{type:'base64',media_type:'image/jpeg',data:S._photoData}},
+{type:'text',text:prompt}
+]}]
+})
+}).then(function(r){return r.json();}).then(function(data){
+var text = data.content&&data.content[0]?data.content[0].text:'{}';
+try {
+var clean = text.replace(/```json|```/g,'').trim();
+var result = JSON.parse(clean);
+S._photoResult = result;
+if (resultEl) {
+resultEl.innerHTML = '<div style="background:var(--c2);border-radius:12px;padding:14px;margin-bottom:10px">' +
+'<div style="font-size:15px;font-weight:800;color:#fff;margin-bottom:8px">' + (result.foodName||'Food') + '</div>' +
+'<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:10px">' +
+['calories','protein','carbs','fat'].map(function(k) {
+var cols={calories:'var(--green)',protein:'#6366f1',carbs:'#10b981',fat:'var(--amber)'};
+return '<div style="text-align:center;background:var(--c1);border-radius:8px;padding:8px 4px"><div style="font-size:16px;font-weight:800;color:'+cols[k]+'">'+(result[k]||0)+'</div><div style="font-size:8px;color:var(--m2)">'+(k==='calories'?'kcal':'g')+'</div><div style="font-size:8px;color:var(--m2)">'+k+'</div></div>';
+}).join('') + '</div>' +
+'<div style="padding:8px;background:rgba(245,158,11,.06);border-radius:8px;font-size:10px;color:var(--amber)">Confidence: '+(result.confidence||'?')+' &bull; '+(result.notes||'')+'</div></div>' +
+'<button class="btn btn-green" style="margin-bottom:0" onclick="addPhotoMeal()">Add to Log</button>';
+}
+} catch(e) {
+if (resultEl) resultEl.innerHTML='<div style="color:var(--red);font-size:12px">Could not parse result. Try again.</div>';
+}
+if (btn) btn.disabled=false;
+}).catch(function(e) {
+if (resultEl) resultEl.innerHTML='<div style="color:var(--red);font-size:12px">Analysis failed. Check connection.</div>';
+if (btn) btn.disabled=false;
+});
+}
+
+function addPhotoMeal() {
+var r = S._photoResult;
+if (!r) return;
+var mealType = getVal('pq_meal') || 'snacks';
+var dateStr = S.nutriDate || today();
+var nutData = DB.get('nutrition_'+S.cid) || {};
+if (!nutData[dateStr]) nutData[dateStr] = {meals:{},water:0};
+if (!nutData[dateStr].meals[mealType]) nutData[dateStr].meals[mealType] = {};
+var id = 'm'+Date.now();
+var meal = {id:id,name:r.foodName||'Photo meal',calories:r.calories||0,protein:r.protein||0,carbs:r.carbs||0,fat:r.fat||0,fromPhoto:true,ts:Date.now()};
+nutData[dateStr].meals[mealType][id] = meal;
+DB.set('nutrition_'+S.cid, nutData);
+if (DB._fb) DB._fb.ref('clients/'+S.cid+'/nutrition/'+dateStr+'/meals/'+mealType+'/'+id).set(meal);
+closeModal();
+toast('Meal added from photo', 'ok');
+S._photoResult=null; S._photoData=null;
+R();
+}
+
+function addToCalendar(evt) {
+var startDt = evt.date + 'T' + (evt.time||'10:00') + ':00';
+var endH = Math.min(23, parseInt((evt.time||'10:00').split(':')[0])+1);
+var endDt = evt.date + 'T' + String(endH).padStart(2,'0') + ':00:00';
+var nl = '\r\n';
+var ics = 'BEGIN:VCALENDAR' + nl + 'VERSION:2.0' + nl + 'BEGIN:VEVENT' + nl +
+'SUMMARY:' + (evt.title||'Training Session') + nl +
+'DTSTART:' + startDt.replace(/[-:]/g,'') + 'Z' + nl +
+'DTEND:' + endDt.replace(/[-:]/g,'') + 'Z' + nl +
+'DESCRIPTION:' + (evt.notes||'') + nl +
+'BEGIN:VALARM' + nl + 'TRIGGER:-PT60M' + nl + 'ACTION:DISPLAY' + nl + 'DESCRIPTION:Session in 1 hour' + nl + 'END:VALARM' + nl +
+'END:VEVENT' + nl + 'END:VCALENDAR';
+var blob = new Blob([ics],{type:'text/calendar'});
+var url = URL.createObjectURL(blob);
+var a = document.createElement('a');
+a.href=url; a.download='session.ics';
+document.body.appendChild(a); a.click(); document.body.removeChild(a);
+setTimeout(function(){URL.revokeObjectURL(url);},2000);
+toast('Calendar file downloaded', 'ok');
+}
+
+function parseTime(timeStr) {
+var parts = (timeStr||'').split(':');
+return parseInt(parts[0]||0)*60 + parseInt(parts[1]||0);
+}
+
+function detectClash(forCid, date, time) {
+if (!time) return [];
+var clashes = [];
+var bookTime = parseTime(time);
+Object.keys(S.clients).forEach(function(cid) {
+var c = S.clients[cid];
+Object.values(c.sessions||{}).forEach(function(s) {
+if (s.date===date && s.status==='upcoming' && s.time) {
+var sessTime = parseTime(s.time);
+if (Math.abs(bookTime - sessTime) < 60) {
+clashes.push({clientId:cid, clientName:c.name, time:s.time});
+}
+}
+});
+});
+return clashes;
+}
+
+function getDateOffset(days) {
+var d = new Date(); d.setDate(d.getDate()+days);
+return d.toISOString().split('T')[0];
+}
+
+
+function renderPhotoCalButton() {
+return '<button onclick="openPhotoCalorie()" style="display:flex;align-items:center;gap:8px;width:100%;padding:12px;background:rgba(99,102,241,.08);border:1px dashed rgba(99,102,241,.3);border-radius:12px;color:var(--acc);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:14px">' +
+'<span style="font-size:20px">&#128248;</span>' +
+'<div style="text-align:left"><div>Count Calories from Photo</div>' +
+'<div style="font-size:10px;color:var(--m2);font-weight:400;margin-top:1px">AI estimate &bull; results may vary</div></div></button>';
+}
+
+function setIncomeMonth(el) {
+S.incomeMonth = el.getAttribute('data-month');
+R();
+}
+
+function setSchedDay(el) {
+S.schedDate = el.getAttribute('data-date');
+S.schedView = 'day';
+R();
+}
+
+function goTab(tab) {
+S.tTab = tab; S.vCli = null; R();
+}
+
+function setCTab(tab) { S.cTab = tab; R(); }
+
+function startWorkout(dayIdx) {
+if (dayIdx >= 0) S.day = dayIdx;
+S.cTab = 'workout';
+R();
+}
+
+function setClientFilter(f) { S.clientFilter = f; R(); }
+
+function setSchedView(v) { S.schedView = v; R(); }
 
 function init() {
 try {

@@ -307,7 +307,7 @@ callback();
 
 var S = {
 scr: 'login',
-role: null, cid: null, lRole: 'trainer',
+role: null, cid: null, lRole: 'trainer', lMode: 'login',
 tTab: 'dash', vCli: null, cliTab: 'log',
 cTab: 'home',
 day: 0, week: 1, unit: 'kg',
@@ -325,6 +325,7 @@ sidebarOpen: false,
 schedDate: null,
 schedView: 'week',
 clientFilter: 'all',
+_msgListenerRef: null, _msgListenerFn: null, _msgListenerCid: null,
 dashCollapsed: {},
 incomeMonth: null
 };
@@ -895,7 +896,7 @@ function completeSess(cid, sessId) {
 var local = DB.get('sessions_' + cid) || {};
 if (local[sessId]) local[sessId].status = 'done';
 DB.set('sessions_' + cid, local);
-var bal = Math.max(0, (S.clients[cid] ? S.clients[cid].balance || 0 : 0) - 1);
+var bal = (S.clients[cid] ? S.clients[cid].balance || 0 : 0) - 1;
 if (S.clients[cid]) S.clients[cid].balance = bal;
 if (S.clients[cid] && S.clients[cid].sessions && S.clients[cid].sessions[sessId]) {
 S.clients[cid].sessions[sessId].status = 'done';
@@ -988,11 +989,11 @@ return '<div class="login-wrap"><div class="login-box">' +
 '<div style="font-size:28px;font-weight:800;color:#fff;letter-spacing:-.5px">Welcome</div>' +
 '</div>' +
 '<div class="role-grid">' +
-'<div class="role-card' + (isT?' on':'') + '" onclick="S.lRole=\'trainer\';R()">' +
+'<div class="role-card' + (isT?' on':'') + '" onclick="S.lRole=\'trainer\';S.lMode=\'login\';R()">' +
 '<div style="font-size:28px;margin-bottom:6px">🏋</div>' +
 '<div style="font-size:13px;font-weight:700;color:#fff">Trainer</div>' +
 '<div style="font-size:10px;color:var(--m1);margin-top:2px">Ahmed&#39;s login</div></div>' +
-'<div class="role-card' + (!isT?' on':'') + '" onclick="S.lRole=\'client\';R()">' +
+'<div class="role-card' + (!isT?' on':'') + '" onclick="S.lRole=\'client\';S.lMode=\'login\';R()">' +
 '<div style="font-size:28px;margin-bottom:6px">💪</div>' +
 '<div style="font-size:13px;font-weight:700;color:#fff">Client</div>' +
 '<div style="font-size:10px;color:var(--m1);margin-top:2px">Your training</div></div>' +
@@ -1015,12 +1016,56 @@ return '<div class="row"><div class="lbl">PIN</div>' +
 '<div style="font-size:10px;color:var(--m2);text-align:center;margin-top:6px">14-day free trial &#8212; no card required</div></div>' : '');
 }
 function renderClientLogin() {
+var isSignup = S.lMode === 'signup';
+if (isSignup) {
 return '<div class="row"><div class="lbl">Your Name</div>' +
 '<input class="inp" id="cname" placeholder="e.g. Sarah"></div>' +
-'<div class="row"><div class="lbl">PIN (given by Ahmed)</div>' +
+'<div class="row"><div class="lbl">Create Your PIN (4 digits)</div>' +
+'<input class="inp" id="cpin" type="tel" maxlength="4" placeholder="Choose a PIN" inputmode="numeric"></div>' +
+'<div class="row"><div class="lbl">Trainer Invite Code</div>' +
+'<input class="inp" id="cinvite" placeholder="Code from your trainer" style="text-transform:lowercase"></div>' +
+'<div id="clogin_err"></div>' +
+'<button class="btn" style="background:var(--pink)" onclick="doClientSignup()">CREATE ACCOUNT →</button>' +
+'<div style="text-align:center;margin-top:10px"><span style="font-size:11px;color:var(--m2)">Already have a PIN? </span><button onclick="S.lMode=\'login\';R()" style="font-size:11px;color:var(--acc);background:none;border:none;cursor:pointer;font-weight:700">Log in</button></div>';
+}
+return '<div class="row"><div class="lbl">Your Name</div>' +
+'<input class="inp" id="cname" placeholder="e.g. Sarah"></div>' +
+'<div class="row"><div class="lbl">Your PIN</div>' +
 '<input class="inp" id="cpin" type="tel" maxlength="4" placeholder="4-digit PIN" inputmode="numeric"></div>' +
 '<div id="clogin_err"></div>' +
-'<button class="btn" style="background:var(--pink)" onclick="doCLogin()">START TRAINING →</button>';
+'<button class="btn" style="background:var(--pink)" onclick="doCLogin()">START TRAINING →</button>' +
+'<div style="text-align:center;margin-top:10px"><span style="font-size:11px;color:var(--m2)">New client? </span><button onclick="S.lMode=\'signup\';R()" style="font-size:11px;color:var(--acc);background:none;border:none;cursor:pointer;font-weight:700">Create account</button></div>';
+}
+function doClientSignup() {
+var name = ((document.getElementById('cname')||{}).value||'').trim();
+var pin = ((document.getElementById('cpin')||{}).value||'').trim();
+var invite = ((document.getElementById('cinvite')||{}).value||'').trim().toLowerCase();
+var err = document.getElementById('clogin_err');
+if (!name) { if(err) err.innerHTML='<div class="err-msg">Enter your name</div>'; return; }
+if (pin.length < 4) { if(err) err.innerHTML='<div class="err-msg">PIN must be 4 digits</div>'; return; }
+if (!invite) { if(err) err.innerHTML='<div class="err-msg">Enter the invite code from your trainer</div>'; return; }
+var tdata = DB.get('trainer') || {};
+var tCode = (tdata.inviteCode || (tdata.name||'').toLowerCase().replace(/[^a-z0-9]/g,'')).toLowerCase();
+if (!tCode || invite !== tCode) {
+if(err) err.innerHTML='<div class="err-msg">Invalid invite code. Ask your trainer for their code.</div>'; return;
+}
+var nameLower = name.toLowerCase();
+var existing = Object.keys(localStorage).filter(function(k){ return k.startsWith('cp_'); });
+for (var i = 0; i < existing.length; i++) {
+var ec = DB.get(existing[i]);
+if (ec && ec.name && ec.name.toLowerCase() === nameLower) {
+if(err) err.innerHTML='<div class="err-msg">Name already registered. Please log in instead.</div>'; return;
+}
+}
+var cid = 'c' + Date.now();
+var cpData = {name:name, pin:pin, balance:0, type:'in_person', joined:today()};
+DB.set('cp_' + cid, cpData);
+var tc = DB.get('tc') || {};
+tc[cid] = {name:name, type:'in_person', balance:0, rate:0, joined:today(), lastActive:today()};
+DB.set('tc', tc);
+S.clients = tc;
+enterClient(cid);
+toast('Welcome ' + name + '! Your trainer has been notified.', 'ok');
 }
 
 function doTCreate() {
@@ -1064,7 +1109,7 @@ for (var i = 0; i < keys.length; i++) {
 var c = DB.get(keys[i]);
 if (c && c.name && c.name.toLowerCase() === name && c.pin === pin) { match = keys[i].replace('cp_',''); break; }
 }
-if (!match) { if(err) err.innerHTML='<div class="err-msg">Not found. Ask Ahmed to set you up on this device.</div>'; return; }
+if (!match) { if(err) err.innerHTML='<div class="err-msg">Name or PIN not found. Make sure Ahmed has set you up, or try reloading on a fresh connection.</div>'; return; }
 enterClient(match);
 }
 function enterClient(cid) {
@@ -1081,12 +1126,44 @@ S.prs=DB.get('prs_'+cid)||{};
 S.unread=S.msgs.filter(function(m){return m.from==='trainer'&&!m.read;}).length;
 DB.set('sess', {role:'client', cid:cid});
 loadClientPremium(cid);
+setupMsgListener(cid, 'client');
 R();
 }
 function doLogout() {
+teardownMsgListener();
 S.role=null; S.scr='login'; S.cid=null; S.vCli=null;
 S.logs={}; S.msgs=[]; S.streak={cur:0,best:0,lastDate:null}; S.prs={};
 DB.del('sess'); R();
+}
+function setupMsgListener(cid, role) {
+teardownMsgListener();
+if (!DB._fb) return;
+var ref = DB._fb.ref('ahmedpt/msgs_' + cid);
+S._msgListenerCid = cid;
+S._msgListenerRef = ref;
+S._msgListenerFn = function(snap) {
+var msgs = snap.val() || [];
+if (!Array.isArray(msgs)) msgs = [];
+try { localStorage.setItem('msgs_' + cid, JSON.stringify(msgs)); } catch(e) {}
+if (role === 'client' && S.cid === cid) {
+var prevLen = S.msgs.length;
+S.msgs = msgs;
+S.unread = msgs.filter(function(m){ return m.from === 'trainer' && !m.read; }).length;
+if (msgs.length !== prevLen) { R(); }
+} else if (role === 'trainer') {
+var prevTrainerLen = ((S.cliData[cid] || {}).messages || []).length;
+if (!S.cliData[cid]) S.cliData[cid] = {};
+S.cliData[cid].messages = msgs;
+if (msgs.length !== prevTrainerLen && S.vCli === cid && S.cliTab === 'chat') { R(); }
+}
+};
+ref.on('value', S._msgListenerFn);
+}
+function teardownMsgListener() {
+if (S._msgListenerRef && S._msgListenerFn) {
+try { S._msgListenerRef.off('value', S._msgListenerFn); } catch(e) {}
+}
+S._msgListenerRef = null; S._msgListenerFn = null; S._msgListenerCid = null;
 }
 
 function renderTrainer() {
@@ -1096,6 +1173,7 @@ if (S.tTab === 'clients') return renderClients();
 if (S.tTab === 'chats') return renderTrainerChats();
 if (S.tTab === 'sched') return renderSched();
 if (S.tTab === 'finance') return renderFinance();
+if (S.tTab === 'settings') return renderTrainerSettings();
 return renderDash();
 }
 function trNav() { return renderSidebar(); }
@@ -1122,7 +1200,8 @@ var items = [
 {id:'clients', icon:'&#128101;', lbl:'Clients'},
 {id:'sched', icon:'&#128197;', lbl:'Schedule'},
 {id:'finance', icon:'&#128176;', lbl:'Finance'},
-{id:'chats', icon:'&#128172;', lbl:'Messages'}
+{id:'chats', icon:'&#128172;', lbl:'Messages'},
+{id:'settings', icon:'&#9881;', lbl:'Settings'}
 ];
 return '<div class="sidebar-overlay" onclick="S.sidebarOpen=false;R()">' +
 '<div class="sidebar" onclick="event.stopPropagation()">' +
@@ -1357,7 +1436,7 @@ payments.push(row);
 total += p.amount || 0;
 }
 });
-if ((c.balance||0) <= 0 && c.type !== 'online') outstanding += (c.rate || 0) * 2;
+var bal = c.balance||0; if (bal < 0 && c.type !== 'online') outstanding += Math.abs(bal) * (c.rate||0);
 });
 payments.sort(function(a,b){ return (b.ts||0) - (a.ts||0); });
 var ms = monthStats();
@@ -1391,7 +1470,7 @@ var on = S.incomeMonth === m.key;
 return '<button onclick="setIncomeMonth(this)" data-month="' + m.key + '" style="flex-shrink:0;padding:5px 12px;border-radius:20px;border:1px solid ' + (on?'var(--acc)':'var(--bdr)') + ';background:' + (on?'rgba(99,102,241,.15)':'transparent') + ';color:' + (on?'var(--acc)':'var(--m1)') + ';font-size:11px;font-weight:700;cursor:pointer">' + m.label + '</button>';
 }).join('') + '</div>' +
 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">' +
-'<div style="background:var(--c2);border-radius:10px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:800;color:var(--green)">' + currSym() + stats.total.toLocaleString() + '</div><div style="font-size:9px;color:var(--m2)">Received</div></div>' +
+'<div onclick="S.tTab=\'finance\';R()" style="background:var(--c2);border-radius:10px;padding:10px;text-align:center;cursor:pointer"><div style="font-size:18px;font-weight:800;color:var(--green)">' + currSym() + stats.total.toLocaleString() + '</div><div style="font-size:9px;color:var(--m2)">Received &#8594;</div></div>' +
 '<div style="background:var(--c2);border-radius:10px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:800;color:var(--amber)">' + currSym() + stats.outstanding.toLocaleString() + '</div><div style="font-size:9px;color:var(--m2)">Outstanding</div></div>' +
 '</div>' +
 (stats.payments.length > 0 ?
@@ -1425,12 +1504,12 @@ return '<div class="dash-section">' +
 '<div style="margin-bottom:4px">' +
 todaySess.map(function(s) {
 var c = S.clients[s.clientId] || {};
-return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bdr);cursor:pointer" onclick="openCli(&apos;"+s.clientId+"&apos;)">' +
+return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bdr);cursor:pointer" onclick="openCli(\''+s.clientId+'\')">' +
 '<div style="min-width:44px;text-align:center"><div style="font-size:12px;font-weight:700;color:#fff">' + (s.time||'--') + '</div></div>' +
 '<div style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:' + (c.type==='online'?'var(--blue)':'var(--green)') + '"></div>' +
 '<div style="flex:1"><div style="font-size:13px;font-weight:600;color:#fff">' + c.name + '</div>' +
 '<div style="font-size:10px;color:var(--m1)">' + (c.type==='online'?'Online':'In Person') + (s.workoutName?' &bull; '+s.workoutName:'') + '</div></div>' +
-'<button onclick="event.stopPropagation();confirmDone(&apos;"+s.clientId+"&apos;,&apos;"+s.id+"&apos;)" style="padding:5px 10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);border-radius:8px;color:var(--green);font-size:10px;font-weight:700;cursor:pointer">Done &#10003;</button>' +
+'<button onclick="event.stopPropagation();confirmDone(\''+s.clientId+'\',\''+s.id+'\')" style="padding:5px 10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);border-radius:8px;color:var(--green);font-size:10px;font-weight:700;cursor:pointer">Done &#10003;</button>' +
 '</div>';
 }).join('') + '</div>') : '') +
 '</div><div style="height:1px;background:var(--bdr);margin-bottom:12px"></div>';
@@ -1562,7 +1641,7 @@ var isOnline = c.type === 'online';
 var balDisplay = isOnline ?
 '<span class="pill ' + (c.subscriptionActive?'p-green':'p-red') + '">' + (c.subscriptionActive?'Active':'Inactive') + '</span>' :
 '<span class="pill ' + (bal<=0?'p-red':bal<=2?'p-amber':'p-green') + '">' + (bal<=0?'No sessions':bal+' sessions') + '</span>';
-return '<div class="ccard" onclick="openCli(&apos;"+cid+"&apos;)">' +
+return '<div class="ccard" onclick="openCli(\''+cid+'\')">' +
 '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">' +
 '<div style="display:flex;align-items:center;gap:8px">' +
 '<div style="width:38px;height:38px;border-radius:50%;background:' + (isOnline?'rgba(99,102,241,.3)':'rgba(16,185,129,.3)') + ';display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0">' + c.name.charAt(0).toUpperCase() + '</div>' +
@@ -1577,7 +1656,7 @@ return '<div class="ccard" onclick="openCli(&apos;"+cid+"&apos;)">' +
 (c.streak&&c.streak.cur>2 ? '<span style="color:var(--amber)">&#128293; ' + c.streak.cur + '</span>' : '') +
 '</div>' +
 '<div style="display:flex;gap:6px;margin-top:8px;border-top:1px solid var(--bdr);padding-top:8px">' +
-'<button onclick="event.stopPropagation();openQuickMsg(&apos;"+cid+"&apos;)" style="flex:1;padding:6px;background:var(--c2);border:1px solid var(--bdr);border-radius:8px;color:var(--m1);font-size:10px;font-weight:700;cursor:pointer">&#128172; Msg</button>' +
+'<button onclick="event.stopPropagation();openQuickMsg(\''+cid+'\')" style="flex:1;padding:6px;background:var(--c2);border:1px solid var(--bdr);border-radius:8px;color:var(--m1);font-size:10px;font-weight:700;cursor:pointer">&#128172; Msg</button>' +
 (isOnline ? '' : '<button onclick="event.stopPropagation();openBookSess(\'' + cid + '\')" style="flex:1;padding:6px;background:var(--c2);border:1px solid var(--bdr);border-radius:8px;color:var(--m1);font-size:10px;font-weight:700;cursor:pointer">&#128197; Book</button>') +
 '<button onclick="event.stopPropagation();openQuickPay(\'' + cid + '\')" style="flex:1;padding:6px;background:var(--c2);border:1px solid var(--bdr);border-radius:8px;color:var(--m1);font-size:10px;font-weight:700;cursor:pointer">&#128176; Pay</button>' +
 '</div></div>';
@@ -1654,7 +1733,7 @@ return '<div style="display:flex;gap:10px;min-height:48px;border-bottom:1px soli
 '<div style="flex:1;padding:2px 0">' +
 sess.map(function(s) {
 var c = S.clients[s.clientId] || {};
-return '<div onclick="openCli(&apos;"+s.clientId+"&apos;)" style="padding:6px 10px;background:' + (s.clientType==='online'?'rgba(99,102,241,.15)':'rgba(16,185,129,.15)') + ';border-left:3px solid ' + (s.clientType==='online'?'var(--blue)':'var(--green)') + ';border-radius:0 8px 8px 0;margin-bottom:3px;cursor:pointer">' +
+return '<div onclick="openCli(\''+s.clientId+'\')" style="padding:6px 10px;background:' + (s.clientType==='online'?'rgba(99,102,241,.15)':'rgba(16,185,129,.15)') + ';border-left:3px solid ' + (s.clientType==='online'?'var(--blue)':'var(--green)') + ';border-radius:0 8px 8px 0;margin-bottom:3px;cursor:pointer">' +
 '<div style="font-size:12px;font-weight:700;color:#fff">' + (c.name||'Client') + '</div>' +
 '<div style="font-size:10px;color:var(--m1)">' + (s.workoutName||s.clientType==='online'?'Online':'In Person') + '</div></div>';
 }).join('') + '</div></div>';
@@ -1736,6 +1815,79 @@ return '<div style="height:3px;border-radius:2px;background:' + (s.clientType===
 }).join('') + '</div>';
 }
 
+function renderTrainerSettings() {
+var tdata = DB.get('trainer') || {};
+var code = tdata.inviteCode || (tdata.name||'trainer').toLowerCase().replace(/[^a-z0-9]/g,'');
+return trTopBar('Settings') +
+'<div class="page">' +
+'<div class="card" style="margin-bottom:12px">' +
+'<div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--m2);margin-bottom:12px">TRAINER PROFILE</div>' +
+'<div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:4px">' + (tdata.name||'Trainer') + '</div>' +
+'<div style="font-size:11px;color:var(--m1)">Trainer account</div>' +
+'</div>' +
+'<div class="card" style="margin-bottom:12px">' +
+'<div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--m2);margin-bottom:12px">CLIENT INVITE</div>' +
+'<div style="font-size:11px;color:var(--m1);margin-bottom:8px">Share this code with clients so they can create their account.</div>' +
+'<div style="background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.3);border-radius:10px;padding:14px;text-align:center;margin-bottom:12px">' +
+'<div style="font-size:9px;letter-spacing:2px;color:var(--acc);font-weight:700;margin-bottom:4px">YOUR INVITE CODE</div>' +
+'<div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:3px" id="invite_code_disp">' + code + '</div>' +
+'</div>' +
+'<div style="font-size:11px;font-weight:700;letter-spacing:1px;color:var(--m2);margin-bottom:6px">CHANGE INVITE CODE</div>' +
+'<div style="display:flex;gap:8px">' +
+'<input class="inp" id="new_invite_code" placeholder="Custom code (letters/numbers)" style="flex:1;text-transform:lowercase">' +
+'<button class="btn-sm" style="background:var(--acc)" onclick="saveInviteCode()">Save</button>' +
+'</div>' +
+'</div>' +
+'<div class="card" style="margin-bottom:12px">' +
+'<div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--m2);margin-bottom:12px">PENDING SIGNUPS</div>' +
+renderPendingSignups() +
+'</div>' +
+'<button class="btn" style="background:var(--red);margin-top:8px" onclick="doLogout()">&#128682; Logout</button>' +
+'</div>' + trNav();
+}
+function saveInviteCode() {
+var code = ((document.getElementById('new_invite_code')||{}).value||'').trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+if (!code) { toast('Enter a valid code','err'); return; }
+var tdata = DB.get('trainer') || {};
+tdata.inviteCode = code;
+DB.set('trainer', tdata);
+toast('Invite code updated: ' + code, 'ok');
+R();
+}
+function renderPendingSignups() {
+var pending = [];
+Object.keys(localStorage).forEach(function(k) {
+if (k.startsWith('pending_signup_')) {
+try { var v = JSON.parse(localStorage.getItem(k)); if(v) pending.push({key:k, data:v}); } catch(e) {}
+}
+});
+if (pending.length === 0) return '<div style="font-size:12px;color:var(--m2)">No pending signups.</div>';
+return pending.map(function(p) {
+return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bdr)">' +
+'<div style="flex:1"><div style="font-size:13px;font-weight:600;color:#fff">' + p.data.name + '</div>' +
+'<div style="font-size:10px;color:var(--m1)">' + (p.data.date||'') + '</div></div>' +
+'<button onclick="approvePending(\''+p.key+'\')" style="padding:5px 10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);border-radius:8px;color:var(--green);font-size:10px;font-weight:700;cursor:pointer">Approve</button>' +
+'<button onclick="declinePending(\''+p.key+'\')" style="padding:5px 10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;color:var(--red);font-size:10px;font-weight:700;cursor:pointer">Decline</button>' +
+'</div>';
+}).join('');
+}
+function approvePending(key) {
+try {
+var v = JSON.parse(localStorage.getItem(key));
+if (!v) return;
+var cid = 'c' + Date.now();
+DB.set('cp_' + cid, {name:v.name, pin:v.pin, balance:0, type:'in_person', joined:today()});
+var tc = DB.get('tc') || {};
+tc[cid] = {name:v.name, type:'in_person', balance:0, rate:0, joined:today(), lastActive:today()};
+DB.set('tc', tc); S.clients = tc;
+localStorage.removeItem(key);
+toast(v.name + ' approved and added!', 'ok'); R();
+} catch(e) { toast('Error approving signup','err'); }
+}
+function declinePending(key) {
+localStorage.removeItem(key);
+toast('Signup declined','ok'); R();
+}
 function renderFinance() {
 if (!canUse('paymentTracking')) return renderLockedFeature('paymentTracking');
 var cs = Object.entries(S.clients);
@@ -1828,6 +1980,7 @@ R();
 function openCli(cid) {
 S.vCli=cid; S.cliTab='log';
 loadCliDetail(cid);
+setupMsgListener(cid, 'trainer');
 R();
 }
 

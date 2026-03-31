@@ -326,6 +326,7 @@ schedDate: null,
 schedView: 'week',
 clientFilter: 'all',
 _msgListenerRef: null, _msgListenerFn: null, _msgListenerCid: null,
+_aiFood: null, _photoData: null, _photoResult: null,
 dashCollapsed: {},
 incomeMonth: null
 };
@@ -1839,6 +1840,16 @@ return trTopBar('Settings') +
 '</div>' +
 '</div>' +
 '<div class="card" style="margin-bottom:12px">' +
+'<div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--m2);margin-bottom:12px">AI FEATURES (ANTHROPIC API)</div>' +
+'<div style="font-size:11px;color:var(--m1);line-height:1.6;margin-bottom:10px">Required for: AI food description, photo calorie counting. Get a key at console.anthropic.com.</div>' +
+'<div style="font-size:11px;font-weight:700;letter-spacing:1px;color:var(--m2);margin-bottom:6px">API KEY</div>' +
+'<div style="display:flex;gap:8px;margin-bottom:4px">' +
+'<input class="inp" id="anthropic_key_input" type="password" placeholder="sk-ant-..." value="' + (DB.get('anthropic_key')||'') + '" style="flex:1;font-family:monospace;font-size:11px">' +
+'<button class="btn-sm" style="background:var(--acc)" onclick="saveApiKey()">Save</button>' +
+'</div>' +
+(DB.get('anthropic_key') ? '<div style="font-size:10px;color:var(--green);margin-top:2px">&#10003; API key is set</div>' : '<div style="font-size:10px;color:var(--amber);margin-top:2px">No key set yet</div>') +
+'</div>' +
+'<div class="card" style="margin-bottom:12px">' +
 '<div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--m2);margin-bottom:12px">PENDING SIGNUPS</div>' +
 renderPendingSignups() +
 '</div>' +
@@ -1852,6 +1863,13 @@ var tdata = DB.get('trainer') || {};
 tdata.inviteCode = code;
 DB.set('trainer', tdata);
 toast('Invite code updated: ' + code, 'ok');
+R();
+}
+function saveApiKey() {
+var key = ((document.getElementById('anthropic_key_input')||{}).value||'').trim();
+if (!key) { toast('Enter an API key','err'); return; }
+DB.set('anthropic_key', key);
+toast('API key saved','ok');
 R();
 }
 function renderPendingSignups() {
@@ -3619,6 +3637,12 @@ renderWaterDots(data.water||0)+
 (coachNote?'<div style="padding:10px 14px;background:rgba(99,102,241,.06);border-left:3px solid var(--blue);border-radius:0 10px 10px 0;margin-bottom:14px">'+
 '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--blue);margin-bottom:4px">AHMED&#39;S NOTE</div>'+
 '<div style="font-size:12px;color:var(--m1);line-height:1.6">'+coachNote+'</div></div>':'')+
+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">'+
+'<button onclick="openDescribeFood(null)" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(99,102,241,.08);border:1px dashed rgba(99,102,241,.3);border-radius:12px;color:var(--acc);font-size:12px;font-weight:700;cursor:pointer">'+
+'<span style="font-size:20px">&#129302;</span><div style="text-align:left"><div>Describe Food</div><div style="font-size:9px;color:var(--m2);font-weight:400;margin-top:1px">AI estimates calories</div></div></button>'+
+'<button onclick="openPhotoCalorie()" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(16,185,129,.06);border:1px dashed rgba(16,185,129,.25);border-radius:12px;color:var(--green);font-size:12px;font-weight:700;cursor:pointer">'+
+'<span style="font-size:20px">&#128248;</span><div style="text-align:left"><div>Photo Calories</div><div style="font-size:9px;color:var(--m2);font-weight:400;margin-top:1px">AI photo analysis</div></div></button>'+
+'</div>'+
 renderMealSection('breakfast',data.meals.breakfast||[])+
 renderMealSection('lunch',data.meals.lunch||[])+
 renderMealSection('dinner',data.meals.dinner||[])+
@@ -4181,18 +4205,158 @@ function addPhotoMeal() {
 var r = S._photoResult;
 if (!r) return;
 var mealType = getVal('pq_meal') || 'snacks';
-var dateStr = S.nutriDate || today();
-var nutData = DB.get('nutrition_'+S.cid) || {};
-if (!nutData[dateStr]) nutData[dateStr] = {meals:{},water:0};
-if (!nutData[dateStr].meals[mealType]) nutData[dateStr].meals[mealType] = {};
-var id = 'm'+Date.now();
-var meal = {id:id,name:r.foodName||'Photo meal',calories:r.calories||0,protein:r.protein||0,carbs:r.carbs||0,fat:r.fat||0,fromPhoto:true,ts:Date.now()};
-nutData[dateStr].meals[mealType][id] = meal;
-DB.set('nutrition_'+S.cid, nutData);
-if (DB._fb) DB._fb.ref('clients/'+S.cid+'/nutrition/'+dateStr+'/meals/'+mealType+'/'+id).set(meal);
+var data = getNutriData(null, getNutrDate());
+if (!data.meals[mealType]) data.meals[mealType] = [];
+data.meals[mealType].push({name:r.foodName||'Photo meal',calories:r.calories||0,protein:r.protein||0,carbs:r.carbs||0,fat:r.fat||0,fromPhoto:true,ts:Date.now()});
+saveNutriData(data);
 closeModal();
 toast('Meal added from photo', 'ok');
 S._photoResult=null; S._photoData=null;
+R();
+}
+function openDescribeFood(meal) {
+S.addFoodMeal = meal || 'snacks';
+S._aiFood = {meal: meal || 'snacks', phase: 'input'};
+var labels = {breakfast:'Breakfast',lunch:'Lunch',dinner:'Dinner',snacks:'Snacks'};
+showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
+'<div class="modal-title">&#129302; AI Calorie Estimator <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>' +
+'<div style="font-size:11px;color:var(--m1);margin-bottom:12px;line-height:1.6">Describe what you ate. Include portion size and how it was prepared if you know.</div>' +
+'<div class="row"><div class="lbl">What did you eat?</div>' +
+'<textarea class="inp" id="ai_food_desc" rows="3" placeholder="e.g. Two scrambled eggs on two slices of toast, cooked with a little butter"></textarea></div>' +
+'<div class="row"><div class="lbl">Add to</div>' +
+'<select class="sel" id="ai_food_meal">' +
+'<option value="breakfast"' + (meal==='breakfast'?' selected':'') + '>&#9728; Breakfast</option>' +
+'<option value="lunch"' + (meal==='lunch'?' selected':'') + '>&#127860; Lunch</option>' +
+'<option value="dinner"' + (meal==='dinner'?' selected':'') + '>&#127762; Dinner</option>' +
+'<option value="snacks"' + (meal==='snacks'?' selected':'') + '>&#127830; Snacks</option>' +
+'</select></div>' +
+'<div id="ai_food_area"></div>' +
+'<button class="btn btn-acc" id="ai_food_btn" onclick="analyzeDescribedFood()">ESTIMATE CALORIES &#129302;</button>' +
+'<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
+'</div></div>');
+setTimeout(function(){var el=document.getElementById('ai_food_desc');if(el)el.focus();},100);
+}
+function analyzeDescribedFood() {
+var desc = ((document.getElementById('ai_food_desc')||{}).value||'').trim();
+if (!desc) { toast('Describe your food first','err'); return; }
+var apiKey = DB.get('anthropic_key') || '';
+var area = document.getElementById('ai_food_area');
+var btn = document.getElementById('ai_food_btn');
+if (!apiKey) {
+if (area) area.innerHTML = '<div style="color:var(--amber);font-size:12px;padding:10px;background:rgba(245,158,11,.08);border-radius:8px;margin-bottom:10px">&#9888; No API key set. Ask your trainer to add an Anthropic API key in Settings, or add it yourself if you have one.</div>';
+return;
+}
+if (area) area.innerHTML = '<div style="text-align:center;padding:12px;color:var(--m1);font-size:12px">Thinking... &#129302;</div>';
+if (btn) btn.disabled = true;
+if (!S._aiFood) S._aiFood = {};
+S._aiFood.desc = desc;
+S._aiFood.phase = 'input';
+var promptText = 'A user says they ate: "' + desc + '".' +
+'\n\nIf the description gives enough info to estimate calories (food type, rough amount, how it was cooked), respond with ONLY this JSON:' +
+'\n{"type":"nutrition","foodName":"...","calories":0,"protein":0,"carbs":0,"fat":0,"notes":"brief explanation"}' +
+'\n\nIf you need ONE clarifying question (about oil/butter, sauces, portion size, or cooking method) to improve accuracy, respond with ONLY:' +
+'\n{"type":"question","question":"your question here"}' +
+'\n\nJSON only, no extra text.';
+fetch('https://api.anthropic.com/v1/messages', {
+method:'POST',
+headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:250,messages:[{role:'user',content:promptText}]})
+}).then(function(r){return r.json();}).then(function(d){
+var text = d.content&&d.content[0]?d.content[0].text:'{}';
+try {
+var result = JSON.parse(text.replace(/```json|```/g,'').trim());
+if (result.type === 'question') {
+S._aiFood.phase = 'question';
+S._aiFood.question = result.question;
+if (area) area.innerHTML =
+'<div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.25);border-radius:10px;padding:12px;margin-bottom:10px">' +
+'<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--acc);margin-bottom:6px">&#129302; QUICK QUESTION</div>' +
+'<div style="font-size:13px;color:#fff;margin-bottom:10px">' + result.question + '</div>' +
+'<textarea class="inp" id="ai_food_answer" rows="2" placeholder="e.g. No oil, just grilled dry"></textarea>' +
+'</div>';
+if (btn) { btn.innerHTML = 'CALCULATE &#129302;'; btn.disabled=false; btn.setAttribute('onclick','analyzeWithAnswer()'); }
+} else if (result.type === 'nutrition') {
+showNutritionResult(result, area, btn);
+} else {
+if (area) area.innerHTML = '<div style="color:var(--red);font-size:12px">Could not estimate. Try describing in more detail.</div>';
+if (btn) btn.disabled=false;
+}
+} catch(e) {
+if (area) area.innerHTML = '<div style="color:var(--red);font-size:12px">Could not parse result. Try again.</div>';
+if (btn) btn.disabled=false;
+}
+}).catch(function(){
+if (area) area.innerHTML = '<div style="color:var(--red);font-size:12px">Analysis failed. Check your connection.</div>';
+if (btn) btn.disabled=false;
+});
+}
+function analyzeWithAnswer() {
+var answer = ((document.getElementById('ai_food_answer')||{}).value||'').trim();
+var area = document.getElementById('ai_food_area');
+var btn = document.getElementById('ai_food_btn');
+var apiKey = DB.get('anthropic_key') || '';
+if (!answer) { toast('Please answer the question','err'); return; }
+if (!apiKey) return;
+if (area) area.innerHTML += '<div style="text-align:center;padding:8px;color:var(--m1);font-size:12px">Calculating... &#129302;</div>';
+if (btn) btn.disabled=true;
+var promptText = 'Food description: "' + (S._aiFood.desc||'') + '".' +
+'\nClarification - Q: "' + (S._aiFood.question||'') + '" A: "' + answer + '".' +
+'\n\nRespond with ONLY this JSON:' +
+'\n{"type":"nutrition","foodName":"...","calories":0,"protein":0,"carbs":0,"fat":0,"notes":"..."}' +
+'\n\nJSON only.';
+fetch('https://api.anthropic.com/v1/messages', {
+method:'POST',
+headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:250,messages:[{role:'user',content:promptText}]})
+}).then(function(r){return r.json();}).then(function(d){
+var text = d.content&&d.content[0]?d.content[0].text:'{}';
+try {
+var result = JSON.parse(text.replace(/```json|```/g,'').trim());
+showNutritionResult(result, area, btn);
+} catch(e) {
+if (area) area.innerHTML = '<div style="color:var(--red);font-size:12px">Could not parse result. Try again.</div>';
+if (btn) btn.disabled=false;
+}
+}).catch(function(){
+if (area) area.innerHTML = '<div style="color:var(--red);font-size:12px">Analysis failed.</div>';
+if (btn) btn.disabled=false;
+});
+}
+function showNutritionResult(result, area, btn) {
+S._aiFood = S._aiFood || {};
+S._aiFood.phase = 'result';
+S._aiFood.result = result;
+var cols = {calories:'var(--green)',protein:'#6366f1',carbs:'#10b981',fat:'var(--amber)'};
+var macroBoxes = ['calories','protein','carbs','fat'].map(function(k) {
+return '<div style="text-align:center;background:var(--c1);border-radius:8px;padding:8px 4px">' +
+'<div style="font-size:16px;font-weight:800;color:'+cols[k]+'">'+(result[k]||0)+'</div>' +
+'<div style="font-size:8px;color:var(--m2)">'+(k==='calories'?'kcal':'g')+'</div>' +
+'<div style="font-size:8px;color:var(--m2)">'+k+'</div></div>';
+}).join('');
+if (area) area.innerHTML =
+'<div style="background:var(--c2);border-radius:12px;padding:14px;margin-bottom:10px">' +
+'<div style="font-size:14px;font-weight:800;color:#fff;margin-bottom:8px">' + (result.foodName||'Food') + '</div>' +
+'<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:10px">' + macroBoxes + '</div>' +
+(result.notes?'<div style="font-size:10px;color:var(--m2);line-height:1.5">' + result.notes + '</div>':'') +
+'</div>';
+if (btn) {
+btn.innerHTML = 'ADD TO LOG &#10003;';
+btn.disabled=false;
+btn.style.background='var(--green)';
+btn.setAttribute('onclick','addDescribedMeal()');
+}
+}
+function addDescribedMeal() {
+var r = S._aiFood && S._aiFood.result;
+if (!r) return;
+var mealType = getVal('ai_food_meal') || (S._aiFood && S._aiFood.meal) || 'snacks';
+var data = getNutriData(null, getNutrDate());
+if (!data.meals[mealType]) data.meals[mealType] = [];
+data.meals[mealType].push({name:r.foodName||'AI meal',calories:r.calories||0,protein:r.protein||0,carbs:r.carbs||0,fat:r.fat||0,fromAI:true,ts:Date.now()});
+saveNutriData(data);
+closeModal();
+toast((r.foodName||'Meal') + ' added','ok');
+S._aiFood = null;
 R();
 }
 

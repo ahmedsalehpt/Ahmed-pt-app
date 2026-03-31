@@ -3302,6 +3302,9 @@ return '<div style="display:flex;justify-content:space-between;align-items:cente
 '</div>';
 }
 
+function buildCliProgData() {
+return buildProgData(S.logs, S.cid);
+}
 function renderProgressSection() {
 var pd = buildCliProgData();
 if (!pd.length) return '<div style="padding:12px 0;font-size:12px;color:var(--m2)">Log sessions to see weight progression.</div>';

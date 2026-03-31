@@ -28,6 +28,13 @@
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideIn{from{transform:translateX(-100%)}to{transform:translateX(0)}}
 .dash-section{padding:2px 0}
+input[type=range]{-webkit-appearance:none;appearance:none;height:6px;border-radius:3px;background:rgba(255,255,255,.12);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;cursor:pointer;border:none;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+input[type=range].blue{background:linear-gradient(to right,var(--blue) 0%,var(--blue) 50%,rgba(255,255,255,.12) 50%)}
+input[type=range].red-r{background:linear-gradient(to right,var(--red) 0%,var(--red) 50%,rgba(255,255,255,.12) 50%)}
+input[type=range].amber{background:linear-gradient(to right,var(--amber) 0%,var(--amber) 50%,rgba(255,255,255,.12) 50%)}
+input[type=range].green-r{background:linear-gradient(to right,var(--green) 0%,var(--green) 50%,rgba(255,255,255,.12) 50%)}
 </style>
 </head>
 <body>
@@ -2009,7 +2016,7 @@ var cd = S.cliData[cid] || {};
 var bal = c.balance||0;
 var progs = getProgs(cid);
 var curPid = (DB.get('cp_'+cid)||{}).currentProgId;
-var tabs = [{id:'log',icon:'📋',lbl:'Log'},{id:'prog',icon:'💪',lbl:'Progress'},{id:'nutr',icon:'🥗',lbl:'Nutrition'},{id:'sess',icon:'📅',lbl:'Sessions'},{id:'pay',icon:'💰',lbl:'Payments'},{id:'chat',icon:'💬',lbl:'Chat'}];
+var tabs = [{id:'log',icon:'📋',lbl:'Log'},{id:'prog',icon:'💪',lbl:'Progress'},{id:'nutr',icon:'🥗',lbl:'Nutrition'},{id:'sess',icon:'📅',lbl:'Sessions'},{id:'pay',icon:'💰',lbl:'Payments'},{id:'checkin',icon:'💤',lbl:'Check-in'},{id:'chat',icon:'💬',lbl:'Chat'}];
 var hdr = '<div class="hdr"><div class="hdr-top">' +
 '<button onclick="S.vCli=null;R()" style="font-size:13px;color:var(--m1);font-weight:600">&#8592; Back</button>' +
 '<div style="display:flex;align-items:center;gap:8px">' +
@@ -2043,6 +2050,7 @@ else if (S.cliTab==='prog') body = renderCliProg(cid,cd,c);
 else if (S.cliTab==='nutr') body = renderCliNutr(cid,c);
 else if (S.cliTab==='sess') body = renderCliSess(cid,cd,c);
 else if (S.cliTab==='pay') body = renderCliPay(cid,cd,c);
+else if (S.cliTab==='checkin') body = renderCliCheckin(cid,c);
 else if (S.cliTab==='chat') body = renderCliChat(cid,cd,c);
 var nav = '<nav class="bnav"><button class="nb" onclick="S.vCli=null;R()"><span class="nbi">←</span>Back</button>' +
 tabs.map(function(t){ return '<button class="nb'+(S.cliTab===t.id?' on':'')+'" onclick="S.cliTab=\''+t.id+'\';R()"><span class="nbi">'+t.icon+'</span>'+t.lbl+'</button>'; }).join('') + '</nav>';
@@ -2252,6 +2260,51 @@ sendMsg(msg,'trainer',cid);
 toast('Reminder sent','ok');
 }
 
+function renderCliCheckin(cid, c) {
+var all = DB.get('recovery_' + cid) || {};
+var keys = Object.keys(all).sort().reverse().slice(0, 30);
+if (keys.length === 0) {
+return '<div class="empty">No check-ins logged yet.<br>Client uses the Check-in tab on their Home screen.</div>';
+}
+var todayKey = today();
+var todayRec = all[todayKey];
+var html = '';
+if (todayRec) {
+var avgT = Math.round(((todayRec.sleep||0) + (10-(todayRec.soreness||5)) + (todayRec.energy||0) + (todayRec.mood||0)) / 4);
+html += '<div style="background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.2);border-radius:14px;padding:14px;margin-bottom:14px">' +
+'<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--green);margin-bottom:12px">TODAY&#39;S CHECK-IN &#10003;</div>' +
+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
+'<div style="text-align:center;padding:10px;background:rgba(255,255,255,.03);border-radius:10px"><div style="font-size:22px;margin-bottom:4px">&#128564;</div><div style="font-size:10px;color:var(--m2)">Sleep</div><div style="font-size:26px;font-weight:900;color:#3b82f6">' + (todayRec.sleep||0) + '</div><div style="font-size:9px;color:var(--m2)">/10</div></div>' +
+'<div style="text-align:center;padding:10px;background:rgba(255,255,255,.03);border-radius:10px"><div style="font-size:22px;margin-bottom:4px">&#128137;</div><div style="font-size:10px;color:var(--m2)">Soreness</div><div style="font-size:26px;font-weight:900;color:var(--red)">' + (todayRec.soreness||0) + '</div><div style="font-size:9px;color:var(--m2)">/10</div></div>' +
+'<div style="text-align:center;padding:10px;background:rgba(255,255,255,.03);border-radius:10px"><div style="font-size:22px;margin-bottom:4px">&#9889;</div><div style="font-size:10px;color:var(--m2)">Energy</div><div style="font-size:26px;font-weight:900;color:var(--amber)">' + (todayRec.energy||0) + '</div><div style="font-size:9px;color:var(--m2)">/10</div></div>' +
+'<div style="text-align:center;padding:10px;background:rgba(255,255,255,.03);border-radius:10px"><div style="font-size:22px;margin-bottom:4px">&#128512;</div><div style="font-size:10px;color:var(--m2)">Mood</div><div style="font-size:26px;font-weight:900;color:var(--green)">' + (todayRec.mood||0) + '</div><div style="font-size:9px;color:var(--m2)">/10</div></div>' +
+'</div>' +
+'<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06);text-align:center">' +
+'<span style="font-size:11px;color:var(--m2)">Readiness score: </span>' +
+'<span style="font-size:15px;font-weight:800;color:' + (avgT>=7?'var(--green)':avgT>=5?'var(--amber)':'var(--red)') + '">' + avgT + '/10</span>' +
+'</div></div>';
+}
+html += '<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--m2);margin-bottom:10px">HISTORY</div>';
+html += keys.filter(function(k){ return k !== todayKey; }).map(function(k) {
+var r = all[k];
+var avg = Math.round(((r.sleep||0) + (10-(r.soreness||5)) + (r.energy||0) + (r.mood||0)) / 4);
+var col = avg >= 7 ? 'var(--green)' : avg >= 5 ? 'var(--amber)' : 'var(--red)';
+return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--c1);border:1px solid var(--bdr);border-radius:10px;margin-bottom:6px">' +
+'<div style="flex:1">' +
+'<div style="font-size:12px;font-weight:600;color:#fff;margin-bottom:3px">' + fmtD(k) + '</div>' +
+'<div style="display:flex;gap:8px;font-size:10px;color:var(--m2)">' +
+'<span>&#128564; ' + (r.sleep||0) + '</span>' +
+'<span>&#128137; ' + (r.soreness||0) + '</span>' +
+'<span>&#9889; ' + (r.energy||0) + '</span>' +
+'<span>&#128512; ' + (r.mood||0) + '</span>' +
+'</div></div>' +
+'<div style="text-align:center">' +
+'<div style="font-size:20px;font-weight:900;color:' + col + '">' + avg + '</div>' +
+'<div style="font-size:9px;color:var(--m2)">/ 10</div>' +
+'</div></div>';
+}).join('');
+return html;
+}
 function renderCliChat(cid, cd, c) {
 readMsgs(cid,'trainer');
 var msgs=cd.messages?Object.values(cd.messages).sort(function(a,b){return a.ts-b.ts;}):[];
@@ -2783,20 +2836,19 @@ return '<div style="display:flex;justify-content:space-between;align-items:cente
 }
 
 function finishSession() {
+try {
 var note = document.getElementById('complete_note') ? document.getElementById('complete_note').value : '';
-if (note) saveSessNote(note, 'client');
-fireWorkoutCompleteNotification(
-S.activeDay ? S.activeDay.title||S.activeDay.name : 'Session',
-S.week,
-sessP().done,
-S.sessionPRs || [],
-note
-);
+if (note && note.trim()) saveSessNote(note.trim(), 'client');
+} catch(e) {}
 S.sessionPRs = [];
 S.newPR = null;
+S.activeDay = null;
 S.scr = 'client';
 S.cTab = 'home';
 R();
+}
+function shareCompletion() {
+shareCard();
 }
 
 function shareCard() {
@@ -3921,25 +3973,36 @@ return '<div style="display:flex;justify-content:space-between;align-items:cente
 }).join(''):'')+
 '</div>'+cliNav();
 }
+function sliderUpd(el, valId, color) {
+var val = parseInt(el.value);
+var pct = Math.round((val - 1) / 9 * 100);
+el.style.background = 'linear-gradient(to right,' + color + ' ' + pct + '%,rgba(255,255,255,.15) ' + pct + '%)';
+var vEl = document.getElementById(valId);
+if (vEl) vEl.textContent = val;
+}
 function openCheckin(){
 showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">'+
 '<div class="modal-title">Morning Check-In <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>'+
 '<div style="font-size:12px;color:var(--m1);margin-bottom:16px">Rate 1 (poor) to 10 (excellent)</div>'+
 '<div style="margin-bottom:16px">'+
 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-size:13px;font-weight:700;color:#fff">&#128564; Sleep Quality</div><span id="ci_sleep_v" style="font-size:16px;font-weight:900;color:var(--blue)">5</span></div>'+
-'<input type="range" id="ci_sleep" min="1" max="10" value="5" oninput="document.getElementById(\'ci_sleep_v\').textContent=this.value" style="width:100%;accent-color:var(--blue)">'+
+'<input type="range" id="ci_sleep" min="1" max="10" value="5" oninput="sliderUpd(this,\'ci_sleep_v\',\'#3b82f6\')" style="width:100%;background:linear-gradient(to right,#3b82f6 44.4%,rgba(255,255,255,.15) 44.4%)">'+
+'<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--m2);margin-top:3px"><span>1</span><span>5</span><span>10</span></div>'+
 '</div>'+
 '<div style="margin-bottom:16px">'+
 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-size:13px;font-weight:700;color:#fff">&#128137; Muscle Soreness</div><span id="ci_sore_v" style="font-size:16px;font-weight:900;color:var(--red)">5</span></div>'+
-'<input type="range" id="ci_sore" min="1" max="10" value="5" oninput="document.getElementById(\'ci_sore_v\').textContent=this.value" style="width:100%;accent-color:var(--red)">'+
+'<input type="range" id="ci_sore" min="1" max="10" value="5" oninput="sliderUpd(this,\'ci_sore_v\',\'#ef4444\')" style="width:100%;background:linear-gradient(to right,#ef4444 44.4%,rgba(255,255,255,.15) 44.4%)">'+
+'<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--m2);margin-top:3px"><span>1</span><span>5</span><span>10</span></div>'+
 '</div>'+
 '<div style="margin-bottom:16px">'+
 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-size:13px;font-weight:700;color:#fff">&#9889; Energy Level</div><span id="ci_energy_v" style="font-size:16px;font-weight:900;color:var(--amber)">5</span></div>'+
-'<input type="range" id="ci_energy" min="1" max="10" value="5" oninput="document.getElementById(\'ci_energy_v\').textContent=this.value" style="width:100%;accent-color:var(--amber)">'+
+'<input type="range" id="ci_energy" min="1" max="10" value="5" oninput="sliderUpd(this,\'ci_energy_v\',\'#f59e0b\')" style="width:100%;background:linear-gradient(to right,#f59e0b 44.4%,rgba(255,255,255,.15) 44.4%)">'+
+'<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--m2);margin-top:3px"><span>1</span><span>5</span><span>10</span></div>'+
 '</div>'+
 '<div style="margin-bottom:16px">'+
 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-size:13px;font-weight:700;color:#fff">&#128512; Mood</div><span id="ci_mood_v" style="font-size:16px;font-weight:900;color:var(--green)">5</span></div>'+
-'<input type="range" id="ci_mood" min="1" max="10" value="5" oninput="document.getElementById(\'ci_mood_v\').textContent=this.value" style="width:100%;accent-color:var(--green)">'+
+'<input type="range" id="ci_mood" min="1" max="10" value="5" oninput="sliderUpd(this,\'ci_mood_v\',\'#10b981\')" style="width:100%;background:linear-gradient(to right,#10b981 44.4%,rgba(255,255,255,.15) 44.4%)">'+
+'<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--m2);margin-top:3px"><span>1</span><span>5</span><span>10</span></div>'+
 '</div>'+
 '<button class="btn btn-acc" onclick="doCheckin()">SAVE &#10003;</button>'+
 '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>'+

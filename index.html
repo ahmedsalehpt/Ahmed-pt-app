@@ -333,7 +333,7 @@ schedDate: null,
 schedView: 'week',
 clientFilter: 'all',
 _msgListenerRef: null, _msgListenerFn: null, _msgListenerCid: null,
-_aiFood: null, _photoData: null, _photoResult: null,
+_aiFood: null, _photoData: null, _photoResult: null, _editFoodIdx: null,
 dashCollapsed: {},
 incomeMonth: null
 };
@@ -3500,21 +3500,22 @@ function openYT(n){window.open('https://www.youtube.com/results?search_query='+e
 function doLog(ei,si){
 var w=(document.getElementById('inp_w')||{}).value;
 var r=(document.getElementById('inp_r')||{}).value;
+var wasAlreadyDone=!!(getL(S.week,S.day,ei,si)||{}).done;
 saveLog(ei,si,w,r,S.rpe);
 S.aSet=null;S.rpe=null;
 var d=getDay();
 var ex=getEx(ei);
-if(ex&&ex.rest)startRest(ex.rest);
+if(ex&&ex.rest&&!wasAlreadyDone)startRest(ex.rest);
 var sc=d&&d.ex[ei]?d.ex[ei].sets||3:3;
 var pr=sessP();
-if(pr.total>0&&pr.done>=pr.total){
+if(!wasAlreadyDone&&pr.total>0&&pr.done>=pr.total){
 stopRest();
 S.scr='complete';
 R();
 return;
 }
 R();
-if(!S.newPR && si+1<sc)setTimeout(function(){S.aSet={ei:ei,si:si+1};S.rpe=null;R();},150);
+if(!wasAlreadyDone&&!S.newPR&&si+1<sc)setTimeout(function(){S.aSet={ei:ei,si:si+1};S.rpe=null;R();},150);
 }
 function doClear(ei,si){delLog(ei,si);S.aSet=null;S.rpe=null;R();}
 function doExNote(ei){var ta=document.getElementById('exn_'+ei);if(!ta)return;saveExNote(ei,ta.value,'client');R();}
@@ -3607,7 +3608,10 @@ items.map(function(item,idx){
 return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--c1);border:1px solid var(--bdr);border-radius:9px;margin-bottom:5px">'+
 '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+item.name+'</div>'+
 '<div style="font-size:10px;color:var(--m2);margin-top:1px">'+item.calories+'kcal &#183; P:'+item.protein+'g C:'+item.carbs+'g F:'+item.fat+'g</div></div>'+
-'<button onclick="doDeleteFood(\''+meal+'\','+idx+')" style="width:22px;height:22px;border-radius:6px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);color:#f87171;font-size:12px;cursor:pointer;flex-shrink:0;margin-left:8px">&#215;</button>'+
+'<div style="display:flex;gap:4px;flex-shrink:0;margin-left:8px">'+
+'<button onclick="openEditFood(\''+meal+'\','+idx+')" style="width:22px;height:22px;border-radius:6px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);color:#818cf8;font-size:11px;cursor:pointer">&#9998;</button>'+
+'<button onclick="doDeleteFood(\''+meal+'\','+idx+')" style="width:22px;height:22px;border-radius:6px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);color:#f87171;font-size:12px;cursor:pointer">&#215;</button>'+
+'</div>'+
 '</div>';
 }).join(''))+
 '</div>';
@@ -3648,6 +3652,46 @@ function doDeleteFood(meal,idx){
 var data=getNutriData(null,getNutrDate());
 if(data.meals[meal])data.meals[meal].splice(idx,1);
 saveNutriData(data);R();
+}
+function openEditFood(meal,idx){
+var data=getNutriData(null,getNutrDate());
+var item=(data.meals[meal]||[])[idx];
+if(!item){toast('Item not found','err');return;}
+S.addFoodMeal=meal;
+S._editFoodIdx=idx;
+var labels={breakfast:'Breakfast',lunch:'Lunch',dinner:'Dinner',snacks:'Snacks'};
+showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">'+
+'<div class="modal-title">Edit '+(labels[meal]||meal)+' item <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>'+
+'<div class="row"><div class="lbl">Food Name</div><input class="inp" id="af_name" value="'+item.name+'" placeholder="e.g. Chicken breast 150g"></div>'+
+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'+
+'<div><div class="lbl">Calories (kcal)</div><input class="inp" id="af_cal" type="number" inputmode="decimal" value="'+(item.calories||0)+'" style="margin-bottom:0"></div>'+
+'<div><div class="lbl">Protein (g)</div><input class="inp" id="af_p" type="number" inputmode="decimal" value="'+(item.protein||0)+'" style="margin-bottom:0"></div>'+
+'</div>'+
+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'+
+'<div><div class="lbl">Carbs (g)</div><input class="inp" id="af_c" type="number" inputmode="decimal" value="'+(item.carbs||0)+'" style="margin-bottom:0"></div>'+
+'<div><div class="lbl">Fat (g)</div><input class="inp" id="af_f" type="number" inputmode="decimal" value="'+(item.fat||0)+'" style="margin-bottom:0"></div>'+
+'</div>'+
+'<button class="btn btn-acc" onclick="doEditFood()">SAVE CHANGES &#10003;</button>'+
+'<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>'+
+'</div></div>');
+setTimeout(function(){var el=document.getElementById('af_name');if(el)el.focus();},100);
+}
+function doEditFood(){
+var name=((document.getElementById('af_name')||{}).value||'').trim();
+var cal=parseFloat((document.getElementById('af_cal')||{}).value||'0')||0;
+var p=parseFloat((document.getElementById('af_p')||{}).value||'0')||0;
+var c=parseFloat((document.getElementById('af_c')||{}).value||'0')||0;
+var f=parseFloat((document.getElementById('af_f')||{}).value||'0')||0;
+if(!name){toast('Enter a food name','err');return;}
+var meal=S.addFoodMeal||'snacks';
+var idx=S._editFoodIdx;
+var data=getNutriData(null,getNutrDate());
+if(!data.meals[meal]||idx===undefined||idx===null){toast('Could not find item','err');return;}
+var old=data.meals[meal][idx]||{};
+data.meals[meal][idx]={name:name,calories:cal,protein:p,carbs:c,fat:f,ts:old.ts||Date.now(),edited:Date.now()};
+saveNutriData(data);
+S._editFoodIdx=null;
+closeModal();toast(name+' updated','ok');R();
 }
 
 

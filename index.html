@@ -3492,6 +3492,15 @@ var cp = DB.get('cp_'+S.cid)||{};
 var name = (cp.name||'').split(' ')[0] || 'there';
 var todayIdx = getTodayWorkoutIdx();
 var d = todayIdx >= 0 ? getDays()[todayIdx] : null;
+var todaySession = null;
+if (!d) {
+var _sObj = DB.get('sessions_'+S.cid)||{};
+var _tStr = today();
+var _sArr = Object.values(_sObj);
+for (var _si=0; _si<_sArr.length; _si++) {
+if (_sArr[_si].date===_tStr && _sArr[_si].status==='upcoming') { todaySession=_sArr[_si]; break; }
+}
+}
 var tNote = '';
 var snKeys = Object.keys(S.sN).sort();
 for (var i = snKeys.length-1; i >= 0; i--) { var sni = S.sN[snKeys[i]]; if (sni&&sni.trainer) { tNote=sni.trainer; break; } }
@@ -3517,8 +3526,8 @@ return '<div class="hdr"><div class="hdr-top">' +
 '<div style="font-size:11px;color:var(--m1);margin-top:3px">'+new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})+'</div>' +
 '</div>' +
 
-// Training day OR rest day card
-(d ? renderTodayWorkoutCard(d, todayIdx) : renderRestDayCard()) +
+// Training day OR session today OR rest day card
+(d ? renderTodayWorkoutCard(d, todayIdx) : (todaySession ? renderTodaySessionCard(todaySession) : renderRestDayCard())) +
 
 // Calorie mini-card if targets set
 (macros.calories ? renderHomeCalsCard(calToday, macros) : '') +
@@ -3608,6 +3617,14 @@ return '<div style="background:linear-gradient(135deg,rgba(99,102,241,.18),rgba(
 '</div>';
 }
 
+function renderTodaySessionCard(s) {
+return '<div onclick="S.cTab=\'sessions\';R()" style="background:linear-gradient(135deg,rgba(16,185,129,.15),rgba(16,185,129,.05));border:1px solid rgba(16,185,129,.35);border-radius:16px;padding:18px;margin-bottom:12px;cursor:pointer">' +
+'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#10b981;margin-bottom:8px">SESSION TODAY</div>' +
+'<div style="font-size:26px;font-weight:900;color:#fff;letter-spacing:-.5px;margin-bottom:4px">'+(s.time||'Today')+'</div>' +
+'<div style="font-size:12px;color:var(--m1);margin-bottom:12px">'+(s.note||'In-person session with your trainer')+(s.workoutName?' &bull; <span style="color:#818cf8">'+s.workoutName+'</span>':'')+'</div>' +
+'<button class="btn" style="background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.4);color:#10b981;margin-bottom:0;font-size:13px">VIEW SCHEDULE &#8594;</button>' +
+'</div>';
+}
 function renderRestDayCard() {
 return '<div style="background:var(--c1);border:1px solid var(--bdr);border-radius:14px;padding:16px;margin-bottom:12px">' +
 '<div style="display:flex;align-items:center;gap:12px">' +
@@ -3816,7 +3833,7 @@ pageBody=
 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">' +
 '<div><div style="font-size:24px;font-weight:800;color:#fff;letter-spacing:-.5px">'+dName+'</div>' +
 '<div style="font-size:10px;color:var(--m2);letter-spacing:1px;text-transform:uppercase;margin-top:2px">'+(d.sub||'')+'</div>' +
-'<div style="font-size:10px;color:var(--m1);margin-top:2px">'+d.ex.length+' exercises &#183; '+wk.n+'</div>' +
+'<div style="font-size:10px;color:var(--m1);margin-top:2px">'+((d.ex||[]).length)+' exercises &#183; '+wk.n+'</div>' +
 '</div>' +
 '<div style="text-align:right"><div style="font-size:22px;font-weight:900;color:'+ac+'">'+pr.done+'<span style="color:var(--m2)">/'+pr.total+'</span></div>' +
 '<div style="width:80px;height:3px;background:var(--m3);border-radius:2px;margin-left:auto;margin-top:3px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+ac+';border-radius:2px;transition:width .3s"></div></div></div></div>' +
@@ -5458,7 +5475,7 @@ S.tTab = tab; S.vCli = null; R();
 function setCTab(tab) { S.cTab = tab; R(); }
 
 function startWorkout(dayIdx) {
-if (dayIdx >= 0) S.day = dayIdx;
+if (dayIdx >= 0) { S.day = dayIdx; S.wkDayOpen = dayIdx; }
 S.cTab = 'workout';
 R();
 }

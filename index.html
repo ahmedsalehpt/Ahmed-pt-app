@@ -610,7 +610,7 @@ function ek(w,d,e) { return 'w'+w+'_d'+d+'_e'+e; }
 function sk(w,d) { return 'w'+w+'_d'+d; }
 function getL(w,d,e,s) { return S.logs[lk(w,d,e,s)] || null; }
 function sessP() {
-var d = getDay(); if (!d) return {done:0, total:0};
+var d = getDay(); if (!d || !d.ex) return {done:0, total:0};
 var done = 0, total = 0;
 d.ex.forEach(function(ex, ei) {
 var sc = ex.sets || 3; total += sc;

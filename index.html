@@ -3218,6 +3218,26 @@ return (!todayRec?'<div onclick="setCTab(&apos;recovery&apos;)" style="display:f
 '<div style="font-size:12px;color:var(--m1);line-height:1.6;font-style:italic">'+tNote+'</div>' +
 '</div>':'') +
 
+// Upcoming sessions
+(function(){
+var sessObj=DB.get('sessions_'+S.cid)||{};
+var upcoming=Object.values(sessObj).filter(function(s){return s.status==='upcoming';}).sort(function(a,b){return(a.date||'').localeCompare(b.date||'');}).slice(0,2);
+if(!upcoming.length)return'';
+return '<div onclick="S.cTab=\'sessions\';R()" style="background:var(--c1);border:1px solid var(--bdr);border-radius:14px;padding:14px;margin-bottom:10px;cursor:pointer">' +
+'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">' +
+'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2)">UPCOMING SESSIONS</div>' +
+'<div style="font-size:11px;color:var(--acc);font-weight:600">See all &#8594;</div>' +
+'</div>' +
+upcoming.map(function(s){
+return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bdr);last-child:border-none">' +
+'<div style="width:36px;height:36px;border-radius:10px;background:'+(s.type==='online'?'rgba(99,102,241,.15)':'rgba(16,185,129,.15)')+';display:flex;align-items:center;justify-content:center;font-size:16px">'+(s.type==='online'?'&#128187;':'&#127947;')+'</div>' +
+'<div><div style="font-size:13px;font-weight:700;color:#fff">'+fmtD(s.date)+'</div>' +
+'<div style="font-size:11px;color:var(--m1)">'+(s.time||'Time TBD')+'</div></div>' +
+'</div>';
+}).join('') +
+'</div>';
+})() +
+
 // Quick action 2x2 grid
 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">' +
 (function(){
@@ -3316,12 +3336,12 @@ function cliNav() {
 var tabs=[
 {id:'home',icon:'&#127968;',lbl:'Home'},
 {id:'workout',icon:'&#128170;',lbl:'Workout'},
-{id:'progress',icon:'&#128200;',lbl:'Progress'},
+{id:'sessions',icon:'&#128197;',lbl:'Schedule'},
 {id:'nutrition',icon:'&#127822;',lbl:'Nutrition'},
 {id:'messages',icon:'&#128172;',lbl:'Coach',badge:S.unread}
 ];
 var navOn=S.cTab;
-if(navOn==='goals'||navOn==='habits'||navOn==='recovery'||navOn==='measurements')navOn='home';
+if(navOn==='goals'||navOn==='habits'||navOn==='recovery'||navOn==='measurements'||navOn==='progress'||navOn==='account')navOn='home';
 return '<nav class="bnav">'+tabs.map(function(t){
 var on=navOn===t.id;
 var color=on?'var(--acc)':'var(--m2)';
@@ -3426,12 +3446,12 @@ return '<div class="ex-card'+(allDone?' done':'')+'" id="exc_'+ei+'">' +
 '<div style="flex:1;min-width:0">' +
 '<div class="ex-name">'+ex.n+(ex.swapped?'<span style="font-size:9px;color:var(--amber);margin-left:5px">(swapped)</span>':'')+'</div>' +
 '<div class="ex-info">' +
-'<span class="pill p-blue" style="font-size:8px;margin-right:4px">'+origEx.t+'</span>' +
+'<span class="pill p-blue" style="font-size:8px;margin-right:4px">'+(origEx.t||'')+'</span>' +
 (origEx.ss?'<span style="font-size:8px;background:rgba(245,158,11,.15);color:var(--amber);border:1px solid rgba(245,158,11,.3);border-radius:5px;padding:1px 5px;margin-right:4px;font-weight:800">&#9889; SS</span>':'') +
 '<span style="color:var(--m2)">'+origEx.r+' reps - '+sc+' sets - '+(origEx.rest||'')+'</span>' +
 (hasN?'<span style="font-size:9px;color:var(--acc);margin-left:5px">&#128221;</span>':'') +
 '</div>' +
-(origEx.ss?(function(){var partners=d.ex.filter(function(e,idx){return idx!==ei&&e.ss===origEx.ss;}).map(function(e){return e.n;}).join(' + ');return partners?'<div style="font-size:9px;color:var(--amber);margin-top:1px">Paired with: '+partners+'</div>':'';})():'') +
+(origEx.ss&&d.ex?'<div style="font-size:9px;color:var(--amber);margin-top:1px">SS with: '+d.ex.filter(function(e,idx){return idx!==ei&&e.ss===origEx.ss;}).map(function(xe){return xe.n;}).join(' + ')+'</div>':'') +
 '</div>' +
 '<div style="display:flex;gap:5px;align-items:center;flex-shrink:0">' +
 (hasAlt?'<button class="pill p-amber" onclick="event.stopPropagation();togAlt('+ei+')" style="cursor:pointer">swap</button>':'') +

@@ -2381,7 +2381,7 @@ return '<div class="si">' +
 '<div class="si-time"><div class="si-th">'+(s.time||'&#8211;')+'</div><div class="si-td">'+fmtD(s.date)+'</div></div>' +
 '<div class="si-dot" style="background:'+(done?'#2d3748':c.type==='online'?'#6366f1':'#10b981')+'"></div>' +
 '<div class="si-info"><div class="si-name" style="color:'+(done?'var(--m2)':'#fff')+'">'+(done?'Done':'Upcoming')+'</div>' +
-'<div class="si-meta">'+(c.type==='online'?'Online':'In Person')+(s.note?' &#8212; '+s.note:'')+'</div></div>' +
+'<div class="si-meta">'+(c.type==='online'?'Online':'In Person')+(s.workoutName?' &#8212; &#128170; '+s.workoutName:s.note?' &#8212; '+s.note:'')+'</div></div>' +
 '<div style="display:flex;gap:4px">' +
 (!done?'<button class="btn-sm" style="background:var(--green)" onclick="confirmDone(\''+cid+'\',\''+s.id+'\')">Done</button>':'') +
 (!done?'<button style="width:26px;height:26px;border-radius:7px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);color:#818cf8;font-size:12px;cursor:pointer" onclick="openEditSess(\''+cid+'\',\''+s.id+'\')">&#9998;</button>':'') +
@@ -2519,16 +2519,50 @@ document.getElementById('fp_amt').value='';
 function openBookSess(cid) {
 var cs=Object.entries(S.clients);
 showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
-'<div class="modal-title">Book Session <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">×</button></div>' +
-'<div class="row"><div class="lbl">Client</div><select class="sel" id="bs_c">'+cs.map(function(e){return '<option value="'+e[0]+'"'+(cid&&cid===e[0]?' selected':'')+'>'+e[1].name+'</option>';}).join('')+'</select></div>' +
-'<div class="row"><div class="lbl">Date</div><input class="inp" id="bs_d" type="date" value="'+today()+'"></div>' +
+'<div class="modal-title">Book Session <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>' +
+'<div class="row"><div class="lbl">Client</div><select class="sel" id="bs_c" onchange="refreshBsWorkouts()">'+cs.map(function(e){return '<option value="'+e[0]+'"'+(cid&&cid===e[0]?' selected':'')+'>'+e[1].name+'</option>';}).join('')+'</select></div>' +
+'<div class="row"><div class="lbl">Date</div><input class="inp" id="bs_d" type="date" value="'+today()+'" onchange="autoDetectBsWorkout()"></div>' +
 '<div class="row"><div class="lbl">Time</div><input class="inp" id="bs_t" type="time" value="10:00"></div>' +
+'<div class="row"><div class="lbl">Link Workout (optional)</div><select class="sel" id="bs_wk">'+_getBsWorkoutOpts(cid)+'</select></div>' +
 '<div class="row"><div class="lbl">Repeat</div><select class="sel" id="bs_rpt" onchange="togRecur()"><option value="none">No Repeat</option><option value="7">Weekly</option><option value="14">Every 2 Weeks</option><option value="30">Monthly</option></select></div>' +
 '<div id="bs_rpt_row" style="display:none" class="row"><div class="lbl">Number of Sessions</div><input class="inp" id="bs_cnt" type="number" value="4" min="2" max="52" inputmode="numeric"></div>' +
 '<div class="row"><div class="lbl">Note (optional)</div><input class="inp" id="bs_n" placeholder="e.g. Legs day"></div>' +
-'<button class="btn btn-pink" style="background:var(--pink)" onclick="doBookSess()">BOOK →</button>' +
+'<button class="btn btn-pink" style="background:var(--pink)" onclick="doBookSess()">BOOK &#8594;</button>' +
 '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
 '</div></div>');
+autoDetectBsWorkout();
+}
+function _getBsWorkoutOpts(cid) {
+var prog=getProg(cid);
+if(!prog||!prog.days||!prog.days.length)return '<option value="">&#8212; No program assigned &#8212;</option>';
+var WD_NAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+var opts='<option value="">&#8212; Auto-detect / None &#8212;</option>';
+for(var di=0;di<prog.days.length;di++){
+var d=prog.days[di];
+var wdStr=(d.weekdays||[]).map(function(w){return WD_NAMES[w];}).join(', ');
+opts+='<option value="'+di+'">'+(d.title||d.tag||'Workout '+(di+1))+(wdStr?' ('+wdStr+')':'')+' &#8212; '+(d.ex?d.ex.length:0)+' exercises</option>';
+}
+return opts;
+}
+function refreshBsWorkouts() {
+var cidEl=document.getElementById('bs_c'); if(!cidEl)return;
+var wkEl=document.getElementById('bs_wk'); if(!wkEl)return;
+wkEl.innerHTML=_getBsWorkoutOpts(cidEl.value);
+autoDetectBsWorkout();
+}
+function autoDetectBsWorkout() {
+var cidEl=document.getElementById('bs_c'); if(!cidEl)return;
+var dateEl=document.getElementById('bs_d'); if(!dateEl||!dateEl.value)return;
+var wkEl=document.getElementById('bs_wk'); if(!wkEl)return;
+if(wkEl.value!=='')return; // already manually selected
+var cid=cidEl.value;
+var wd=new Date(dateEl.value+'T12:00:00').getDay();
+var prog=getProg(cid);
+if(!prog||!prog.days)return;
+for(var di=0;di<prog.days.length;di++){
+var wds=prog.days[di].weekdays||[];
+if(wds.indexOf(wd)>=0){wkEl.value=String(di);return;}
+}
 }
 function togRecur() {
 var v=(document.getElementById('bs_rpt')||{}).value;
@@ -2542,16 +2576,33 @@ var time=(document.getElementById('bs_t')||{}).value;
 var note=((document.getElementById('bs_n')||{}).value||'').trim();
 var rpt=(document.getElementById('bs_rpt')||{}).value||'none';
 var cnt=parseInt((document.getElementById('bs_cnt')||{}).value)||4;
+var wkIdxStr=((document.getElementById('bs_wk')||{}).value||'');
 if(!cid||!date){toast('Select client and date','err');return;}
 var c=S.clients[cid]||{};
+var prog=getProg(cid);
+function _buildSessData(dateStr){
+var base={date:dateStr,time:time,type:c.type||'inperson',note:note};
+var resolvedIdx=wkIdxStr!==''?parseInt(wkIdxStr):null;
+if(resolvedIdx===null&&prog&&prog.days){
+var wd=new Date(dateStr+'T12:00:00').getDay();
+for(var di=0;di<prog.days.length;di++){
+if((prog.days[di].weekdays||[]).indexOf(wd)>=0){resolvedIdx=di;break;}
+}
+}
+if(resolvedIdx!==null&&prog&&prog.days&&prog.days[resolvedIdx]){
+base.workoutDayIdx=resolvedIdx;
+base.workoutName=prog.days[resolvedIdx].title||prog.days[resolvedIdx].tag||'Workout';
+}
+return base;
+}
 if(rpt==='none'){
-bookSess(cid,{date:date,time:time,type:c.type||'inperson',note:note});
+bookSess(cid,_buildSessData(date));
 }else{
 var days=parseInt(rpt);
 var d=new Date(date+'T12:00:00');
 for(var i=0;i<cnt;i++){
 var ds=d.toISOString().split('T')[0];
-bookSess(cid,{date:ds,time:time,type:c.type||'inperson',note:note});
+bookSess(cid,_buildSessData(ds));
 d.setDate(d.getDate()+days);
 }
 toast(cnt+' sessions booked','ok');
@@ -2866,9 +2917,9 @@ showModal('<div class="modal-bg"><div class="modal-box" style="max-height:94vh">
 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">' +
 '<div><div class="lbl">Program Duration</div>' +
 '<select class="sel" id="bp_dur" style="margin-bottom:0">' +
-[4,5,6,7,8,9,10,11,12].map(function(n){return '<option value="'+n+'"'+(n===dur?' selected':'')+'>'+n+' Weeks</option>';}).join('') +
+[1,2,3,4,5,6,7,8,9,10,11,12].map(function(n){return '<option value="'+n+'"'+(n===dur?' selected':'')+'>'+(n===1?'1 Week (no repeat)':n+' Weeks')+'</option>';}).join('') +
 '</select></div>' +
-'<div style="display:flex;align-items:flex-end"><div style="font-size:10px;color:var(--m1);line-height:1.5">Program repeats weekly for the set duration. Logs are saved per week.</div></div>' +
+'<div style="display:flex;align-items:flex-end"><div style="font-size:10px;color:var(--m1);line-height:1.5">1 Week = single run, no repeat. 2&ndash;12 Weeks = program cycles through. Logs saved per week.</div></div>' +
 '</div>' +
 p.days.map(function(d,di){
 var wds=d.weekdays||[];
@@ -3081,6 +3132,27 @@ if(!n){toast('Enter exercise name','err');return;}
 _bp.prog.days[_bpDay].ex.push({n:n,sets:sets,r:r,t:'Compound',m:'',rest:'90s',note:'',alt:[]});
 showBuilder();
 }
+function _syncSessProg(cid, prog) {
+var sessObj=DB.get('sessions_'+cid)||{};
+var changed=false;
+var keys=Object.keys(sessObj);
+for(var i=0;i<keys.length;i++){
+var s=sessObj[keys[i]];
+if(s.status!=='upcoming'||!s.date)continue;
+var wd=new Date(s.date+'T12:00:00').getDay();
+var matched=false;
+for(var di=0;di<prog.days.length;di++){
+var wds=prog.days[di].weekdays||[];
+if(wds.indexOf(wd)>=0){
+s.workoutDayIdx=di;
+s.workoutName=prog.days[di].title||prog.days[di].tag||'Workout';
+changed=true;matched=true;break;
+}
+}
+if(!matched&&s.workoutDayIdx!==undefined){delete s.workoutDayIdx;delete s.workoutName;changed=true;}
+}
+if(changed)DB.set('sessions_'+cid,sessObj);
+}
 function doSaveBuilder() {
 _syncBP();
 var prog=_bp.prog, cid=_bp.cid;
@@ -3092,6 +3164,7 @@ for(var i=0;i<progs.length;i++){if(progs[i].id===_bp.editId){idx=i;break;}}
 if(idx>=0)progs[idx]=prog;else progs.push(prog);
 _bp.editId=null;
 DB.set('progs_'+cid,progs);
+_syncSessProg(cid,prog);
 closeModal(); toast(prog.name+' updated!','ok'); R();
 }else{
 progs.push(prog);
@@ -3101,6 +3174,7 @@ DB.set('cp_'+cid,cp);
 var templates=DB.get('prog_templates')||[];
 templates.push(JSON.parse(JSON.stringify(prog)));
 DB.set('prog_templates',templates);
+_syncSessProg(cid,prog);
 trackUsage('programsCreated');
 closeModal(); toast(prog.name+' saved as template!','ok'); R();
 }
@@ -3867,6 +3941,7 @@ out+='<div style="background:var(--c1);border:1px solid var(--bdr);border-left:3
 '<div style="font-size:9px;color:'+whenColor+';font-weight:800;letter-spacing:1.5px;margin-bottom:5px">'+when.toUpperCase()+'</div>' +
 '<div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:-.5px;margin-bottom:3px">'+fmtD(s.date)+'</div>' +
 '<div style="font-size:12px;color:var(--m1)">'+(s.time||'Time TBD')+(s.note?' &bull; '+s.note:'')+'</div>' +
+(s.workoutName?'<div style="margin-top:6px;display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);border-radius:8px"><span style="font-size:11px">&#128170;</span><span style="font-size:11px;font-weight:700;color:#818cf8">'+s.workoutName+'</span></div>':'')+
 '</div>' +
 '<div style="width:46px;height:46px;border-radius:13px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center;font-size:24px">&#127947;</div>' +
 '</div></div>';

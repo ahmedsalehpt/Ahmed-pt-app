@@ -1089,29 +1089,17 @@ return '<div class="login-wrap"><div class="login-box">' +
 '</div></div>';
 }
 function renderTrainerLogin() {
-var tdata = localStorage.getItem('trainer') ? JSON.parse(localStorage.getItem('trainer')) : null;
-var isLegacyPin = !!(tdata && tdata.pin && !tdata.email);
 if (S.lMode === 'trReg') {
 return '<div style="padding-top:4px">' +
 '<div style="font-size:11px;font-weight:700;letter-spacing:1px;color:var(--acc);margin-bottom:14px">CREATE TRAINER ACCOUNT</div>' +
 '<div class="row"><div class="lbl">Your Name</div><input class="inp" id="tname" placeholder="e.g. Ahmed"></div>' +
-'<div class="row"><div class="lbl">Email</div><input class="inp" id="temail" type="email" placeholder="you@email.com"></div>' +
-'<div class="row"><div class="lbl">Password (min 6 chars)</div><input class="inp" id="tpass" type="password" placeholder="Choose a secure password"></div>' +
+'<div class="row"><div class="lbl">Email</div><input class="inp" id="temail" type="email" placeholder="you@email.com" autocomplete="email"></div>' +
+'<div class="row"><div class="lbl">Password (min 6 chars)</div><input class="inp" id="tpass" type="password" placeholder="Choose a secure password" autocomplete="new-password"></div>' +
 '<div class="row"><div class="lbl">Currency</div><select class="sel" id="tcurrency">'+CURRENCIES.map(function(c){return '<option value="'+c+'">'+c+' ('+currencySymbol(c)+')</option>';}).join('')+'</select></div>' +
-'<div class="row"><div class="lbl">Referral Code (optional)</div><input class="inp" id="t_refcode" placeholder="e.g. AHM001" style="text-transform:uppercase"></div>' +
 '<div id="tcreate_err"></div>' +
 '<button class="btn btn-green" onclick="doTCreate()">CREATE ACCOUNT &#10003;</button>' +
 '<div style="font-size:10px;color:var(--m2);text-align:center;margin-top:6px">14-day free trial &#8212; no card required</div>' +
 '<button onclick="S.lMode=\'login\';R()" style="width:100%;background:none;border:none;color:var(--m1);font-size:11px;cursor:pointer;padding:8px">Already have an account? Sign in</button>' +
-'</div>';
-}
-if (isLegacyPin) {
-return '<div class="row"><div class="lbl">PIN</div>' +
-'<input class="inp" id="tpin" type="tel" maxlength="4" placeholder="4-digit PIN" inputmode="numeric"></div>' +
-'<div id="tlogin_err"></div>' +
-'<button class="btn btn-acc" onclick="doTLogin()">LOGIN &#8594;</button>' +
-'<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bdr);text-align:center">' +
-'<button onclick="S.lMode=\'trReg\';R()" style="font-size:11px;color:var(--acc);background:none;border:none;cursor:pointer;font-weight:700">Create a trainer&#39;s account &#8594;</button>' +
 '</div>';
 }
 return '<div class="row"><div class="lbl">Email</div>' +
@@ -1121,7 +1109,7 @@ return '<div class="row"><div class="lbl">Email</div>' +
 '<div id="tlogin_err"></div>' +
 '<button class="btn btn-acc" onclick="doTEmailLogin()">SIGN IN &#8594;</button>' +
 '<div style="margin-top:10px;text-align:center">' +
-'<button onclick="S.lMode=\'trReg\';R()" style="font-size:11px;color:var(--acc);background:none;border:none;cursor:pointer;font-weight:700">Create trainer account &#8594;</button>' +
+'<button onclick="S.lMode=\'trReg\';R()" style="font-size:11px;color:var(--acc);background:none;border:none;cursor:pointer;font-weight:700">Create a trainer&#39;s account &#8594;</button>' +
 '</div>';
 }
 function renderClientLogin() {
@@ -1131,20 +1119,18 @@ try { lastCode = localStorage.getItem('_last_trainer_code') || ''; } catch(e) {}
 if (isSignup) {
 return '<div class="row"><div class="lbl">Your Name</div>' +
 '<input class="inp" id="cname" placeholder="e.g. Sarah"></div>' +
-'<div class="row"><div class="lbl">Create Your PIN (4 digits)</div>' +
-'<input class="inp" id="cpin" type="tel" maxlength="4" placeholder="Choose a PIN" inputmode="numeric"></div>' +
+'<div class="row"><div class="lbl">Create a Password</div>' +
+'<input class="inp" id="cpin" type="password" placeholder="Choose a password"></div>' +
 '<div class="row"><div class="lbl">Trainer Invite Code</div>' +
 '<input class="inp" id="cinvite" placeholder="Code from your trainer" value="'+lastCode+'" style="text-transform:lowercase"></div>' +
 '<div id="clogin_err"></div>' +
 '<button class="btn" style="background:var(--pink)" onclick="doClientSignup()">CREATE ACCOUNT &#8594;</button>' +
-'<div style="text-align:center;margin-top:10px"><span style="font-size:11px;color:var(--m2)">Already have a PIN? </span><button onclick="S.lMode=\'login\';R()" style="font-size:11px;color:var(--acc);background:none;border:none;cursor:pointer;font-weight:700">Log in</button></div>';
+'<div style="text-align:center;margin-top:10px"><span style="font-size:11px;color:var(--m2)">Already have an account? </span><button onclick="S.lMode=\'login\';R()" style="font-size:11px;color:var(--acc);background:none;border:none;cursor:pointer;font-weight:700">Log in</button></div>';
 }
 return '<div class="row"><div class="lbl">Your Name</div>' +
 '<input class="inp" id="cname" placeholder="e.g. Sarah"></div>' +
-'<div class="row"><div class="lbl">Your PIN</div>' +
-'<input class="inp" id="cpin" type="tel" maxlength="4" placeholder="4-digit PIN" inputmode="numeric"></div>' +
-(!lastCode?'<div class="row"><div class="lbl">Trainer Invite Code</div><input class="inp" id="clinvite" placeholder="Code from your trainer" style="text-transform:lowercase"></div>':
-'<input type="hidden" id="clinvite" value="'+lastCode+'">') +
+'<div class="row"><div class="lbl">Your Password</div>' +
+'<input class="inp" id="cpin" type="password" placeholder="Your password"></div>' +
 '<div id="clogin_err"></div>' +
 '<button class="btn" style="background:var(--pink)" onclick="doCLogin()">START TRAINING &#8594;</button>' +
 '<div style="text-align:center;margin-top:10px"><span style="font-size:11px;color:var(--m2)">New client? </span><button onclick="S.lMode=\'signup\';R()" style="font-size:11px;color:var(--acc);background:none;border:none;cursor:pointer;font-weight:700">Create account</button></div>';
@@ -1156,7 +1142,7 @@ var invite = ((document.getElementById('cinvite')||{}).value||'').trim().toLower
 var errEl = document.getElementById('clogin_err');
 function showErr(msg){if(errEl)errEl.innerHTML='<div class="err-msg">'+msg+'</div>';}
 if (!name) { showErr('Enter your name'); return; }
-if (pin.length < 4) { showErr('PIN must be 4 digits'); return; }
+if (pin.length < 1) { showErr('Enter a password'); return; }
 if (!invite) { showErr('Enter the invite code from your trainer'); return; }
 try { localStorage.setItem('_last_trainer_code', invite); } catch(e) {}
 if (DB._fb) {
@@ -1290,39 +1276,43 @@ R();
 }
 function doCLogin() {
 var name = ((document.getElementById('cname')||{}).value||'').trim().toLowerCase();
-var pin = ((document.getElementById('cpin')||{}).value||'').trim();
-var invite = ((document.getElementById('clinvite')||{}).value||'').trim().toLowerCase();
+var pass = ((document.getElementById('cpin')||{}).value||'').trim();
 var errEl = document.getElementById('clogin_err');
 function showErr(m){if(errEl)errEl.innerHTML='<div class="err-msg">'+m+'</div>';}
 if (!name) { showErr('Enter your name'); return; }
-if (!pin) { showErr('Enter your PIN'); return; }
-function _searchClients() {
-var pfx = DB._prefix;
-var keys = Object.keys(localStorage).filter(function(k){return k.startsWith(pfx+'cp_');});
-var match = null;
-for (var i=0; i<keys.length; i++) {
-var raw=localStorage.getItem(keys[i]); if(!raw)continue;
-var c=JSON.parse(raw);
-if(c&&c.name&&c.name.toLowerCase()===name&&c.pin===pin){match=keys[i].replace(pfx+'cp_','');break;}
-}
-if (!match) { showErr('Name or PIN not found. Try reloading on a fresh connection.'); return; }
-if (invite) try { localStorage.setItem('_last_trainer_code', invite); } catch(e) {}
-enterClient(match);
-}
-if (invite && DB._fb) {
-DB._fb.ref('trainer_codes/'+invite).once('value').then(function(snap){
-var trId=snap.val();
-if(trId){DB._prefix=trId+'_';DB._fbPath='trainers/'+trId;S.trId=trId;}
-_searchClients();
-}).catch(function(){_searchClients();});
-} else if (invite) {
-var tdata=localStorage.getItem('trainer');tdata=tdata?JSON.parse(tdata):{};
-var tc=(tdata.inviteCode||(tdata.name||'').toLowerCase().replace(/[^a-z0-9]/g,'')).toLowerCase();
-if(invite===tc){DB._prefix='';DB._fbPath='ahmedpt';}
-_searchClients();
+if (!pass) { showErr('Enter your password'); return; }
+// Search every localStorage key across all trainer namespaces
+var allKeys = Object.keys(localStorage);
+var matchCid = null;
+var matchPrefix = null;
+var matchFbPath = null;
+for (var i=0; i<allKeys.length; i++) {
+var k = allKeys[i];
+var cpIdx = k.indexOf('cp_');
+if (cpIdx < 0) continue;
+var raw = localStorage.getItem(k); if(!raw) continue;
+var c; try { c = JSON.parse(raw); } catch(e){ continue; }
+if (c && c.name && c.name.toLowerCase() === name && c.pin === pass) {
+matchCid = k.substring(cpIdx+3);
+matchPrefix = k.substring(0, cpIdx);
+// Determine fbPath from prefix
+if (matchPrefix === '') {
+matchFbPath = 'ahmedpt';
 } else {
-_searchClients();
+// prefix is "{uid}_"
+var uid = matchPrefix.replace(/_$/,'');
+matchFbPath = 'trainers/'+uid;
 }
+break;
+}
+}
+if (!matchCid) { showErr('Name or password not found. Ask your trainer if you need a new account.'); return; }
+DB._prefix = matchPrefix;
+DB._fbPath = matchFbPath;
+if (matchPrefix !== '') {
+S.trId = matchPrefix.replace(/_$/,'');
+}
+enterClient(matchCid);
 }
 function enterClient(cid) {
 var cp = DB.get('cp_' + cid) || {};

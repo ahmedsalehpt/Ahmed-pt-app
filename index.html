@@ -1314,6 +1314,17 @@ var pre = (name||'PT').replace(/[^a-zA-Z]/g,'').toUpperCase().substring(0,4)||'P
 return pre+(Math.floor(Math.random()*9000+1000)).toString();
 }
 function _enterTrainerWithId(uid) {
+// Auto-migrate legacy unscoped data if this account has no clients yet
+var currentTc = null;
+try { var _ctc = localStorage.getItem(uid+'_tc'); currentTc = _ctc ? JSON.parse(_ctc) : null; } catch(e) {}
+var legacyTc = null;
+try { var _ltc = localStorage.getItem('tc'); legacyTc = _ltc ? JSON.parse(_ltc) : null; } catch(e) {}
+var currentEmpty = !currentTc || Object.keys(currentTc).length === 0;
+var legacyHasData = legacyTc && Object.keys(legacyTc).length > 0;
+if (currentEmpty && legacyHasData) {
+var migrated = _migrateLegacyData(uid);
+if (migrated > 0) setTimeout(function(){ toast('Your previous data has been restored (' + migrated + ' records migrated)', 'ok'); }, 800);
+}
 S.role='trainer'; S.scr='trainer'; S.tTab='dash'; S.trId=uid;
 loadAll();
 S.referralCode = DB.get('referral_code') || null;

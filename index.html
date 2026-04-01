@@ -1041,7 +1041,7 @@ if (ml) setTimeout(function(){ ml.scrollTop = ml.scrollHeight; }, 50);
 var d = getDay();
 if (d && d.accent) document.documentElement.style.setProperty('--acc', d.accent);
 if (S.scr === 'client') {
-if (S.cTab === 'sessions') setTimeout(renderMySessData, 50);
+// sessions now rendered inline, no async load needed
 if (S.cTab === 'account') setTimeout(renderMyAcctData, 50);
 }
 } catch(e) {
@@ -3724,30 +3724,169 @@ return '<div class="card"><div class="card-p">' +
 }
 
 function renderMySess() {
-return '<div class="hdr"><div class="hdr-top">' +
-'<div><div class="hdr-sub">My Schedule</div><div class="hdr-title">Sessions</div></div></div></div>' +
-'<div class="page" id="sess_page"><div class="empty">Loading…</div></div>' + cliNav();
-}
-function renderMySessData() {
-var page=document.getElementById('sess_page'); if(!page)return;
+var tc=DB.get('tc')||{};
+var c=tc[S.cid]||{};
+var isOnline=c.type==='online';
+var now=new Date();
+var dow=now.getDay();
+var weekStartDate=new Date(now);
+weekStartDate.setDate(now.getDate()-((dow+6)%7));
 var sessObj=DB.get('sessions_'+S.cid)||{};
-var sessions=Object.values(sessObj).sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
-var upcoming=sessions.filter(function(s){return s.status==='upcoming';});
-var done=sessions.filter(function(s){return s.status==='done';});
-page.innerHTML=(upcoming.length>0?'<div class="sect">UPCOMING</div>'+upcoming.map(function(s){
-return '<div class="card" style="margin-bottom:8px"><div class="card-p" style="display:flex;align-items:center;gap:12px">' +
-'<div class="si-time"><div class="si-th">'+(s.time||'TBD')+'</div><div class="si-td">'+fmtD(s.date)+'</div></div>' +
-'<div class="si-dot" style="background:'+(s.type==='online'?'#6366f1':'#10b981')+'"></div>' +
-'<div class="si-info"><div class="si-name">'+(s.type==='online'?'Online':'In Person')+'</div>' +
-(s.note?'<div class="si-meta">'+s.note+'</div>':'')+'</div></div></div>';
-}).join(''):'') +
-(done.length>0?'<div class="sect">COMPLETED</div>'+done.slice(0,5).map(function(s){
-return '<div class="card" style="margin-bottom:6px;opacity:.6"><div class="card-p" style="display:flex;align-items:center;gap:10px">' +
-'<div class="si-time"><div style="font-size:10px;color:var(--m2)">'+fmtD(s.date)+'</div></div>' +
-'<div class="si-dot" style="background:var(--m3)"></div>' +
-'<div style="font-size:12px;color:var(--m2)">Completed</div></div></div>';
-}).join(''):'') +
-(sessions.length===0?'<div class="empty">No sessions yet.<br>Ahmed will book these for you.</div>':'');
+var allSessArr=Object.values(sessObj).sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+var upcoming=allSessArr.filter(function(s){return s.status==='upcoming';});
+var done=allSessArr.filter(function(s){return s.status==='done';});
+var days=getDays();
+var todayStr=today();
+var sessDateSet={};
+for(var i=0;i<allSessArr.length;i++){if(allSessArr[i].date)sessDateSet[allSessArr[i].date]=true;}
+var workoutWdMap={};
+for(var di=0;di<days.length;di++){var wdsArr=days[di].weekdays||[];for(var wi=0;wi<wdsArr.length;wi++){workoutWdMap[wdsArr[wi]]={day:days[di],idx:di};}}
+var DAY_LETTERS=['M','T','W','T','F','S','S'];
+var weekStripHtml='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:14px">';
+for(var d=0;d<7;d++){
+var cellDate=new Date(weekStartDate);
+cellDate.setDate(weekStartDate.getDate()+d);
+var cellDs=cellDate.toISOString().split('T')[0];
+var isToday=cellDs===todayStr;
+var cellWd=cellDate.getDay();
+var hasSess=!!sessDateSet[cellDs];
+var hasWk=!!(workoutWdMap[cellWd]);
+var dotBg=hasSess?'#10b981':(hasWk&&isOnline?'#6366f1':'rgba(0,0,0,0)');
+weekStripHtml+='<div style="text-align:center;padding:7px 2px 8px;border-radius:10px;background:'+(isToday?'rgba(99,102,241,.18)':'transparent')+';border:1.5px solid '+(isToday?'var(--acc)':'transparent')+'">' +
+'<div style="font-size:9px;color:'+(isToday?'var(--acc)':'var(--m2)')+';font-weight:700;margin-bottom:4px">'+DAY_LETTERS[d]+'</div>' +
+'<div style="font-size:15px;font-weight:800;color:'+(isToday?'var(--acc)':'#fff')+';margin-bottom:5px">'+cellDate.getDate()+'</div>' +
+'<div style="width:6px;height:6px;border-radius:50%;background:'+dotBg+';margin:0 auto"></div>' +
+'</div>';
+}
+weekStripHtml+='</div>';
+var legendHtml='<div style="display:flex;gap:12px;flex-wrap:wrap">';
+if(!isOnline)legendHtml+='<div style="display:flex;align-items:center;gap:5px"><div style="width:7px;height:7px;border-radius:50%;background:#10b981"></div><span style="font-size:10px;color:var(--m2)">Session booked</span></div>';
+if(isOnline&&days.length)legendHtml+='<div style="display:flex;align-items:center;gap:5px"><div style="width:7px;height:7px;border-radius:50%;background:#6366f1"></div><span style="font-size:10px;color:var(--m2)">Workout day</span></div>';
+legendHtml+='<div style="display:flex;align-items:center;gap:5px"><div style="width:14px;height:14px;border-radius:4px;border:1.5px solid var(--acc)"></div><span style="font-size:10px;color:var(--m2)">Today</span></div>';
+legendHtml+='</div>';
+var html='<div class="hdr"><div class="hdr-top">' +
+'<div><div class="hdr-sub">'+(isOnline?'Online Program':'In-Person')+'</div>' +
+'<div class="hdr-title">My Schedule</div></div></div></div>' +
+'<div class="page">' +
+'<div style="background:var(--c1);border:1px solid var(--bdr);border-radius:16px;padding:16px;margin-bottom:14px">' +
+'<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--m2);margin-bottom:12px">' +
+now.toLocaleDateString('en-GB',{month:'long',year:'numeric'}).toUpperCase()+' &mdash; THIS WEEK</div>' +
+weekStripHtml+legendHtml+'</div>';
+if(isOnline){html+=_renderOnlineSchedList(days,todayStr,workoutWdMap,now);html+=_renderAIReminder();}
+else{html+=_renderInPersonSessions(upcoming,done,now);}
+html+='</div>'+cliNav();
+return html;
+}
+
+function _renderOnlineSchedList(days,todayStr,workoutWdMap,now){
+if(!days.length){
+return '<div style="text-align:center;padding:26px 20px;background:var(--c1);border:1px solid var(--bdr);border-radius:14px;margin-bottom:12px">' +
+'<div style="font-size:36px;margin-bottom:8px">&#128197;</div>' +
+'<div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:6px">No program assigned yet</div>' +
+'<div style="font-size:12px;color:var(--m1)">Ahmed will set up your online training plan.</div></div>';
+}
+var out='<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2);margin-bottom:10px">NEXT 7 DAYS</div>';
+for(var i=0;i<7;i++){
+var dt=new Date(now);
+dt.setDate(now.getDate()+i);
+var ds=dt.toISOString().split('T')[0];
+var wd=dt.getDay();
+var isToday=ds===todayStr;
+var entry=workoutWdMap[wd]||null;
+var isWorkout=!!entry;
+var bg=isToday&&isWorkout?'rgba(99,102,241,.12)':'var(--c1)';
+var bdr=isToday?'1px solid rgba(99,102,241,.4)':'1px solid var(--bdr)';
+var icon=isWorkout?'&#128170;':'&#128564;';
+var label=isWorkout?(entry.day.title||entry.day.name||'Workout'):'Rest Day';
+var labelColor=isWorkout?'#fff':'var(--m2)';
+var dayLabel=isToday?'Today':dt.toLocaleDateString('en-GB',{weekday:'long'});
+var dateLabel=dt.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+var exCount=(isWorkout&&entry.day.ex)?entry.day.ex.length:0;
+var clickAttr=isWorkout?' onclick="selDay('+entry.idx+')"':'';
+out+='<div'+clickAttr+' style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:'+bg+';border:'+bdr+';border-radius:12px;margin-bottom:6px;'+(isWorkout?'cursor:pointer':'')+'">' +
+'<div style="width:42px;height:42px;border-radius:11px;background:'+(isWorkout?'rgba(99,102,241,.15)':'rgba(255,255,255,.04)')+';display:flex;align-items:center;justify-content:center;font-size:20px">'+icon+'</div>' +
+'<div style="flex:1">' +
+'<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">' +
+'<div style="font-size:14px;font-weight:'+(isWorkout?'800':'600')+';color:'+labelColor+'">'+label+'</div>' +
+(isToday?'<span style="font-size:8px;background:var(--acc);color:#fff;padding:2px 6px;border-radius:5px;font-weight:800;letter-spacing:.5px">TODAY</span>':'')+
+'</div>' +
+'<div style="font-size:11px;color:var(--m2)">'+dayLabel+' &bull; '+dateLabel+'</div>' +
+(exCount?'<div style="font-size:10px;color:var(--acc);margin-top:2px">'+exCount+' exercise'+(exCount===1?'':'s')+'</div>':'')+
+'</div>' +
+(isWorkout?'<div style="font-size:14px;color:var(--acc)">&#8594;</div>':'')+
+'</div>';
+}
+return out;
+}
+
+function _renderAIReminder(){
+var goals=DB.get('goals_'+S.cid)||[];
+var hd=DB.get('habits_'+S.cid)||{list:[],logs:{}};
+var list=hd.list||[];
+var todayLogs=((hd.logs||{})[today()])||[];
+var activeGoals=goals.filter(function(g){return !g.achieved;});
+var undone=list.filter(function(h){return todayLogs.indexOf(h.id)<0;});
+var streak=(S.streak&&S.streak.cur)||0;
+var lines=[];
+if(streak>=21){lines.push('&#128293; <strong>'+streak+'-day streak.</strong> You\'re in the top 1% of people who show up consistently. Protect it today.');}
+else if(streak>=7){lines.push('&#128293; <strong>'+streak+' days straight.</strong> One week of consistency is where habits are born. Keep going.');}
+else if(streak>=3){lines.push('&#9889; <strong>'+streak+' in a row.</strong> The momentum is building &mdash; don\'t break the chain today.');}
+if(list.length>0){
+var doneCnt=list.length-undone.length;
+if(undone.length===0){lines.push('&#9989; All '+list.length+' habit'+(list.length===1?'':'s')+' ticked off today &mdash; that\'s what elite consistency looks like.');}
+else{lines.push('&#128203; '+doneCnt+'/'+list.length+' habits done. Still to go: '+undone.slice(0,2).map(function(h){return h.icon+' '+h.name;}).join(', ')+(undone.length>2?' &amp; more':'')+'. Finish strong.');}
+}
+if(activeGoals.length){lines.push('&#127919; Working towards: <em>'+activeGoals[0].text+'</em>. Every session is a step closer. Don\'t let today be a step back.');}
+if(!lines.length){lines.push('&#128170; Stay consistent with your program. Small daily efforts compound into the results you\'re chasing.');}
+return '<div style="background:linear-gradient(135deg,rgba(99,102,241,.1),rgba(236,72,153,.06));border:1px solid rgba(99,102,241,.25);border-radius:16px;padding:16px;margin-top:6px">' +
+'<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--acc);margin-bottom:10px">&#129504; COACH AI &bull; DAILY INSIGHT</div>' +
+'<div style="display:flex;flex-direction:column;gap:7px">' +
+lines.map(function(line){return '<div style="font-size:12px;color:var(--m1);line-height:1.7;padding:9px 11px;background:rgba(255,255,255,.03);border-radius:9px">'+line+'</div>';}).join('')+
+'</div></div>';
+}
+
+function _renderInPersonSessions(upcoming,done,now){
+if(!upcoming.length&&!done.length){
+return '<div style="text-align:center;padding:30px 20px;background:var(--c1);border:1px solid var(--bdr);border-radius:14px;margin-bottom:12px">' +
+'<div style="font-size:40px;margin-bottom:10px">&#128197;</div>' +
+'<div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:6px">No sessions booked yet</div>' +
+'<div style="font-size:12px;color:var(--m1)">Ahmed will book your sessions. Check back soon.</div></div>';
+}
+var out='';
+if(upcoming.length){
+out+='<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2);margin-bottom:10px">UPCOMING SESSIONS</div>';
+for(var i=0;i<upcoming.length;i++){
+var s=upcoming[i];
+var msUntil=new Date(s.date+'T12:00:00')-now;
+var daysUntil=Math.round(msUntil/86400000);
+var when=daysUntil<=0?'Today':daysUntil===1?'Tomorrow':'In '+daysUntil+' days';
+var whenColor=daysUntil<=0?'var(--green)':daysUntil<=1?'var(--green)':daysUntil<=3?'var(--amber)':'var(--m2)';
+out+='<div style="background:var(--c1);border:1px solid var(--bdr);border-left:3px solid #10b981;border-radius:0 14px 14px 0;padding:14px 16px;margin-bottom:8px">' +
+'<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
+'<div>' +
+'<div style="font-size:9px;color:'+whenColor+';font-weight:800;letter-spacing:1.5px;margin-bottom:5px">'+when.toUpperCase()+'</div>' +
+'<div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:-.5px;margin-bottom:3px">'+fmtD(s.date)+'</div>' +
+'<div style="font-size:12px;color:var(--m1)">'+(s.time||'Time TBD')+(s.note?' &bull; '+s.note:'')+'</div>' +
+'</div>' +
+'<div style="width:46px;height:46px;border-radius:13px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center;font-size:24px">&#127947;</div>' +
+'</div></div>';
+}
+}
+if(done.length){
+out+='<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2);margin-bottom:8px;margin-top:6px">COMPLETED ('+done.length+')</div>';
+out+='<div style="background:var(--c1);border:1px solid var(--bdr);border-radius:12px;overflow:hidden">';
+for(var j=0;j<Math.min(done.length,5);j++){
+var ds=done[j];
+var notLast=j<Math.min(done.length,5)-1;
+out+='<div style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:'+(notLast?'1px solid var(--bdr)':'none')+';opacity:.65">' +
+'<div style="width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,.08);display:flex;align-items:center;justify-content:center;font-size:14px">&#9989;</div>' +
+'<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--m1)">'+fmtD(ds.date)+'</div>' +
+(ds.note?'<div style="font-size:10px;color:var(--m2)">'+ds.note+'</div>':'')+
+'</div></div>';
+}
+out+='</div>';
+}
+return out;
 }
 
 function renderMyAcct() {

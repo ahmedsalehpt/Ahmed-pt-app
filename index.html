@@ -1235,14 +1235,49 @@ showErr(e.message || 'Sign in failed');
 }
 function _setupTrainerSession(uid, name, email, currency, refCode) {
 DB._prefix = uid+'_'; DB._fbPath = 'trainers/'+uid; S.trId = uid;
-var inviteCode = _genInviteCode(name);
+// Reuse legacy invite code so existing clients still work
+var legacyT = null;
+try { var _lt = localStorage.getItem('trainer'); legacyT = _lt ? JSON.parse(_lt) : null; } catch(e) {}
+var inviteCode = (legacyT && legacyT.inviteCode) ? legacyT.inviteCode : _genInviteCode(name);
 var tdata = {name:name, email:email, uid:uid, currency:currency, inviteCode:inviteCode, joined:today()};
 DB.set('trainer', tdata);
 if (DB._fb) DB._fb.ref('trainer_codes/'+inviteCode).set(uid).catch(function(){});
 DB.set('sess', {role:'trainer', trId:uid});
+// Migrate any existing unscoped (legacy) data into this account's namespace
+var migrated = _migrateLegacyData(uid);
 _enterTrainerWithId(uid);
 setTimeout(function(){ setupReferral(uid, name, refCode||null); }, 1000);
+if (migrated > 0) {
+toast('Account created + ' + migrated + ' legacy records migrated!', 'ok');
+} else {
 toast('Account created! Share invite code: '+inviteCode, 'ok');
+}
+}
+function _migrateLegacyData(newUid) {
+// Copy all unscoped legacy localStorage keys into {newUid}_ namespace
+var SKIP = ['trainer','sess','_last_trainer_code'];
+var KNOWN = ['tc','sub','referral_code'];
+var KNOWN_PFX = ['cp_','logs_','progs_','sessions_','habits_','goals_','nots_','msgs_','sub_'];
+var all = Object.keys(localStorage);
+var count = 0;
+for (var i=0; i<all.length; i++) {
+var k = all[i];
+if (SKIP.indexOf(k) >= 0) continue;
+var isLegacy = KNOWN.indexOf(k) >= 0;
+if (!isLegacy) {
+for (var j=0; j<KNOWN_PFX.length; j++) {
+if (k.indexOf(KNOWN_PFX[j]) === 0) { isLegacy = true; break; }
+}
+}
+if (!isLegacy) continue;
+var newKey = newUid+'_'+k;
+if (localStorage.getItem(newKey) !== null) continue; // don't overwrite
+var val = localStorage.getItem(k);
+if (val === null) continue;
+localStorage.setItem(newKey, val);
+count++;
+}
+return count;
 }
 function _genInviteCode(name) {
 var pre = (name||'PT').replace(/[^a-zA-Z]/g,'').toUpperCase().substring(0,4)||'PT';

@@ -988,17 +988,41 @@ toast('Session completed - 1 session deducted', 'ok');
 function logPay(cid, amount, note) {
 var c = S.clients[cid] || {};
 var rate = c.rate || 0;
+var isOnline = c.type === 'online';
 var pay = {id:'p'+Date.now(), amount:amount, date:today(), ts:Date.now(), note:note||''};
+if (!S.clients[cid]) S.clients[cid] = {};
+if (isOnline) {
+// Online clients: payment goes into wallet; split against monthly rate + in-person sessions
+pay.sessions = 0;
+var remaining = amount;
+var monthsCovered = 0;
+var inPersonCovered = 0;
 if (rate > 0) {
+monthsCovered = Math.floor(remaining / rate);
+remaining = Math.round((remaining - monthsCovered * rate) * 100) / 100;
+}
+var ipr = c.inPersonRate || 0;
+if (ipr > 0 && remaining > 0) {
+inPersonCovered = Math.floor(remaining / ipr);
+remaining = Math.round((remaining - inPersonCovered * ipr) * 100) / 100;
+}
+pay.monthsCovered = monthsCovered;
+pay.inPersonCovered = inPersonCovered;
+pay.walletRemainder = remaining;
+S.clients[cid].walletCredit = Math.round(((S.clients[cid].walletCredit || 0) + amount) * 100) / 100;
+var toastMsg = 'Payment logged';
+if (monthsCovered > 0) toastMsg += ' - ' + monthsCovered + ' month' + (monthsCovered > 1 ? 's' : '') + ' subscription';
+if (inPersonCovered > 0) toastMsg += ' + ' + inPersonCovered + ' in-person session' + (inPersonCovered > 1 ? 's' : '');
+if (remaining > 0) toastMsg += ' (' + currSym(cid) + remaining + ' surplus)';
+toast(toastMsg, 'ok');
+} else if (rate > 0) {
 var sessions = Math.round(amount / rate);
 pay.sessions = sessions;
-if (!S.clients[cid]) S.clients[cid] = {};
 S.clients[cid].balance = (S.clients[cid].balance || 0) + sessions;
 toast('Payment logged - +' + sessions + ' sessions added', 'ok');
 } else {
 pay.sessions = 0;
 pay.walletCredit = amount;
-if (!S.clients[cid]) S.clients[cid] = {};
 S.clients[cid].walletCredit = (S.clients[cid].walletCredit || 0) + amount;
 toast('Payment stored as credit - set a session rate to convert to sessions', 'info');
 }
@@ -1958,8 +1982,10 @@ var cid = e[0], c = e[1];
 var bal = c.balance || 0;
 var isOnline = c.type === 'online';
 var hasWallet = !isOnline && !c.rate && (c.walletCredit||0) > 0;
+var isActive = c.active !== false;
 var balDisplay = isOnline ?
-'<span class="pill ' + (c.subscriptionActive?'p-green':'p-red') + '">' + (c.subscriptionActive?'Active':'Inactive') + '</span>' :
+'<span class="pill ' + (isActive?'p-green':'p-gray') + '">' + (isActive?'Active':'Inactive') + '</span>' :
+!isActive ? '<span class="pill p-gray">Inactive</span>' :
 hasWallet ? '<span class="pill p-amber">' + currSym(cid) + (c.walletCredit||0) + ' credit</span><span class="pill p-red" style="font-size:9px">No rate set</span>' :
 !c.rate ? '<span class="pill p-gray">No rate set</span>' :
 '<span class="pill ' + (bal<=0?'p-red':bal<=2?'p-amber':'p-green') + '">' + (bal<=0?'No sessions':bal+' sessions') + '</span>';
@@ -2682,23 +2708,50 @@ return '<div class="sect">CLIENT PREMIUM</div>' +
 '</div></div>';
 }
 function renderCliPay(cid, cd, c) {
+var isOnline=c.type==='online';
 var bal=c.balance||0;
+var wallet=c.walletCredit||0;
 var pays=Object.values(cd.payments||{}).sort(function(a,b){return b.ts-a.ts;});
-return (bal<=2?'<div class="alert alert-'+(bal===0?'red':'amber')+'">' +
+var alertHtml='';
+if(isOnline){
+if(wallet>0)alertHtml='<div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">' +
+'<div style="font-size:12px;color:var(--m1)">Wallet Balance</div>' +
+'<div style="font-size:16px;font-weight:800;color:var(--acc)">'+currSym(cid)+wallet+'</div></div>';
+} else {
+if(bal<=2)alertHtml='<div class="alert alert-'+(bal===0?'red':'amber')+'">' +
 '<div style="font-size:20px">'+(bal===0?'&#128680;':'&#9888;&#65039;')+'</div>' +
 '<div style="flex:1"><div style="font-weight:700;font-size:13px;color:#fff">'+(bal===0?'No sessions left':'Running low')+'</div>' +
 '<div style="font-size:11px;color:var(--m1)">Send a payment reminder</div></div>' +
-'<button class="btn-sm btn-red" onclick="sendPayReminder(\''+cid+'\')">Remind</button></div>':'') +
+'<button class="btn-sm btn-red" onclick="sendPayReminder(\''+cid+'\')">Remind</button></div>';
+}
+var payHistoryRows=pays.map(function(p){
+var detail='';
+if(isOnline){
+var parts=[];
+if(p.monthsCovered>0)parts.push(p.monthsCovered+' month'+(p.monthsCovered>1?'s':''));
+if(p.inPersonCovered>0)parts.push(p.inPersonCovered+' in-person sess.');
+if(p.walletRemainder>0)parts.push(currSym(cid)+p.walletRemainder+' surplus');
+detail=parts.length?parts.join(' + '):'stored to wallet';
+} else {
+detail=(p.sessions||0)+' session'+((p.sessions||0)===1?'':'s')+' added';
+}
+return '<div class="pay-row"><div><div class="pay-amt">+'+currSym(cid)+p.amount+'</div>' +
+'<div class="pay-info">'+fmtD(p.date)+' - '+detail+(p.note?' - '+p.note:'')+'</div></div></div>';
+}).join('');
+var rateHint=isOnline?
+'<div style="font-size:11px;color:var(--m1);margin-bottom:10px;padding:7px 10px;background:var(--c2);border-radius:8px">' +
+(c.rate?'Monthly: '+currSym(cid)+c.rate+'/month':'No monthly rate set') +
+(c.inPersonRate?' &bull; In-person: '+currSym(cid)+c.inPersonRate+'/session':'') +
+'</div>' :
+'<div style="font-size:11px;color:var(--m1);margin-bottom:10px;padding:7px 10px;background:var(--c2);border-radius:8px">Rate: '+currSym(cid)+(c.rate||0)+'/session &mdash; amount &divide; rate = sessions added</div>';
+return alertHtml +
 '<div class="sect">PAYMENT HISTORY</div>' +
 (pays.length===0?'<div class="empty">No payments yet.</div>':
-'<div class="card"><div class="card-p">'+pays.map(function(p){
-return '<div class="pay-row"><div><div class="pay-amt">+'+currSym(cid)+p.amount+'</div>' +
-'<div class="pay-info">'+fmtD(p.date)+' - '+p.sessions+' session'+(p.sessions===1?'':'s')+' added'+(p.note?' - '+p.note:'')+'</div></div></div>';
-}).join('')+'</div></div>') +
+'<div class="card"><div class="card-p">'+payHistoryRows+'</div></div>') +
 '<div class="sect">LOG PAYMENT</div><div class="card"><div class="card-p">' +
 '<div class="row"><div class="lbl">Amount ('+currSym(cid)+')</div><input class="inp" id="pp_amt" type="number" placeholder="e.g. 240" inputmode="decimal"></div>' +
 '<div class="row"><div class="lbl">Note (optional)</div><input class="inp" id="pp_note" placeholder="e.g. Bank transfer"></div>' +
-'<div style="font-size:11px;color:var(--m1);margin-bottom:10px;padding:7px 10px;background:var(--c2);border-radius:8px">Rate: '+currSym(cid)+(c.rate||0)+'/session - amount divided by rate = sessions added</div>' +
+rateHint +
 '<button class="btn btn-green" onclick="doCliPay(\''+cid+'\')">LOG PAYMENT &#10003;</button>' +
 '</div></div>' +
 renderPremiumToggle(cid, cd);
@@ -3000,46 +3053,74 @@ R();
 function openEditClient(cid) {
 var c=S.clients[cid]||{};
 var cp=DB.get('cp_'+cid)||{};
+var isOnline=c.type==='online';
+var isActive=c.active!==false;
 showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
 '<div class="modal-title">Edit Client <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>' +
 '<div class="row"><div class="lbl">Name</div><input class="inp" id="ec_n" value="'+(c.name||'')+'"></div>' +
-'<div class="row"><div class="lbl">Type</div><select class="sel" id="ec_t"><option value="inperson"'+(c.type==='inperson'?' selected':'')+'>In-Person</option><option value="online"'+(c.type==='online'?' selected':'')+'>Online</option></select></div>' +
+'<div class="row"><div class="lbl">Type</div><select class="sel" id="ec_t" onchange="updateEditClientType()"><option value="inperson"'+(c.type==='inperson'?' selected':'')+'>In-Person</option><option value="online"'+(c.type==='online'?' selected':'')+'>Online</option></select></div>' +
 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
 '<div><div class="lbl">Currency</div><select class="sel" id="ec_c" style="margin-bottom:0">'+CURRENCIES.map(function(cur){return '<option'+(cur===(c.currency||'GBP')?' selected':'')+'>'+cur+'</option>';}).join('')+'</select></div>' +
-'<div><div class="lbl">Rate / session</div><input class="inp" id="ec_r" type="number" value="'+(c.rate||'')+'" inputmode="decimal" style="margin-bottom:0"></div>' +
+'<div><div class="lbl" id="ec_rate_lbl">'+(isOnline?'Rate per month':'Rate per session')+'</div><input class="inp" id="ec_r" type="number" value="'+(c.rate||'')+'" inputmode="decimal" style="margin-bottom:0"></div>' +
 '</div>' +
-'<div class="row"><div class="lbl">New PIN (leave blank to keep)</div><input class="inp" id="ec_p" type="tel" maxlength="4" placeholder="4 digits" inputmode="numeric"></div>' +
+'<div id="ec_inperson_rate_row" class="row" style="display:'+(isOnline?'block':'none')+'"><div class="lbl">In-Person Session Rate (optional)</div><input class="inp" id="ec_ipr" type="number" value="'+(c.inPersonRate||'')+'" inputmode="decimal" placeholder="Leave blank if included in monthly"></div>' +
+'<div class="row"><div class="lbl">Status</div>' +
+'<div style="display:flex;gap:8px">' +
+'<button id="ec_act_on" onclick="setEditActive(true)" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid '+(isActive?'var(--green)':'var(--bdr)')+';background:'+(isActive?'rgba(16,185,129,.12)':'transparent')+';color:'+(isActive?'var(--green)':'var(--m1)')+';font-size:12px;font-weight:700;cursor:pointer">&#10003; Active</button>' +
+'<button id="ec_act_off" onclick="setEditActive(false)" style="flex:1;padding:8px;border-radius:10px;border:1.5px solid '+(!isActive?'var(--red)':'var(--bdr)')+';background:'+(!isActive?'rgba(239,68,68,.12)':'transparent')+';color:'+(!isActive?'var(--red)':'var(--m1)')+';font-size:12px;font-weight:700;cursor:pointer">&#215; Inactive</button>' +
+'</div></div>' +
+'<input type="hidden" id="ec_active" value="'+(isActive?'1':'0')+'">' +
+'<div class="row"><div class="lbl">New Password (leave blank to keep)</div><input class="inp" id="ec_p" type="password" placeholder="Min 4 characters"></div>' +
 '<div id="ec_err"></div>' +
 '<button class="btn btn-acc" onclick="doEditClient(\''+cid+'\')">SAVE CHANGES &#10003;</button>' +
 '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
 '</div></div>');
+}
+function setEditActive(val) {
+var hidEl=document.getElementById('ec_active'); if(hidEl)hidEl.value=val?'1':'0';
+var onBtn=document.getElementById('ec_act_on');
+var offBtn=document.getElementById('ec_act_off');
+if(onBtn){onBtn.style.borderColor=val?'var(--green)':'var(--bdr)';onBtn.style.background=val?'rgba(16,185,129,.12)':'transparent';onBtn.style.color=val?'var(--green)':'var(--m1)';}
+if(offBtn){offBtn.style.borderColor=!val?'var(--red)':'var(--bdr)';offBtn.style.background=!val?'rgba(239,68,68,.12)':'transparent';offBtn.style.color=!val?'var(--red)':'var(--m1)';}
+}
+function updateEditClientType() {
+var t=(document.getElementById('ec_t')||{}).value;
+var lbl=document.getElementById('ec_rate_lbl');
+var iprRow=document.getElementById('ec_inperson_rate_row');
+if(lbl)lbl.textContent=t==='online'?'Rate per month':'Rate per session';
+if(iprRow)iprRow.style.display=t==='online'?'block':'none';
 }
 function doEditClient(cid) {
 var name=((document.getElementById('ec_n')||{}).value||'').trim();
 var type=(document.getElementById('ec_t')||{}).value||'inperson';
 var curr=(document.getElementById('ec_c')||{}).value||'GBP';
 var rate=parseFloat((document.getElementById('ec_r')||{}).value||'0')||0;
-var pin=((document.getElementById('ec_p')||{}).value||'').trim();
+var inPersonRate=parseFloat((document.getElementById('ec_ipr')||{}).value||'0')||0;
+var password=((document.getElementById('ec_p')||{}).value||'').trim();
+var activeVal=((document.getElementById('ec_active')||{}).value||'1')==='1';
 var err=document.getElementById('ec_err');
 if(!name){if(err)err.innerHTML='<div class="err-msg">Name is required</div>';return;}
-if(pin&&pin.length<4){if(err)err.innerHTML='<div class="err-msg">PIN must be 4 digits</div>';return;}
-var prevRate = S.clients[cid] ? (S.clients[cid].rate || 0) : 0;
-if(S.clients[cid]){S.clients[cid].name=name;S.clients[cid].type=type;S.clients[cid].currency=curr;S.clients[cid].rate=rate;}
+if(password&&password.length<4){if(err)err.innerHTML='<div class="err-msg">Password must be at least 4 characters</div>';return;}
+if(S.clients[cid]){S.clients[cid].name=name;S.clients[cid].type=type;S.clients[cid].currency=curr;S.clients[cid].rate=rate;S.clients[cid].active=activeVal;
+if(type==='online'&&inPersonRate>0)S.clients[cid].inPersonRate=inPersonRate;
+else if(type==='online')delete S.clients[cid].inPersonRate;
+}
 var walletMsg = '';
-if(rate > 0 && S.clients[cid] && (S.clients[cid].walletCredit || 0) > 0) {
+if(type!=='online' && rate > 0 && S.clients[cid] && (S.clients[cid].walletCredit || 0) > 0) {
 var credit = S.clients[cid].walletCredit;
 var sessFromCredit = Math.floor(credit / rate);
 var remainder = Math.round((credit - sessFromCredit * rate) * 100) / 100;
 if(sessFromCredit > 0) {
 S.clients[cid].balance = (S.clients[cid].balance || 0) + sessFromCredit;
 S.clients[cid].walletCredit = remainder;
-walletMsg = ' - ' + sessFromCredit + ' sessions converted from ' + currSym(cid) + credit + ' credit' + (remainder > 0 ? ' (' + currSym(cid) + remainder + ' remainder)' : '');
+walletMsg = ' - ' + sessFromCredit + ' sessions from ' + currSym(cid) + credit + ' credit';
 }
 }
 DB.set('tc',S.clients);
 var cp=DB.get('cp_'+cid)||{};
-cp.name=name;cp.type=type;cp.currency=curr;cp.rate=rate;
-if(pin)cp.pin=pin;
+cp.name=name;cp.type=type;cp.currency=curr;cp.rate=rate;cp.active=activeVal;
+if(type==='online'&&inPersonRate>0)cp.inPersonRate=inPersonRate; else delete cp.inPersonRate;
+if(password)cp.pin=password;
 DB.set('cp_'+cid,cp);
 closeModal(); toast(name+' updated' + walletMsg, 'ok'); R();
 }
@@ -3107,26 +3188,36 @@ closeModal(); toast('Sent to '+((S.clients[cid]||{}).name||'client'),'ok');
 }
 function openQuickPay(cid) {
 var c=S.clients[cid]||{};
+var isOnline=c.type==='online';
 var hasWallet=(c.walletCredit||0)>0;
 var noRate=!c.rate;
-var rateNote = c.rate ?
+var rateNote;
+if (isOnline) {
+rateNote = c.rate ?
+'<div style="font-size:11px;color:var(--m1);margin-bottom:8px;padding:8px 11px;background:var(--c2);border-radius:9px">Monthly subscription: <strong>'+currSym(cid)+c.rate+'/month</strong>'+(c.inPersonRate?' &bull; In-person: <strong>'+currSym(cid)+c.inPersonRate+'/session</strong>':'')+'</div>' :
+'<div style="font-size:11px;color:var(--amber);padding:9px 11px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:9px;margin-bottom:12px">&#9888; No monthly rate set. Edit client to set rates.</div>';
+} else {
+rateNote = c.rate ?
 '<div style="font-size:11px;color:var(--m1);margin-bottom:12px">'+currSym(cid)+c.rate+'/session &mdash; sessions added = amount &divide; rate</div>' :
-'<div style="font-size:11px;color:var(--amber);padding:9px 11px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:9px;margin-bottom:12px">&#9888; No session rate set &mdash; payment will be stored as credit.<br><span style="font-size:10px;color:var(--m1)">Edit this client to set a rate and sessions will be calculated automatically.</span></div>';
+'<div style="font-size:11px;color:var(--amber);padding:9px 11px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:9px;margin-bottom:12px">&#9888; No session rate set &mdash; payment will be stored as credit.</div>';
+}
 var walletNote = hasWallet ?
-'<div style="font-size:11px;color:var(--acc);margin-bottom:12px">Current credit: <strong>'+currSym(cid)+(c.walletCredit||0)+'</strong></div>' : '';
+'<div style="font-size:11px;color:var(--acc);margin-bottom:8px">Wallet balance: <strong>'+currSym(cid)+(c.walletCredit||0)+'</strong></div>' : '';
 showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
 '<div class="modal-title">&#128176; Payment &mdash; '+c.name+' <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>' +
 rateNote + walletNote +
 '<div class="row"><div class="lbl">Amount ('+currSym(cid)+')</div><input class="inp" id="qp_amt" type="number" placeholder="e.g. 240" inputmode="decimal"></div>' +
+'<div class="row"><div class="lbl">Note (optional)</div><input class="inp" id="qp_note" placeholder="e.g. Bank transfer"></div>' +
 '<button class="btn btn-green" onclick="doQuickPay(\''+cid+'\')">LOG PAYMENT &#10003;</button>' +
-(noRate?'<button class="btn btn-acc" style="margin-bottom:8px" onclick="closeModal();openEditClient(\''+cid+'\')">&#9998; Set Session Rate</button>':'') +
+(!c.rate?'<button class="btn btn-acc" style="margin-bottom:8px" onclick="closeModal();openEditClient(\''+cid+'\')">&#9998; Set Rate</button>':'') +
 '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
 '</div></div>');
 }
 function doQuickPay(cid) {
 var amt=parseFloat((document.getElementById('qp_amt')||{}).value||'');
+var note=((document.getElementById('qp_note')||{}).value||'').trim();
 if(!amt||amt<=0){toast('Enter a valid amount','err');return;}
-logPay(cid,amt,'');
+logPay(cid,amt,note);
 closeModal();
 }
 

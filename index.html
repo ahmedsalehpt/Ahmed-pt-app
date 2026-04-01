@@ -583,13 +583,14 @@ return names[r] || '';
 
 function getCurr(cid) {
 var id = cid || S.vCli || S.cid;
-if (!id) return 'GBP';
+var tdata = DB.get('trainer') || {};
+var trainerCurr = tdata.currency || 'GBP';
+if (!id) return trainerCurr;
 var c = S.clients[id] || {};
-return c.currency || 'GBP';
+return c.currency || trainerCurr;
 }
 function currSym(cid) {
-var c = getCurr(cid);
-return c.split(' ')[1] || c;
+return currencySymbol(getCurr(cid));
 }
 
 function getProg(cid) {
@@ -1239,6 +1240,14 @@ if(errEl) errEl.innerHTML='<div style="font-size:11px;color:var(--m1);padding:6p
 firebase.auth().signInWithEmailAndPassword(email, pass).then(function(cred) {
 var uid = cred.user.uid;
 DB._prefix = uid+'_'; DB._fbPath = 'trainers/'+uid; S.trId = uid;
+// Check localStorage first (works offline / after account creation)
+var localTdata = null;
+try { var _lt = localStorage.getItem(uid+'_trainer'); localTdata = _lt ? JSON.parse(_lt) : null; } catch(e) {}
+if (localTdata) {
+DB.set('sess', {role:'trainer', trId:uid});
+_enterTrainerWithId(uid);
+return;
+}
 if (DB._fb) {
 DB._fb.ref('trainers/'+uid+'/trainer').once('value').then(function(snap) {
 var tdata = snap.val();
@@ -1246,7 +1255,7 @@ if (tdata) {
 localStorage.setItem(uid+'_trainer', JSON.stringify(tdata));
 DB.set('sess', {role:'trainer', trId:uid});
 _enterTrainerWithId(uid);
-} else { showErr('No trainer profile found for this account.'); }
+} else { showErr('Account found but no profile — try creating your account again, or contact support.'); }
 }).catch(function(e){ showErr(e.message||'Failed to load profile'); });
 } else { _enterTrainerWithId(uid); }
 }).catch(function(e) {

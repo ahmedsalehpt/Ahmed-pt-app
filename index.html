@@ -968,20 +968,21 @@ var local = DB.get('sessions_' + cid) || {};
 local[id] = sess;
 DB.set('sessions_' + cid, local);
 if (!S.clients[cid]) S.clients[cid] = {};
-if (!S.clients[cid].sessions) S.clients[cid].sessions = {};
-S.clients[cid].sessions[id] = sess;
+S.clients[cid].sessions = local;
+DB.set('tc', S.clients);
 toast('Session booked', 'ok');
 }
 function completeSess(cid, sessId) {
 var local = DB.get('sessions_' + cid) || {};
-if (local[sessId]) local[sessId].status = 'done';
+if (local[sessId]) { local[sessId].status = 'done'; local[sessId].doneAt = today(); }
 DB.set('sessions_' + cid, local);
-var bal = (S.clients[cid] ? S.clients[cid].balance || 0 : 0) - 1;
-if (S.clients[cid]) S.clients[cid].balance = bal;
-if (S.clients[cid] && S.clients[cid].sessions && S.clients[cid].sessions[sessId]) {
-S.clients[cid].sessions[sessId].status = 'done';
-}
+// Always sync in-memory sessions from the DB object so renderSched stays accurate
+if (!S.clients[cid]) S.clients[cid] = {};
+S.clients[cid].sessions = local;
+var bal = (S.clients[cid].balance || 0) - 1;
+S.clients[cid].balance = bal;
 DB.set('tc', S.clients);
+logActivity('session', (S.clients[cid].name||'Client')+' completed a session'+(local[sessId]&&local[sessId].date?' on '+fmtD(local[sessId].date):''), 'sessions');
 toast('Session completed - 1 session deducted', 'ok');
 }
 function logPay(cid, amount, note) {
@@ -2897,10 +2898,10 @@ var date=(document.getElementById('es_d')||{}).value||today();
 var time=(document.getElementById('es_t')||{}).value||'';
 var note=((document.getElementById('es_n')||{}).value||'').trim();
 var local=DB.get('sessions_'+cid)||{};
-if(local[sessId]){local[sessId].date=date;local[sessId].time=time;local[sessId].note=note;DB.set('sessions_'+cid,local);}
-if(S.clients[cid]&&S.clients[cid].sessions&&S.clients[cid].sessions[sessId]){
-S.clients[cid].sessions[sessId].date=date;S.clients[cid].sessions[sessId].time=time;S.clients[cid].sessions[sessId].note=note;
-}
+if(local[sessId]){local[sessId].date=date;local[sessId].time=time;local[sessId].note=note;}
+DB.set('sessions_'+cid,local);
+if(!S.clients[cid])S.clients[cid]={};
+S.clients[cid].sessions=local;
 DB.set('tc',S.clients);
 closeModal(); toast('Session updated','ok'); R();
 }
@@ -2918,7 +2919,8 @@ function doDeleteSess(cid, sessId) {
 var local=DB.get('sessions_'+cid)||{};
 delete local[sessId];
 DB.set('sessions_'+cid,local);
-if(S.clients[cid]&&S.clients[cid].sessions)delete S.clients[cid].sessions[sessId];
+if(!S.clients[cid])S.clients[cid]={};
+S.clients[cid].sessions=local;
 DB.set('tc',S.clients);
 closeModal(); toast('Session deleted','ok'); R();
 }

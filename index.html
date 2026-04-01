@@ -2285,15 +2285,17 @@ rows.map(function(c){ return '<div class="ccard" onclick="openCli(\''+c.cid+'\')
 }
 
 function openAddClient() {
+var tdata = DB.get('trainer') || {};
+var trCurr = tdata.currency || 'GBP';
 showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
 '<div class="modal-title">Add Client <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>' +
 '<div class="row"><div class="lbl">Name</div><input class="inp" id="nc_n" placeholder="e.g. Sarah"></div>' +
-'<div class="row"><div class="lbl">Type</div><select class="sel" id="nc_t"><option value="inperson">In-Person</option><option value="online">Online</option></select></div>' +
+'<div class="row"><div class="lbl">Type</div><select class="sel" id="nc_t" onchange="updateAddClientType()"><option value="inperson">In-Person</option><option value="online">Online</option></select></div>' +
 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
-'<div><div class="lbl">Currency</div><select class="sel" id="nc_c" style="margin-bottom:0">'+CURRENCIES.map(function(c){return '<option>'+c+'</option>';}).join('')+'</select></div>' +
-'<div><div class="lbl">Rate per session</div><input class="inp" id="nc_r" type="number" placeholder="e.g. 60" inputmode="decimal" style="margin-bottom:0"></div>' +
+'<div><div class="lbl">Currency</div><select class="sel" id="nc_c" style="margin-bottom:0">'+CURRENCIES.map(function(c){return '<option'+(c===trCurr?' selected':'')+'>'+c+'</option>';}).join('')+'</select></div>' +
+'<div><div class="lbl" id="nc_rate_lbl">Rate per session</div><input class="inp" id="nc_r" type="number" placeholder="e.g. 60" inputmode="decimal" style="margin-bottom:0"></div>' +
 '</div>' +
-'<div class="row"><div class="lbl">PIN (4 digits)</div><input class="inp" id="nc_p" type="tel" maxlength="4" placeholder="e.g. 1234" inputmode="numeric"></div>' +
+'<div class="row"><div class="lbl">Password</div><input class="inp" id="nc_p" type="password" placeholder="Client login password"></div>' +
 '<div style="border-top:1px solid var(--bdr);margin:12px 0 12px;padding-top:12px">' +
 '<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--acc);margin-bottom:10px">INTAKE QUESTIONNAIRE</div>' +
 '<div class="row"><div class="lbl">Primary Goal</div><select class="sel" id="nc_goal"><option value="">Select goal...</option><option value="lose_fat">Lose Fat</option><option value="build_muscle">Build Muscle</option><option value="tone">Tone &amp; Lean Up</option><option value="strength">Get Stronger</option><option value="fitness">General Fitness</option><option value="sport">Sport Performance</option><option value="rehab">Rehabilitation</option></select></div>' +
@@ -2309,13 +2311,18 @@ showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" o
 '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
 '</div></div>');
 }
+function updateAddClientType() {
+var t = (document.getElementById('nc_t')||{}).value;
+var lbl = document.getElementById('nc_rate_lbl');
+if (lbl) lbl.textContent = t === 'online' ? 'Rate per month' : 'Rate per session';
+}
 function doAddClient() {
 if (!canAddClient()) { showUpgradeModal('clientLimit'); return; }
 var name = ((document.getElementById('nc_n')||{}).value||'').trim();
 var type = (document.getElementById('nc_t')||{}).value||'inperson';
 var curr = (document.getElementById('nc_c')||{}).value||'GBP';
 var rate = parseFloat((document.getElementById('nc_r')||{}).value||'0')||0;
-var pin = ((document.getElementById('nc_p')||{}).value||'').trim();
+var password = ((document.getElementById('nc_p')||{}).value||'').trim();
 var goal = (document.getElementById('nc_goal')||{}).value||'';
 var exp = (document.getElementById('nc_exp')||{}).value||'beginner';
 var bw = parseFloat((document.getElementById('nc_bw')||{}).value||'0')||0;
@@ -2323,10 +2330,10 @@ var tw = parseFloat((document.getElementById('nc_tw')||{}).value||'0')||0;
 var inj = ((document.getElementById('nc_inj')||{}).value||'').trim();
 var err = document.getElementById('nc_err');
 if (!name) { if(err) err.innerHTML='<div class="err-msg">Enter client name</div>'; return; }
-if (pin.length<4) { if(err) err.innerHTML='<div class="err-msg">PIN must be 4 digits</div>'; return; }
+if (password.length < 4) { if(err) err.innerHTML='<div class="err-msg">Password must be at least 4 characters</div>'; return; }
 var cid = name.toLowerCase().replace(/[^a-z0-9]/g,'*') + '*' + Date.now();
 var intake = {goal:goal, experience:exp, bodyWeight:bw||null, targetWeight:tw||null, injuries:inj||null, addedAt:Date.now()};
-var data = {name:name, type:type, currency:curr, rate:rate, pin:pin, unit:'kg', week:1, currentProgId:null, intake:intake};
+var data = {name:name, type:type, currency:curr, rate:rate, pin:password, unit:'kg', week:1, currentProgId:null, intake:intake};
 DB.set('cp_'+cid, data);
 S.clients[cid] = {name:name, type:type, currency:curr, rate:rate, balance:0, streak:{cur:0}, msgCount:0, sessions:{}, payments:{}};
 DB.set('tc', S.clients);
@@ -2334,7 +2341,7 @@ DB.set('sessions_'+cid, {});
 DB.set('payments_'+cid, {});
 DB.set('msgs_'+cid, []);
 closeModal();
-toast(name+' added! PIN: '+pin, 'ok');
+toast(name+' added!', 'ok');
 setTimeout(function(){ openAddProg(cid); }, 400);
 R();
 }
@@ -2787,19 +2794,46 @@ document.getElementById('fp_amt').value='';
 
 function openBookSess(cid) {
 var cs=Object.entries(S.clients);
+var selCid=cid||(cs.length?cs[0][0]:'');
+var selClient=S.clients[selCid]||{};
+var isOnline=selClient.type==='online';
 showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
 '<div class="modal-title">Book Session <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>' +
-'<div class="row"><div class="lbl">Client</div><select class="sel" id="bs_c" onchange="refreshBsWorkouts()">'+cs.map(function(e){return '<option value="'+e[0]+'"'+(cid&&cid===e[0]?' selected':'')+'>'+e[1].name+'</option>';}).join('')+'</select></div>' +
+'<div class="row"><div class="lbl">Client</div><select class="sel" id="bs_c" onchange="onBsClientChange()">'+cs.map(function(e){return '<option value="'+e[0]+'"'+(cid&&cid===e[0]?' selected':'')+'>'+e[1].name+'</option>';}).join('')+'</select></div>' +
+'<div id="bs_calltype_row" class="row" style="display:'+(isOnline?'block':'none')+'"><div class="lbl">Session Type</div><select class="sel" id="bs_calltype" onchange="onBsCallTypeChange()"><option value="weekly_call">Weekly Call</option><option value="inperson">In-Person Session</option></select></div>' +
 '<div class="row"><div class="lbl">Date</div><input class="inp" id="bs_d" type="date" value="'+today()+'" onchange="autoDetectBsWorkout()"></div>' +
 '<div class="row"><div class="lbl">Time</div><input class="inp" id="bs_t" type="time" value="10:00"></div>' +
-'<div class="row"><div class="lbl">Link Workout (optional)</div><select class="sel" id="bs_wk">'+_getBsWorkoutOpts(cid)+'</select></div>' +
+'<div id="bs_wk_row" class="row" style="display:'+(isOnline?'none':'block')+'"><div class="lbl">Link Workout (optional)</div><select class="sel" id="bs_wk">'+_getBsWorkoutOpts(cid)+'</select></div>' +
+'<div id="bs_topics_row" class="row" style="display:'+(isOnline?'block':'none')+'"><div class="lbl">Topics / Notes</div><textarea class="inp" id="bs_topics" rows="3" placeholder="What to discuss in this call..." style="resize:vertical;min-height:70px"></textarea></div>' +
+'<div id="bs_note_row" class="row"><div class="lbl">Note (optional)</div><input class="inp" id="bs_n" placeholder="e.g. Legs day"></div>' +
 '<div class="row"><div class="lbl">Repeat</div><select class="sel" id="bs_rpt" onchange="togRecur()"><option value="none">No Repeat</option><option value="7">Weekly</option><option value="14">Every 2 Weeks</option><option value="30">Monthly</option></select></div>' +
 '<div id="bs_rpt_row" style="display:none" class="row"><div class="lbl">Number of Sessions</div><input class="inp" id="bs_cnt" type="number" value="4" min="2" max="52" inputmode="numeric"></div>' +
-'<div class="row"><div class="lbl">Note (optional)</div><input class="inp" id="bs_n" placeholder="e.g. Legs day"></div>' +
 '<button class="btn btn-pink" style="background:var(--pink)" onclick="doBookSess()">BOOK &#8594;</button>' +
 '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
 '</div></div>');
 autoDetectBsWorkout();
+}
+function onBsClientChange() {
+var cidEl=document.getElementById('bs_c'); if(!cidEl)return;
+var cid=cidEl.value;
+var c=S.clients[cid]||{};
+var isOnline=c.type==='online';
+var calltypeRow=document.getElementById('bs_calltype_row');
+var wkRow=document.getElementById('bs_wk_row');
+var topicsRow=document.getElementById('bs_topics_row');
+if(calltypeRow)calltypeRow.style.display=isOnline?'block':'none';
+if(wkRow)wkRow.style.display=isOnline?'none':'block';
+if(topicsRow)topicsRow.style.display=isOnline?'block':'none';
+var wkEl=document.getElementById('bs_wk'); if(wkEl)wkEl.innerHTML=_getBsWorkoutOpts(cid);
+autoDetectBsWorkout();
+}
+function onBsCallTypeChange() {
+var calltype=(document.getElementById('bs_calltype')||{}).value||'weekly_call';
+var wkRow=document.getElementById('bs_wk_row');
+var topicsRow=document.getElementById('bs_topics_row');
+var isCall=calltype==='weekly_call';
+if(wkRow)wkRow.style.display=isCall?'none':'block';
+if(topicsRow)topicsRow.style.display=isCall?'block':'none';
 }
 function _getBsWorkoutOpts(cid) {
 var prog=getProg(cid);
@@ -2814,10 +2848,7 @@ opts+='<option value="'+di+'">'+(d.title||d.tag||'Workout '+(di+1))+(wdStr?' ('+
 return opts;
 }
 function refreshBsWorkouts() {
-var cidEl=document.getElementById('bs_c'); if(!cidEl)return;
-var wkEl=document.getElementById('bs_wk'); if(!wkEl)return;
-wkEl.innerHTML=_getBsWorkoutOpts(cidEl.value);
-autoDetectBsWorkout();
+onBsClientChange();
 }
 function autoDetectBsWorkout() {
 var cidEl=document.getElementById('bs_c'); if(!cidEl)return;
@@ -2846,13 +2877,19 @@ var note=((document.getElementById('bs_n')||{}).value||'').trim();
 var rpt=(document.getElementById('bs_rpt')||{}).value||'none';
 var cnt=parseInt((document.getElementById('bs_cnt')||{}).value)||4;
 var wkIdxStr=((document.getElementById('bs_wk')||{}).value||'');
+var callType=((document.getElementById('bs_calltype')||{}).value||'');
+var topics=((document.getElementById('bs_topics')||{}).value||'').trim();
 if(!cid||!date){toast('Select client and date','err');return;}
 var c=S.clients[cid]||{};
 var prog=getProg(cid);
 function _buildSessData(dateStr){
 var base={date:dateStr,time:time,type:c.type||'inperson',note:note};
+if(c.type==='online'&&callType){
+base.callType=callType;
+if(callType==='weekly_call'&&topics)base.topics=topics;
+}
 var resolvedIdx=wkIdxStr!==''?parseInt(wkIdxStr):null;
-if(resolvedIdx===null&&prog&&prog.days){
+if(resolvedIdx===null&&prog&&prog.days&&callType!=='weekly_call'){
 var wd=new Date(dateStr+'T12:00:00').getDay();
 for(var di=0;di<prog.days.length;di++){
 if((prog.days[di].weekdays||[]).indexOf(wd)>=0){resolvedIdx=di;break;}
@@ -4224,20 +4261,50 @@ var html='<div class="hdr"><div class="hdr-top">' +
 '<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--m2);margin-bottom:12px">' +
 now.toLocaleDateString('en-GB',{month:'long',year:'numeric'}).toUpperCase()+' &mdash; THIS WEEK</div>' +
 weekStripHtml+legendHtml+'</div>';
-if(isOnline){html+=_renderOnlineSchedList(days,todayStr,workoutWdMap,now);html+=_renderAIReminder();}
+if(isOnline){html+=_renderOnlineSchedList(days,todayStr,workoutWdMap,now,upcoming,done);html+=_renderAIReminder();}
 else{html+=_renderInPersonSessions(upcoming,done,now);}
 html+='</div>'+cliNav();
 return html;
 }
 
-function _renderOnlineSchedList(days,todayStr,workoutWdMap,now){
-if(!days.length){
+function _renderOnlineSchedList(days,todayStr,workoutWdMap,now,upcoming,done){
+upcoming=upcoming||[]; done=done||[];
+var sessDateMap={};
+for(var si=0;si<upcoming.length;si++){var sv=upcoming[si];if(sv.date)sessDateMap[sv.date]=sv;}
+var noProg=!days.length;
+var out='';
+if(upcoming.length){
+out+='<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2);margin-bottom:10px">UPCOMING CALLS / SESSIONS</div>';
+for(var ui=0;ui<upcoming.length;ui++){
+var us=upcoming[ui];
+var msUntil=new Date(us.date+'T12:00:00')-now;
+var daysUntil=Math.round(msUntil/86400000);
+var when=daysUntil<=0?'Today':daysUntil===1?'Tomorrow':'In '+daysUntil+' days';
+var whenColor=daysUntil<=0?'var(--green)':daysUntil<=1?'var(--green)':daysUntil<=3?'var(--amber)':'var(--m2)';
+var isCall=us.callType==='weekly_call';
+var sessIcon=isCall?'&#128222;':'&#127947;';
+var sessLabel=isCall?'Weekly Call':'In-Person Session';
+out+='<div style="background:var(--c1);border:1px solid var(--bdr);border-left:3px solid '+(isCall?'#6366f1':'#10b981')+';border-radius:0 14px 14px 0;padding:14px 16px;margin-bottom:8px">' +
+'<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
+'<div>' +
+'<div style="font-size:9px;color:'+whenColor+';font-weight:800;letter-spacing:1.5px;margin-bottom:5px">'+when.toUpperCase()+'</div>' +
+'<div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:-.5px;margin-bottom:3px">'+fmtD(us.date)+'</div>' +
+'<div style="font-size:12px;color:var(--m1)">'+(us.time||'Time TBD')+' &bull; '+sessLabel+'</div>' +
+(us.topics?'<div style="margin-top:6px;font-size:11px;color:var(--m2);background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:8px;padding:6px 10px">'+us.topics+'</div>':'')+
+(us.note&&!us.topics?'<div style="font-size:11px;color:var(--m2);margin-top:4px">'+us.note+'</div>':'')+
+'</div>' +
+'<div style="width:46px;height:46px;border-radius:13px;background:'+(isCall?'rgba(99,102,241,.12)':'rgba(16,185,129,.12)')+';display:flex;align-items:center;justify-content:center;font-size:24px">'+sessIcon+'</div>' +
+'</div></div>';
+}
+}
+if(noProg&&!upcoming.length){
 return '<div style="text-align:center;padding:26px 20px;background:var(--c1);border:1px solid var(--bdr);border-radius:14px;margin-bottom:12px">' +
 '<div style="font-size:36px;margin-bottom:8px">&#128197;</div>' +
 '<div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:6px">No program assigned yet</div>' +
-'<div style="font-size:12px;color:var(--m1)">Ahmed will set up your online training plan.</div></div>';
+'<div style="font-size:12px;color:var(--m1)">Your trainer will set up your online training plan.</div></div>';
 }
-var out='<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2);margin-bottom:10px">NEXT 7 DAYS</div>';
+if(!noProg){
+out+='<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2);margin-bottom:10px;margin-top:'+(upcoming.length?'14px':'0')+'">NEXT 7 DAYS</div>';
 for(var i=0;i<7;i++){
 var dt=new Date(now);
 dt.setDate(now.getDate()+i);
@@ -4267,6 +4334,7 @@ out+='<div'+clickAttr+' style="display:flex;align-items:center;gap:12px;padding:
 '</div>' +
 (isWorkout?'<div style="font-size:14px;color:var(--acc)">&#8594;</div>':'')+
 '</div>';
+}
 }
 return out;
 }

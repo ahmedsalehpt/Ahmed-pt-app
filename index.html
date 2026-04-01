@@ -2974,7 +2974,7 @@ var q=(val||'').toLowerCase().trim();
 var box=document.getElementById('ae_suggestions');
 if(!box)return;
 if(!q){box.innerHTML='';box.style.display='none';return;}
-var matches=EX_LIB.filter(function(e){return e.n.toLowerCase().indexOf(q)===0;}).slice(0,8);
+var matches=EX_LIB.filter(function(e){return e.n.toLowerCase().indexOf(q)>=0||e.m.toLowerCase().indexOf(q)>=0;}).slice(0,8);
 if(!matches.length){box.innerHTML='';box.style.display='none';return;}
 box.innerHTML=matches.map(function(e){
 var safe=e.n.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
@@ -2986,52 +2986,99 @@ function pickEx(name) {
 var ex=null;
 for(var i=0;i<EX_LIB.length;i++){if(EX_LIB[i].n===name){ex=EX_LIB[i];break;}}
 if(!ex)return;
-var f=function(id,v){var el=document.getElementById(id);if(el)el.value=v;};
-f('ae_n',ex.n);f('ae_s',ex.sets);f('ae_r',ex.r);f('ae_m',ex.m);f('ae_rest',ex.rest);f('ae_note',ex.note||'');
-var t=document.getElementById('ae_t');
-if(t){var opts=['Compound','Isolation','Unilateral','Abs','Finisher'];for(var j=0;j<opts.length;j++){if(opts[j]===ex.t){t.selectedIndex=j;break;}}}
 var box=document.getElementById('ae_suggestions');if(box){box.innerHTML='';box.style.display='none';}
+var nEl=document.getElementById('ae_n');if(nEl)nEl.value=ex.n;
+var sEl=document.getElementById('ae_s');if(sEl)sEl.value=ex.sets;
+var rEl=document.getElementById('ae_r');if(rEl)rEl.value=ex.r;
 }
 function openAddEx(di) {
 _bpDay=di;
-var pills=EX_LIB.map(function(e){
+_stageEx=[];
+S._exCat='All';
+showAddExModal();
+}
+function showAddExModal() {
+var di=_bpDay;
+var cats=['All','Chest','Back','Legs','Shoulders','Arms','Core','Finisher'];
+var activeCat=S._exCat||'All';
+var catMap={Chest:['chest','pec'],Back:['back','lat','trap','row'],Legs:['quad','glute','hamstring','calf','leg','thigh','squat','lunge','hip'],Shoulders:['delt','shoulder','rotator'],Arms:['bicep','tricep','forearm','brach','curl','press','close grip'],Core:['core','abs','oblique','back extension'],Finisher:['finisher']};
+var filtered=activeCat==='All'?EX_LIB:EX_LIB.filter(function(e){
+if(activeCat==='Finisher')return e.t==='Finisher';
+var kws=catMap[activeCat]||[];
+var mLow=e.m.toLowerCase();
+return kws.some(function(k){return mLow.indexOf(k)>=0;});
+});
+var stageHtml='';
+if(_stageEx.length>0){
+stageHtml='<div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:10px;padding:10px;margin-bottom:12px">' +
+'<div style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:var(--acc);margin-bottom:8px">&#128203; QUEUED — '+_stageEx.length+' exercise'+(_stageEx.length>1?'s':'')+' to add</div>' +
+_stageEx.map(function(e,qi){
+return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.05)">' +
+'<div style="flex:1;font-size:11px;color:#fff;font-weight:600">'+e.n+'</div>' +
+'<input type="number" value="'+e.sets+'" min="1" max="10" style="width:34px;padding:3px;background:var(--c2);border:1px solid var(--bdr);border-radius:6px;color:#fff;font-size:11px;text-align:center" onchange="_stageEx['+qi+'].sets=parseInt(this.value)||3">' +
+'<span style="font-size:9px;color:var(--m2)">sets</span>' +
+'<input value="'+e.r+'" style="width:48px;padding:3px;background:var(--c2);border:1px solid var(--bdr);border-radius:6px;color:#fff;font-size:11px;text-align:center" onchange="_stageEx['+qi+'].r=this.value">' +
+'<span style="font-size:9px;color:var(--m2)">reps</span>' +
+'<button onclick="_stageEx.splice('+qi+',1);showAddExModal()" style="color:var(--red);background:none;border:none;cursor:pointer;font-size:15px;line-height:1">&#215;</button>' +
+'</div>';
+}).join('') +
+'<button class="btn btn-acc" onclick="doAddMultiEx()" style="width:100%;padding:10px;font-size:13px;font-weight:800;margin-top:4px">Add '+_stageEx.length+' Exercise'+(_stageEx.length>1?'s':'')+' to Workout &#10003;</button>' +
+'</div>';
+}
+var catHtml='<div style="display:flex;gap:4px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none;-webkit-overflow-scrolling:touch;flex-shrink:0">' +
+cats.map(function(cat){var on=cat===activeCat;return '<button onclick="S._exCat=\''+cat+'\';showAddExModal()" style="padding:5px 12px;border-radius:20px;border:1px solid '+(on?'var(--acc)':'rgba(255,255,255,.1)')+';background:'+(on?'var(--acc)':'transparent')+';color:'+(on?'#fff':'var(--m1)')+';font-size:10px;font-weight:700;white-space:nowrap;cursor:pointer">'+cat+'</button>';}).join('') +
+'</div>';
+var gridHtml='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:240px;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-bottom:10px">' +
+filtered.map(function(e){
 var safe=e.n.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-return '<button onclick="pickEx(\''+safe+'\')" style="display:inline-block;padding:5px 11px;background:var(--c2);border:1px solid var(--bdr);border-radius:20px;color:var(--m1);font-size:10px;font-weight:600;white-space:nowrap;cursor:pointer;flex-shrink:0">'+e.n+'</button>';
-}).join('');
-showModal('<div class="modal-bg"><div class="modal-box">' +
-'<div class="modal-title">Add Exercise - Day '+(di+1)+'</div>' +
-'<div class="row" style="margin-bottom:8px"><div class="lbl">Quick Pick</div>' +
-'<div style="display:flex;gap:5px;overflow-x:auto;padding:4px 0;scrollbar-width:none">'+pills+'</div></div>' +
-'<div class="row"><div class="lbl">Exercise Name — or type to search</div>' +
-'<input class="inp" id="ae_n" placeholder="e.g. Barbell Back Squat" oninput="filterEx(this.value)" autocomplete="off">' +
-'<div id="ae_suggestions" style="display:none;border:1px solid var(--bdr);border-radius:0 0 10px 10px;overflow:hidden;margin-top:-2px;max-height:220px;overflow-y:auto"></div></div>' +
-'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
-'<div><div class="lbl">Sets</div><input class="inp" id="ae_s" type="number" value="3" inputmode="numeric" style="margin-bottom:0"></div>' +
-'<div><div class="lbl">Rep Range</div><input class="inp" id="ae_r" placeholder="8-12" style="margin-bottom:0"></div>' +
+var staged=_stageEx.some(function(s){return s.n===e.n;});
+return '<button onclick="stageEx(\''+safe+'\')" style="padding:9px 8px;border-radius:10px;border:1px solid '+(staged?'var(--acc)':'var(--bdr)')+';background:'+(staged?'rgba(99,102,241,.14)':'var(--c2)')+';text-align:left;cursor:pointer;transition:all .15s">' +
+'<div style="font-size:11px;font-weight:700;color:'+(staged?'#818cf8':'#fff')+';margin-bottom:2px">'+(staged?'&#10003; ':'')+e.n+'</div>' +
+'<div style="font-size:9px;color:var(--m2)">'+e.m+'</div>' +
+'</button>';
+}).join('') +
+'</div>';
+var customHtml='<div style="border-top:1px solid var(--bdr);padding-top:10px">' +
+'<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--m2);margin-bottom:8px">CUSTOM EXERCISE</div>' +
+'<div style="display:grid;grid-template-columns:1fr auto auto;gap:6px;align-items:end;margin-bottom:6px">' +
+'<div><div class="lbl" style="font-size:9px">Name</div><input class="inp" id="ae_n" placeholder="Exercise name" style="margin-bottom:0;font-size:12px" autocomplete="off" oninput="filterEx(this.value)"><div id="ae_suggestions" style="display:none;border:1px solid var(--bdr);border-radius:0 0 8px 8px;overflow:hidden;margin-top:-2px;max-height:160px;overflow-y:auto"></div></div>' +
+'<div><div class="lbl" style="font-size:9px">Sets</div><input class="inp" id="ae_s" type="number" value="3" style="margin-bottom:0;width:50px;font-size:12px" inputmode="numeric"></div>' +
+'<div><div class="lbl" style="font-size:9px">Reps</div><input class="inp" id="ae_r" placeholder="8-12" style="margin-bottom:0;width:60px;font-size:12px"></div>' +
 '</div>' +
-'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
-'<div><div class="lbl">Type</div><select class="sel" id="ae_t"><option>Compound</option><option>Isolation</option><option>Unilateral</option><option>Abs</option><option>Finisher</option></select></div>' +
-'<div><div class="lbl">Muscle Group</div><input class="inp" id="ae_m" placeholder="auto-filled from library" style="margin-bottom:0"></div>' +
+'<button class="btn btn-ghost" onclick="doAddCustomEx()" style="width:100%;padding:9px;font-size:12px">+ Add Custom Exercise</button>' +
+'</div>';
+showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()" style="max-height:94vh;overflow-y:auto">' +
+'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">' +
+'<div style="font-size:16px;font-weight:800;color:#fff">Add Exercises</div>' +
+'<button onclick="showBuilder()" style="font-size:12px;color:var(--m1);background:none;border:none;cursor:pointer">&#8592; Back</button>' +
 '</div>' +
-'<div class="row"><div class="lbl">Rest</div><input class="inp" id="ae_rest" placeholder="e.g. 90s"></div>' +
-'<div class="row"><div class="lbl">Coaching Cue (optional)</div><textarea class="inp" id="ae_note" rows="2" placeholder="Form tip..."></textarea></div>' +
-'<div class="row"><div class="lbl">Alternatives (comma separated)</div><input class="inp" id="ae_alt" placeholder="e.g. Goblet Squat, Smith Squat"></div>' +
-'<button class="btn btn-acc" style="margin-bottom:8px" onclick="doAddEx()">ADD →</button>' +
-'<button class="btn btn-ghost" onclick="showBuilder()">← Back</button>' +
+stageHtml +
+catHtml +
+gridHtml +
+customHtml +
 '</div></div>');
 }
-function doAddEx() {
+var _stageEx=[];
+function stageEx(name) {
+var ex=null;
+for(var i=0;i<EX_LIB.length;i++){if(EX_LIB[i].n===name){ex=EX_LIB[i];break;}}
+if(!ex)return;
+for(var j=0;j<_stageEx.length;j++){if(_stageEx[j].n===name){_stageEx.splice(j,1);showAddExModal();return;}}
+_stageEx.push({n:ex.n,sets:ex.sets,r:ex.r,t:ex.t,m:ex.m,rest:ex.rest,note:ex.note||'',alt:ex.alt||[]});
+showAddExModal();
+}
+function doAddMultiEx() {
+if(!_stageEx.length){toast('Select at least one exercise','err');return;}
+for(var i=0;i<_stageEx.length;i++){_bp.prog.days[_bpDay].ex.push(_stageEx[i]);}
+_stageEx=[];
+showBuilder();
+}
+function doAddCustomEx() {
 var n=((document.getElementById('ae_n')||{}).value||'').trim();
 var sets=parseInt((document.getElementById('ae_s')||{}).value)||3;
 var r=((document.getElementById('ae_r')||{}).value||'8-12').trim();
-var t=(document.getElementById('ae_t')||{}).value||'Compound';
-var m=((document.getElementById('ae_m')||{}).value||'').trim();
-var rest=((document.getElementById('ae_rest')||{}).value||'90s').trim();
-var note=((document.getElementById('ae_note')||{}).value||'').trim();
-var altRaw=((document.getElementById('ae_alt')||{}).value||'').trim();
-var alt=altRaw?altRaw.split(',').map(function(a){return a.trim();}).filter(Boolean):[];
 if(!n){toast('Enter exercise name','err');return;}
-_bp.prog.days[_bpDay].ex.push({n:n,sets:sets,r:r,t:t,m:m,rest:rest,note:note,alt:alt});
+_bp.prog.days[_bpDay].ex.push({n:n,sets:sets,r:r,t:'Compound',m:'',rest:'90s',note:'',alt:[]});
 showBuilder();
 }
 function doSaveBuilder() {

@@ -917,6 +917,9 @@ DB.set('logs_' + S.cid, S.logs);
 DB.set('streak_' + S.cid, S.streak);
 DB.set('prs_' + S.cid, S.prs);
 trackUsage('sessionsLogged');
+var _d = getDay(); var _cpN = (DB.get('cp_'+S.cid)||{}).name || 'Client';
+var _dayName = _d ? (_d.title || _d.name || _d.tag || 'workout') : 'workout';
+logActivity('workout', _cpN + ' logged ' + ex.n + ' in ' + _dayName, 'log');
 }
 function delLog(ei, si) {
 var key = lk(S.week, S.day, ei, si);
@@ -1188,6 +1191,23 @@ enterClient(cid);
 toast('Welcome '+name+'! Your trainer has been notified.', 'ok');
 }
 
+function _ensureFirebaseReady(errEl) {
+if (!window.firebase) { if(errEl)errEl.innerHTML='<div class="err-msg">Firebase SDK not loaded. Check your internet connection and reload.</div>'; return false; }
+if (!firebase.apps || !firebase.apps.length) {
+try { firebase.initializeApp(FB_CONFIG); DB._fb = firebase.database(); } catch(e) {}
+}
+if (!firebase.auth) { if(errEl)errEl.innerHTML='<div class="err-msg">Firebase Auth not loaded. Reload the page and try again.</div>'; return false; }
+return true;
+}
+function _fbAuthErrMsg(e) {
+if (e.code === 'auth/configuration-not-found') return 'Email/Password sign-in is not enabled. Go to Firebase Console &rarr; Authentication &rarr; Sign-in methods and enable Email/Password.';
+if (e.code === 'auth/email-already-in-use') return 'This email already has an account. Sign in instead.';
+if (e.code === 'auth/user-not-found') return 'No account found with that email.';
+if (e.code === 'auth/wrong-password') return 'Incorrect password.';
+if (e.code === 'auth/invalid-email') return 'Invalid email address.';
+if (e.code === 'auth/too-many-requests') return 'Too many attempts. Try again later.';
+return e.message || 'Authentication failed.';
+}
 function doTCreate() {
 var name = ((document.getElementById('tname')||{}).value||'').trim();
 var email = ((document.getElementById('temail')||{}).value||'').trim();
@@ -1199,12 +1219,12 @@ function showErr(m){if(errEl)errEl.innerHTML='<div class="err-msg">'+m+'</div>';
 if (!name) { showErr('Enter your name'); return; }
 if (!email || email.indexOf('@') < 0) { showErr('Enter a valid email'); return; }
 if (pass.length < 6) { showErr('Password must be at least 6 characters'); return; }
-if (!window.firebase || !firebase.auth) { showErr('Firebase not ready - reload and try again'); return; }
+if (!_ensureFirebaseReady(errEl)) return;
 if(errEl) errEl.innerHTML='<div style="font-size:11px;color:var(--m1);padding:6px">Creating account...</div>';
 firebase.auth().createUserWithEmailAndPassword(email, pass).then(function(cred) {
 _setupTrainerSession(cred.user.uid, name, email, currency, refCode);
 }).catch(function(e) {
-showErr(e.message || 'Registration failed');
+showErr(_fbAuthErrMsg(e));
 });
 }
 function doTEmailLogin() {
@@ -1214,7 +1234,7 @@ var errEl = document.getElementById('tlogin_err');
 function showErr(m){if(errEl)errEl.innerHTML='<div class="err-msg">'+m+'</div>';}
 if (!email) { showErr('Enter your email'); return; }
 if (!pass) { showErr('Enter your password'); return; }
-if (!window.firebase || !firebase.auth) { showErr('Firebase not ready - reload and try again'); return; }
+if (!_ensureFirebaseReady(errEl)) return;
 if(errEl) errEl.innerHTML='<div style="font-size:11px;color:var(--m1);padding:6px">Signing in...</div>';
 firebase.auth().signInWithEmailAndPassword(email, pass).then(function(cred) {
 var uid = cred.user.uid;
@@ -1230,7 +1250,7 @@ _enterTrainerWithId(uid);
 }).catch(function(e){ showErr(e.message||'Failed to load profile'); });
 } else { _enterTrainerWithId(uid); }
 }).catch(function(e) {
-showErr(e.message || 'Sign in failed');
+showErr(_fbAuthErrMsg(e));
 });
 }
 function _setupTrainerSession(uid, name, email, currency, refCode) {
@@ -1798,26 +1818,66 @@ if (cid) openCli(cid);
 }
 
 
+function _openCliTab(cid, tab) {
+S.vCli = cid; S.cliTab = tab || 'overview';
+loadCliDetail(cid);
+setupMsgListener(cid, 'trainer');
+R();
+}
+
 function renderUpdatesFeed() {
-var feed = (S.workoutFeed || []).slice(0, 6);
-if (feed.length === 0) {
+// Gather activities from all clients
+var allEvents = [];
+var cids = Object.keys(S.clients || {});
+for (var ci = 0; ci < cids.length; ci++) {
+var cid = cids[ci];
+var clientName = (S.clients[cid] || {}).name || 'Client';
+var acts = DB.get('activity_log_'+cid) || [];
+for (var ai = 0; ai < acts.length; ai++) {
+allEvents.push({cid: cid, clientName: clientName, ts: acts[ai].ts, text: acts[ai].text, type: acts[ai].type, navTab: acts[ai].navTab});
+}
+}
+// Also include workout completions from workoutFeed
+var wf = S.workoutFeed || [];
+for (var wi = 0; wi < wf.length; wi++) {
+allEvents.push({cid: wf[wi].cid, clientName: wf[wi].clientName, ts: wf[wi].ts, text: (wf[wi].clientName||'Client') + ' finished ' + (wf[wi].dayName||'a workout'), type: 'workout', navTab: 'log'});
+}
+allEvents.sort(function(a,b){ return (b.ts||0) - (a.ts||0); });
+allEvents = allEvents.slice(0, 15);
+var typeIcon = {weight: '&#9878;', food: '&#127828;', workout: '&#127947;', habit: '&#9989;', goal: '&#127919;'};
+var typeColor = {weight: '#6366f1', food: '#10b981', workout: '#f59e0b', habit: '#34d399', goal: '#ec4899'};
+if (allEvents.length === 0) {
 return '<div class="dash-section">' + renderAIInsights() + '</div>';
 }
 return '<div class="dash-section">' +
-'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2);margin-bottom:8px">UPDATES</div>' +
-feed.map(function(n) {
-return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer" onclick="openCliById(this)" data-cid="' + (n.cid||'') + '">' +
-'<div style="width:32px;height:32px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0">' + ((n.clientName||'?').charAt(0)) + '</div>' +
-'<div style="flex:1"><div style="font-size:12px;font-weight:600;color:#fff">' + (n.clientName||'Client') + ' finished ' + (n.dayName||'session') + '</div>' +
-'<div style="font-size:10px;color:var(--m1)">' + getTimeAgo(n.ts) + (n.prsHit&&n.prsHit.length?' &bull; &#127942; '+n.prsHit.length+' PR':'') + '</div>' +
-(n.sessionNote?'<div style="font-size:10px;color:var(--m2);margin-top:2px;font-style:italic">&ldquo;' + n.sessionNote.substring(0,50) + (n.sessionNote.length>50?'..':'') + '&rdquo;</div>':'') +
-'</div></div>';
-}).join('') + '</div>';
+'<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2);margin-bottom:8px">CLIENT ACTIVITY</div>' +
+allEvents.map(function(n) {
+var icon = typeIcon[n.type] || '&#128203;';
+var color = typeColor[n.type] || 'var(--acc)';
+return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer" onclick="_openCliTab(\''+n.cid+'\',\''+(n.navTab||'overview')+'\')">' +
+'<div style="width:34px;height:34px;border-radius:50%;background:'+color+'22;border:1.5px solid '+color+'44;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">'+icon+'</div>' +
+'<div style="flex:1;min-width:0">' +
+'<div style="font-size:12px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+n.text+'</div>' +
+'<div style="font-size:10px;color:var(--m1)">'+n.clientName+' &bull; '+getTimeAgo(n.ts)+'</div>' +
+'</div>' +
+'<div style="font-size:11px;color:var(--m2)">&#8594;</div>' +
+'</div>';
+}).join('') +
+'</div>';
 }
 
 function sendPayReminder(cid) {
 var c = S.clients[cid] || {};
 openQuickMsg(cid);
+}
+
+function logActivity(type, text, navTab) {
+// Called from client-side: logs an activity event readable by trainer
+if (!S.cid) return;
+var arr = DB.get('activity_log_'+S.cid) || [];
+arr.unshift({ts: Date.now(), type: type, text: text, navTab: navTab || '', cid: S.cid});
+if (arr.length > 50) arr = arr.slice(0, 50);
+DB.set('activity_log_'+S.cid, arr);
 }
 
 function getTimeAgo(ts) {
@@ -3607,7 +3667,7 @@ if(navOn==='goals'||navOn==='habits'||navOn==='recovery'||navOn==='measurements'
 return '<nav class="bnav">'+tabs.map(function(t){
 var on=navOn===t.id;
 var color=on?'var(--acc)':'var(--m2)';
-var click=t.id==='workout'?'var _ti=getTodayWorkoutIdx();if(_ti>=0)S.day=_ti;S.cTab=\'workout\';R()':'S.cTab=\''+t.id+'\';R()';
+var click=t.id==='workout'?'S.wkDayOpen=null;S.cTab=\'workout\';R()':'S.cTab=\''+t.id+'\';R()';
 return '<button class="nb" onclick="'+click+'" style="color:'+color+'">' +
 '<span class="nbi">'+t.icon+'</span>'+t.lbl+
 (t.badge&&t.badge>0?'<span class="nbd">'+t.badge+'</span>':'')+
@@ -3615,9 +3675,92 @@ return '<button class="nb" onclick="'+click+'" style="color:'+color+'">' +
 }).join('')+'</nav>';
 }
 
+function openWorkoutDay(idx) {
+S.wkDayOpen = idx; S.day = idx; S.cTab = 'workout'; R();
+}
+function renderWorkoutList(prog, days) {
+var todayWd = new Date().getDay();
+var cp = DB.get('cp_'+S.cid)||{};
+var hdr = '<div class="hdr"><div class="hdr-top">' +
+'<div><div class="hdr-sub">Training</div><div class="hdr-title">'+(prog?prog.name.split('-')[0].trim():'My Workouts')+'</div></div>' +
+'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">' +
+(S.streak.cur>0?'<span class="pill p-amber">&#128293; '+S.streak.cur+'</span>':'') +
+'</div></div></div>';
+if (!prog || !days.length) {
+return hdr+'<div class="page"><div class="empty">No program yet.<br>Your trainer will set up your workouts.</div></div>'+cliNav();
+}
+// Current program days
+var daysHtml = '<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2);margin-bottom:10px">YOUR PROGRAM</div>';
+for (var di=0; di<days.length; di++) {
+var dd = days[di];
+var ac = dd.accent || 'var(--acc)';
+var dName = dd.title || dd.name || dd.tag || ('Day '+(di+1));
+var exCnt = (dd.ex||[]).length;
+var wds = dd.weekdays||[];
+var isTodayWd = wds.indexOf(todayWd) >= 0;
+// Count total sets logged this week for this day
+var setsThisWk = 0;
+var pr2 = {done:0,total:0};
+var savedDay = S.day;
+S.day = di;
+pr2 = sessP();
+S.day = savedDay;
+daysHtml += '<div onclick="openWorkoutDay('+di+')" style="display:flex;align-items:center;gap:13px;padding:14px 16px;background:var(--c1);border:1px solid var(--bdr);border-left:3px solid '+ac+';border-radius:0 14px 14px 0;margin-bottom:8px;cursor:pointer">' +
+'<div style="width:44px;height:44px;border-radius:12px;background:'+ac+'22;display:flex;align-items:center;justify-content:center;font-size:22px">&#128170;</div>' +
+'<div style="flex:1">' +
+'<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">' +
+'<div style="font-size:15px;font-weight:800;color:#fff">'+dName+'</div>' +
+(isTodayWd?'<span style="font-size:8px;background:'+ac+';color:#fff;padding:2px 6px;border-radius:5px;font-weight:800">TODAY</span>':'')+
+'</div>' +
+'<div style="font-size:11px;color:var(--m2)">'+exCnt+' exercise'+(exCnt===1?'':'s') +
+(dd.sub?' &bull; '+dd.sub:'')+
+(pr2.total>0?' &bull; <span style="color:'+ac+'">'+pr2.done+'/'+pr2.total+' sets this week</span>':'')+
+'</div>' +
+'</div>' +
+'<div style="font-size:16px;color:var(--m2)">&#8250;</div>' +
+'</div>';
+}
+// Recent workout history (last 5 logged days)
+var histKeys = Object.keys(S.logs||{});
+var recentMap = {};
+for (var hk=0; hk<histKeys.length; hk++) {
+var parts = histKeys[hk].split('_');
+// key format: w{week}_d{day}_e{ei}_s{si}
+if (parts.length < 2) continue;
+var wIdx = parseInt((parts[0]||'').replace('w',''))||0;
+var dIdx = parseInt((parts[1]||'').replace('d',''))||0;
+var log = S.logs[histKeys[hk]];
+if (!log || !log.done || !log.ts) continue;
+var mapKey = wIdx+'_'+dIdx;
+if (!recentMap[mapKey] || recentMap[mapKey].ts < log.ts) {
+recentMap[mapKey] = {wIdx:wIdx, dIdx:dIdx, ts:log.ts, dayName:(days[dIdx]?days[dIdx].title||days[dIdx].name||days[dIdx].tag:'Workout')};
+}
+}
+var histArr = Object.values(recentMap).sort(function(a,b){return b.ts-a.ts;}).slice(0,6);
+var histHtml = '';
+if (histArr.length) {
+histHtml += '<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2);margin:16px 0 10px">RECENT HISTORY</div>';
+for (var hi=0; hi<histArr.length; hi++) {
+var h = histArr[hi];
+var hDate = new Date(h.ts).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+var hDayName = h.dayName;
+var hAc = (days[h.dIdx]&&days[h.dIdx].accent)||'var(--acc)';
+histHtml += '<div onclick="S.week='+h.wIdx+';openWorkoutDay('+h.dIdx+')" style="display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--c1);border:1px solid var(--bdr);border-radius:12px;margin-bottom:6px;cursor:pointer">' +
+'<div style="width:36px;height:36px;border-radius:9px;background:rgba(16,185,129,.08);display:flex;align-items:center;justify-content:center;font-size:16px">&#9989;</div>' +
+'<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--m1)">'+hDayName+'</div>' +
+'<div style="font-size:10px;color:var(--m2)">Week '+h.wIdx+' &bull; '+hDate+'</div></div>' +
+'<div style="font-size:14px;color:var(--m2)">&#8250;</div></div>';
+}
+}
+return hdr+'<div class="page">'+daysHtml+histHtml+'</div>'+cliNav();
+}
 function renderWorkout() {
 var prog=getProg();
 var days=getDays();
+// Show list if no day selected
+if (S.wkDayOpen === null || S.wkDayOpen === undefined) {
+return renderWorkoutList(prog, days);
+}
 var duration=getDurationWeeks(prog);
 var wkPhase=((S.week-1)%4)+1;
 var wk=WK[wkPhase]||WK[1];
@@ -3646,7 +3789,10 @@ var dName=dd.name||dd.title||dd.tag;
 return '<button onclick="selDay('+i+')" style="flex-shrink:0;padding:5px 14px;border-radius:20px;border:'+(on?'2px solid '+(dd.accent||'var(--acc)'):'1px solid var(--bdr)')+';background:'+(on?(dd.accent||'var(--acc)')+'22':'transparent')+';color:'+(on?(dd.accent||'var(--acc)'):'var(--m1)')+';font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer">'+dName+(isTodayDay?' &#128314;':'')+'</button>';
 }).join('')+'</div>':'';
 var hdr='<div class="hdr"><div class="hdr-top">' +
+'<div style="display:flex;align-items:center;gap:8px">' +
+'<button onclick="S.wkDayOpen=null;R()" style="width:30px;height:30px;border-radius:8px;background:var(--c2);border:1px solid var(--bdr);color:var(--m1);font-size:18px;cursor:pointer;line-height:1;flex-shrink:0">&#8249;</button>' +
 '<div><div class="hdr-sub">Ahmed PT</div><div class="hdr-title">'+(prog?prog.name.split('-')[0].trim():'My Training')+'</div></div>' +
+'</div>' +
 '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">' +
 (S.streak.cur>0?'<span class="pill p-amber">&#128293; '+S.streak.cur+'</span>':'') +
 '<div style="display:flex;gap:3px"><button onclick="setUnit(\'kg\')" style="padding:2px 7px;border-radius:8px;border:1px solid '+(S.unit==='kg'?'var(--acc)':'var(--bdr)')+';background:'+(S.unit==='kg'?'rgba(99,102,241,.15)':'transparent')+';color:'+(S.unit==='kg'?'var(--acc)':'var(--m2)')+';font-size:10px;font-weight:700;cursor:pointer">KG</button>' +
@@ -3805,6 +3951,7 @@ arr=arr.filter(function(e){return e.date!==d;});
 arr.push({date:d,weight:v,unit:u});
 arr.sort(function(a,b){return a.date.localeCompare(b.date);});
 DB.set('bodyweight_'+S.cid,arr);
+logActivity('weight', (DB.get('cp_'+S.cid)||{}).name+' logged weight: '+v+u, 'body');
 toast('Weight logged','ok'); R();
 }
 function renderBWSection() {
@@ -4014,7 +4161,11 @@ var cellWd=cellDate.getDay();
 var hasSess=!!sessDateSet[cellDs];
 var hasWk=!!(workoutWdMap[cellWd]);
 var dotBg=hasSess?'#10b981':(hasWk&&isOnline?'#6366f1':'rgba(0,0,0,0)');
-weekStripHtml+='<div style="text-align:center;padding:7px 2px 8px;border-radius:10px;background:'+(isToday?'rgba(99,102,241,.18)':'transparent')+';border:1.5px solid '+(isToday?'var(--acc)':'transparent')+'">' +
+var cellClickable = (isOnline && hasWk) || (!isOnline && hasSess);
+var cellClick = '';
+if (isOnline && hasWk) { cellClick = ' onclick="openWorkoutDay('+workoutWdMap[cellWd].idx+')"'; }
+else if (!isOnline && hasSess) { cellClick = ' onclick="S.cTab=\'sessions\';R()"'; }
+weekStripHtml+='<div'+cellClick+' style="text-align:center;padding:7px 2px 8px;border-radius:10px;'+(cellClickable?'cursor:pointer;':'')+';background:'+(isToday?'rgba(99,102,241,.18)':'transparent')+';border:1.5px solid '+(isToday?'var(--acc)':cellClickable?'rgba(255,255,255,.1)':'transparent')+'">' +
 '<div style="font-size:9px;color:'+(isToday?'var(--acc)':'var(--m2)')+';font-weight:700;margin-bottom:4px">'+DAY_LETTERS[d]+'</div>' +
 '<div style="font-size:15px;font-weight:800;color:'+(isToday?'var(--acc)':'#fff')+';margin-bottom:5px">'+cellDate.getDate()+'</div>' +
 '<div style="width:6px;height:6px;border-radius:50%;background:'+dotBg+';margin:0 auto"></div>' +
@@ -4108,13 +4259,27 @@ lines.map(function(line){return '<div style="font-size:12px;color:var(--m1);line
 }
 
 function _renderInPersonSessions(upcoming,done,now){
+var tc=DB.get('tc')||{};
+var c=tc[S.cid]||{};
+var balance=c.balance||0;
+var totalSessions=done.length+upcoming.length;
+var summaryHtml='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">' +
+'<div style="background:var(--c1);border:1px solid var(--bdr);border-radius:12px;padding:12px;text-align:center">' +
+'<div style="font-size:28px;font-weight:900;color:var(--green)">'+done.length+'</div>' +
+'<div style="font-size:10px;color:var(--m2);margin-top:3px;letter-spacing:.5px">SESSIONS DONE</div>' +
+'</div>' +
+'<div style="background:var(--c1);border:1px solid var(--bdr);border-radius:12px;padding:12px;text-align:center">' +
+'<div style="font-size:28px;font-weight:900;color:'+(balance<=0?'var(--amber)':'#818cf8')+'">'+Math.max(0,balance)+'</div>' +
+'<div style="font-size:10px;color:var(--m2);margin-top:3px;letter-spacing:.5px">SESSIONS LEFT</div>' +
+'</div>' +
+'</div>';
 if(!upcoming.length&&!done.length){
-return '<div style="text-align:center;padding:30px 20px;background:var(--c1);border:1px solid var(--bdr);border-radius:14px;margin-bottom:12px">' +
+return summaryHtml+'<div style="text-align:center;padding:30px 20px;background:var(--c1);border:1px solid var(--bdr);border-radius:14px;margin-bottom:12px">' +
 '<div style="font-size:40px;margin-bottom:10px">&#128197;</div>' +
 '<div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:6px">No sessions booked yet</div>' +
-'<div style="font-size:12px;color:var(--m1)">Ahmed will book your sessions. Check back soon.</div></div>';
+'<div style="font-size:12px;color:var(--m1)">Your trainer will book your sessions. Check back soon.</div></div>';
 }
-var out='';
+var out=summaryHtml;
 if(upcoming.length){
 out+='<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--m2);margin-bottom:10px">UPCOMING SESSIONS</div>';
 for(var i=0;i<upcoming.length;i++){
@@ -4371,7 +4536,9 @@ var data=getNutriData(null,getNutrDate());
 var meal=S.addFoodMeal||'snacks';
 if(!data.meals[meal])data.meals[meal]=[];
 data.meals[meal].push({name:name,calories:cal,protein:p,carbs:c,fat:f,ts:Date.now()});
-saveNutriData(data);closeModal();toast(name+' added','ok');R();
+saveNutriData(data);
+logActivity('food', (DB.get('cp_'+S.cid)||{}).name+' logged food: '+name+(cal?' ('+cal+' kcal)':''), 'nutrition');
+closeModal();toast(name+' added','ok');R();
 }
 function doDeleteFood(meal,idx){
 var data=getNutriData(null,getNutrDate());
@@ -4529,16 +4696,40 @@ if(res){
 res.innerHTML='<div style="background:var(--c2);border-radius:12px;padding:14px;margin-bottom:14px">'+
 '<div style="text-align:center;margin-bottom:12px">'+
 '<div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--acc);margin-bottom:4px">YOUR DAILY TARGETS</div>'+
-'<div style="font-size:32px;font-weight:900;color:#fff">'+cals+'<span style="font-size:14px;color:var(--m1)"> kcal</span></div>'+
-'<div style="font-size:10px;color:var(--m2)">TDEE '+tdee+' &#183; '+(goal==='cut'?'-300 cut':goal==='bulk'?'+300 bulk':'maintain')+'</div></div>'+
-'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">'+
-'<div style="text-align:center;padding:10px 6px;background:rgba(129,140,248,.1);border-radius:10px"><div style="font-size:20px;font-weight:900;color:#818cf8">'+protein+'g</div><div style="font-size:9px;color:var(--m2);margin-top:2px">PROTEIN</div></div>'+
-'<div style="text-align:center;padding:10px 6px;background:rgba(52,211,153,.1);border-radius:10px"><div style="font-size:20px;font-weight:900;color:#34d399">'+carbs+'g</div><div style="font-size:9px;color:var(--m2);margin-top:2px">CARBS</div></div>'+
-'<div style="text-align:center;padding:10px 6px;background:rgba(245,158,11,.1);border-radius:10px"><div style="font-size:20px;font-weight:900;color:var(--amber)">'+fat+'g</div><div style="font-size:9px;color:var(--m2);margin-top:2px">FAT</div></div>'+
+'<div style="font-size:32px;font-weight:900;color:#fff" id="mc_cals_disp">'+cals+'<span style="font-size:14px;color:var(--m1)"> kcal</span></div>'+
+'<div style="font-size:10px;color:var(--m2)">TDEE '+tdee+' &#183; '+(goal==='cut'?'-300 cut':goal==='bulk'?'+300 bulk':'maintain')+'&nbsp;&mdash;&nbsp;adjust below to customise</div></div>'+
+'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">'+
+'<div style="text-align:center;padding:10px 6px;background:rgba(129,140,248,.1);border-radius:10px">'+
+'<input id="mc_adj_p" type="number" inputmode="decimal" value="'+protein+'" oninput="recalcMacroCals()" style="width:100%;background:none;border:none;font-size:20px;font-weight:900;color:#818cf8;text-align:center;padding:0">'+
+'<div style="font-size:9px;color:var(--m2);margin-top:2px">PROTEIN (g)</div></div>'+
+'<div style="text-align:center;padding:10px 6px;background:rgba(52,211,153,.1);border-radius:10px">'+
+'<input id="mc_adj_c" type="number" inputmode="decimal" value="'+carbs+'" oninput="recalcMacroCals()" style="width:100%;background:none;border:none;font-size:20px;font-weight:900;color:#34d399;text-align:center;padding:0">'+
+'<div style="font-size:9px;color:var(--m2);margin-top:2px">CARBS (g)</div></div>'+
+'<div style="text-align:center;padding:10px 6px;background:rgba(245,158,11,.1);border-radius:10px">'+
+'<input id="mc_adj_f" type="number" inputmode="decimal" value="'+fat+'" oninput="recalcMacroCals()" style="width:100%;background:none;border:none;font-size:20px;font-weight:900;color:var(--amber);text-align:center;padding:0">'+
+'<div style="font-size:9px;color:var(--m2);margin-top:2px">FAT (g)</div></div>'+
 '</div>'+
-'<button class="btn btn-green" onclick="closeModal();toast(\'Targets saved!\',\'ok\');R()" style="margin-top:12px">APPLY AS TARGET &#10003;</button>'+
+'<button class="btn btn-green" onclick="applyAdjMacros()" style="margin-top:4px">APPLY AS TARGET &#10003;</button>'+
 '</div>';
 }
+}
+function recalcMacroCals() {
+var p=parseFloat((document.getElementById('mc_adj_p')||{}).value||'0')||0;
+var c=parseFloat((document.getElementById('mc_adj_c')||{}).value||'0')||0;
+var f=parseFloat((document.getElementById('mc_adj_f')||{}).value||'0')||0;
+var total=Math.round(p*4+c*4+f*9);
+var el=document.getElementById('mc_cals_disp');
+if(el)el.innerHTML=total+'<span style="font-size:14px;color:var(--m1)"> kcal</span>';
+}
+function applyAdjMacros() {
+var p=parseFloat((document.getElementById('mc_adj_p')||{}).value||'0')||0;
+var c=parseFloat((document.getElementById('mc_adj_c')||{}).value||'0')||0;
+var f=parseFloat((document.getElementById('mc_adj_f')||{}).value||'0')||0;
+var cals=Math.round(p*4+c*4+f*9);
+var bio=DB.get('bio_'+S.cid)||{};
+bio.macros={calories:cals,protein:p,carbs:c,fat:f};
+DB.set('bio_'+S.cid,bio);
+closeModal();toast('Targets saved!','ok');R();
 }
 
 

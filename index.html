@@ -3175,6 +3175,11 @@ showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" o
 '<div id="tp_err"></div>' +
 '<button class="btn btn-acc" onclick="doSaveProfile()">SAVE &#10003;</button>' +
 '</div>' +
+'<div style="border-top:1px solid var(--bdr);margin-top:16px;padding-top:14px">' +
+'<div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--red);margin-bottom:8px">DANGER ZONE</div>' +
+'<div style="font-size:11px;color:var(--m2);margin-bottom:10px;line-height:1.5">Clear all client data from this account. Use this if wrong data was migrated. Your trainer profile and login are kept &mdash; only clients, sessions, payments and programs are removed.</div>' +
+'<button class="btn" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171;font-size:12px;font-weight:700" onclick="confirmClearAccountData()">&#128465; Clear All Client Data</button>' +
+'</div>' +
 '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
 '</div></div>');
 }
@@ -3194,6 +3199,48 @@ else if(!apiKey&&DB.get('anthropic_key'))DB.del('anthropic_key');
 closeModal(); toast('Profile updated','ok'); R();
 }
 
+function confirmClearAccountData() {
+showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
+'<div style="text-align:center;padding:10px 0 20px">' +
+'<div style="font-size:48px;margin-bottom:12px">&#9888;&#65039;</div>' +
+'<div style="font-size:18px;font-weight:800;color:#f87171;margin-bottom:8px">Clear All Client Data?</div>' +
+'<div style="font-size:13px;color:var(--m1);line-height:1.6;margin-bottom:20px">This will permanently delete all clients, sessions, payments, programs and activity logs from this account.<br><strong style="color:#fff">This cannot be undone.</strong></div>' +
+'<button class="btn" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#f87171;font-weight:800;margin-bottom:8px" onclick="doClearAccountData()">YES, DELETE EVERYTHING</button>' +
+'<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
+'</div></div></div>');
+}
+function doClearAccountData() {
+var uid = S.trId;
+var prefix = uid ? uid+'_' : '';
+var WIPE_KEYS = ['tc','sub','referral_code','activity_log'];
+var WIPE_PFX = ['cp_','logs_','progs_','sessions_','payments_','habits_','goals_','nots_','msgs_','activity_log_','bio_','program_'];
+var all = Object.keys(localStorage);
+var removed = 0;
+for (var i=0; i<all.length; i++) {
+var k = all[i];
+// Only touch keys belonging to this account's namespace
+var bare = prefix && k.indexOf(prefix)===0 ? k.slice(prefix.length) : (prefix?null:k);
+if (bare === null) continue;
+var shouldWipe = WIPE_KEYS.indexOf(bare) >= 0;
+if (!shouldWipe) {
+for (var j=0; j<WIPE_PFX.length; j++) {
+if (bare.indexOf(WIPE_PFX[j]) === 0) { shouldWipe = true; break; }
+}
+}
+if (shouldWipe) { localStorage.removeItem(k); removed++; }
+}
+// Also wipe from Firebase under this account's path
+if (DB._fb && uid) {
+var wipePaths = ['tc','activity_log'];
+for (var w=0; w<wipePaths.length; w++) {
+DB._fb.ref('trainers/'+uid+'/'+wipePaths[w]).remove().catch(function(){});
+}
+}
+S.clients = {};
+closeModal();
+toast('Account data cleared (' + removed + ' records removed)', 'ok');
+setTimeout(function(){ R(); }, 300);
+}
 function openQuickMsg(cid) {
 var c=S.clients[cid]||{};
 showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +

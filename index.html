@@ -1297,8 +1297,8 @@ var tdata = {name:name, email:email, uid:uid, currency:currency, inviteCode:invi
 DB.set('trainer', tdata);
 if (DB._fb) DB._fb.ref('trainer_codes/'+inviteCode).set(uid).catch(function(){});
 DB.set('sess', {role:'trainer', trId:uid});
-// Migrate any existing unscoped (legacy) data into this account's namespace
-var migrated = _migrateLegacyData(uid);
+// Migrate legacy data ONLY if it hasn't already been claimed by a different account
+var migrated = _canMigrateLegacy(uid) ? _migrateLegacyData(uid) : 0;
 _enterTrainerWithId(uid);
 setTimeout(function(){ setupReferral(uid, name, refCode||null); }, 1000);
 if (migrated > 0) {
@@ -1306,6 +1306,22 @@ toast('Account created + ' + migrated + ' legacy records migrated!', 'ok');
 } else {
 toast('Account created! Share invite code: '+inviteCode, 'ok');
 }
+}
+function _canMigrateLegacy(uid) {
+// Check if legacy data exists and hasn't been claimed by a different account
+var legacyT = null;
+try { var _lt = localStorage.getItem('trainer'); legacyT = _lt ? JSON.parse(_lt) : null; } catch(e) {}
+if (!legacyT) return false; // no legacy trainer at all
+// If already migrated to a different uid, block
+if (legacyT.migratedTo && legacyT.migratedTo !== uid) return false;
+// If legacy trainer has an email, it must match the current uid's trainer profile
+if (legacyT.email) {
+var newT = null;
+try { var _nt = localStorage.getItem(uid+'_trainer'); newT = _nt ? JSON.parse(_nt) : null; } catch(e) {}
+var newEmail = (newT && newT.email) ? newT.email.toLowerCase() : null;
+if (newEmail && newEmail !== legacyT.email.toLowerCase()) return false;
+}
+return true;
 }
 function _migrateLegacyData(newUid) {
 // Copy all unscoped legacy localStorage keys into {newUid}_ namespace
@@ -1331,6 +1347,15 @@ if (val === null) continue;
 localStorage.setItem(newKey, val);
 count++;
 }
+// Stamp the legacy trainer record so no other account can claim it
+if (count > 0) {
+try {
+var _st = localStorage.getItem('trainer');
+var st = _st ? JSON.parse(_st) : {};
+st.migratedTo = newUid;
+localStorage.setItem('trainer', JSON.stringify(st));
+} catch(e) {}
+}
 return count;
 }
 function _genInviteCode(name) {
@@ -1345,7 +1370,7 @@ var legacyTc = null;
 try { var _ltc = localStorage.getItem('tc'); legacyTc = _ltc ? JSON.parse(_ltc) : null; } catch(e) {}
 var currentEmpty = !currentTc || Object.keys(currentTc).length === 0;
 var legacyHasData = legacyTc && Object.keys(legacyTc).length > 0;
-if (currentEmpty && legacyHasData) {
+if (currentEmpty && legacyHasData && _canMigrateLegacy(uid)) {
 var migrated = _migrateLegacyData(uid);
 if (migrated > 0) setTimeout(function(){ toast('Your previous data has been restored (' + migrated + ' records migrated)', 'ok'); }, 800);
 }

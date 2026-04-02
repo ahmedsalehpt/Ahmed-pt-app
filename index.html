@@ -52,70 +52,6 @@ input[type=range].green-r{background:linear-gradient(to right,var(--green) 0%,va
 
 'use strict';
 
-var PROG = {
-"mens":{"name":"Elite Protocol - 4 Day","days":[
-{"tag":"Push","title":"Upper Push","sub":"Chest / Shoulders / Triceps","accent":"#ef4444","coach":"Focus on controlled eccentrics. 2 sec down every rep.","ex":[
-{"n":"Barbell Bench Press","t":"Compound","m":"Chest, Front Delts, Triceps","sets":4,"r":"6-10","rest":"3min","note":"Retract scapula, slight arch, bar to lower chest. Drive through heels.","alt":["Dumbbell Bench Press","Machine Chest Press"]},
-{"n":"Incline Dumbbell Press","t":"Compound","m":"Upper Chest, Front Delts","sets":3,"r":"8-12","rest":"2min","note":"30-45 degree incline. Control the descent, full stretch at bottom.","alt":["Incline Barbell Press","Cable Incline Press"]},
-{"n":"Overhead Press","t":"Compound","m":"Front Delts, Side Delts, Triceps","sets":4,"r":"6-10","rest":"3min","note":"Bar from chin to lockout overhead. Core braced, no excessive lean.","alt":["Dumbbell Shoulder Press","Arnold Press"]},
-{"n":"Lateral Raise","t":"Isolation","m":"Side Delts","sets":4,"r":"12-20","rest":"60s","note":"Lead with elbows, slight forward lean. No swinging.","alt":["Cable Lateral Raise","Machine Lateral Raise"]},
-{"n":"Tricep Pushdown","t":"Isolation","m":"Triceps","sets":3,"r":"12-15","rest":"60s","note":"Elbows pinned at sides throughout. Full extension at bottom.","alt":["Overhead Tricep Extension","Rope Pushdown"]},
-{"n":"Skull Crusher","t":"Isolation","m":"Triceps","sets":3,"r":"10-12","rest":"90s","note":"Bar to forehead, elbows stay vertical. Controlled lowering.","alt":["Dumbbell Skull Crusher","EZ Bar Skull Crusher"]}
-]},
-{"tag":"Legs","title":"Lower Body","sub":"Quads / Hamstrings / Glutes","accent":"#10b981","coach":"Full depth squats. Drive knees out. Stay tight throughout.","ex":[
-{"n":"Barbell Back Squat","t":"Compound","m":"Quads, Glutes, Hamstrings","sets":4,"r":"6-10","rest":"3min","note":"Hip crease below parallel. Knees track toes, chest up.","alt":["Hack Squat","Leg Press","Goblet Squat"]},
-{"n":"Romanian Deadlift","t":"Compound","m":"Hamstrings, Glutes, Lower Back","sets":4,"r":"8-12","rest":"2min","note":"Hinge at the hip. Slight knee bend, bar close to legs, feel hamstring stretch.","alt":["Dumbbell RDL","Single Leg RDL"]},
-{"n":"Leg Press","t":"Compound","m":"Quads, Glutes","sets":3,"r":"10-15","rest":"2min","note":"Feet shoulder width, press through full range. Do not lock out fully.","alt":["Hack Squat","Bulgarian Split Squat"]},
-{"n":"Leg Curl","t":"Isolation","m":"Hamstrings","sets":3,"r":"10-15","rest":"60s","note":"Control the eccentric. Do not let hips rise off the pad.","alt":["Nordic Curl","Swiss Ball Curl"]},
-{"n":"Leg Extension","t":"Isolation","m":"Quads","sets":3,"r":"12-15","rest":"60s","note":"Pause 1 second at the top. Slow controlled descent.","alt":["Terminal Knee Extension"]},
-{"n":"Calf Raise","t":"Isolation","m":"Calves","sets":4,"r":"15-20","rest":"60s","note":"Full range of motion. Pause at the top and bottom. Do not bounce.","alt":["Seated Calf Raise","Leg Press Calf Raise"]}
-]},
-{"tag":"Pull","title":"Upper Pull","sub":"Back / Biceps / Rear Delts","accent":"#3b82f6","coach":"Initiate every pull with the lats, not the biceps. Full stretch at the top.","ex":[
-{"n":"Barbell Deadlift","t":"Compound","m":"Back, Glutes, Hamstrings","sets":4,"r":"4-6","rest":"4min","note":"Neutral spine, bar over mid-foot. Push the floor away, bar close to body.","alt":["Trap Bar Deadlift","Sumo Deadlift"]},
-{"n":"Pull-Up","t":"Compound","m":"Lats, Biceps, Rear Delts","sets":4,"r":"6-10","rest":"2min","note":"Dead hang at bottom, chin over bar at top. Control the descent.","alt":["Lat Pulldown","Assisted Pull-Up"]},
-{"n":"Seated Cable Row","t":"Compound","m":"Mid Back, Rear Delts, Biceps","sets":4,"r":"8-12","rest":"90s","note":"Sit tall, drive elbows back. Squeeze shoulder blades at the end position.","alt":["Dumbbell Row","T-Bar Row"]},
-{"n":"Face Pull","t":"Isolation","m":"Rear Delts, Rotator Cuff","sets":3,"r":"15-20","rest":"60s","note":"Pull to forehead level. External rotation at the end. High rep, light weight.","alt":["Rear Delt Fly","Band Pull Apart"]},
-{"n":"Barbell Curl","t":"Isolation","m":"Biceps","sets":3,"r":"8-12","rest":"90s","note":"No swinging. Full extension at the bottom. Squeeze at the top.","alt":["EZ Bar Curl","Cable Curl"]},
-{"n":"Hammer Curl","t":"Isolation","m":"Biceps, Brachialis","sets":3,"r":"10-12","rest":"60s","note":"Neutral grip throughout. Controlled tempo.","alt":["Cross Body Curl","Incline Dumbbell Curl"]}
-]},
-{"tag":"Full","title":"Full Body","sub":"Compound Focus / Athletic","accent":"#a855f7","coach":"Heavier compounds today. Push to 0-1 RIR on main lifts.","ex":[
-{"n":"Hip Thrust","t":"Isolation","m":"Glutes","sets":4,"r":"10-15","rest":"90s","note":"Drive through heels, upper back on bench. Squeeze glutes hard at the top.","alt":["Glute Bridge","Cable Pull Through"]},
-{"n":"Bulgarian Split Squat","t":"Unilateral","m":"Quads, Glutes","sets":3,"r":"8-12","rest":"2min","note":"Front foot far enough forward to keep shin vertical. Controlled descent.","alt":["Reverse Lunge","Step Up"]},
-{"n":"Dumbbell Row","t":"Compound","m":"Lats, Rear Delts, Biceps","sets":4,"r":"10-12","rest":"90s","note":"Brace on bench, row to hip. Full stretch at the bottom.","alt":["Cable Row","Machine Row"]},
-{"n":"Dumbbell Shoulder Press","t":"Compound","m":"Front Delts, Side Delts","sets":3,"r":"10-12","rest":"90s","note":"Full range, controlled. Do not let the elbows flare excessively.","alt":["Machine Shoulder Press","Arnold Press"]},
-{"n":"Cable Crunch","t":"Abs","m":"Abs","sets":3,"r":"15-20","rest":"60s","note":"Crunch down, not pull down. Focus on contracting the abs.","alt":["Decline Crunch","Ab Wheel Rollout"]},
-{"n":"Plank","t":"Abs","m":"Core","sets":3,"r":"30-60s","rest":"60s","note":"Hips level, core braced. Do not hold breath.","alt":["Dead Bug","Hollow Hold"]}
-]}
-]},
-"womens":{"name":"Women's Protocol - 3 Day","days":[
-{"tag":"Lower","title":"Lower Body + Glutes","sub":"Glutes / Hamstrings / Quads","accent":"#ec4899","coach":"Mind-muscle connection on every glute exercise. Squeeze at the top.","ex":[
-{"n":"Hip Thrust","t":"Isolation","m":"Glutes","sets":4,"r":"10-15","rest":"90s","note":"Drive through heels. Squeeze glutes hard at the top, hold 1 second.","alt":["Glute Bridge","Cable Pull Through"]},
-{"n":"Romanian Deadlift","t":"Compound","m":"Hamstrings, Glutes, Lower Back","sets":4,"r":"8-12","rest":"2min","note":"Feel the hamstring stretch. Bar close to legs throughout the movement.","alt":["Dumbbell RDL","Single Leg RDL"]},
-{"n":"Bulgarian Split Squat","t":"Unilateral","m":"Quads, Glutes","sets":3,"r":"10-12","rest":"2min","note":"Front foot placed far enough forward. Keep chest upright.","alt":["Reverse Lunge","Step Up"]},
-{"n":"Leg Press","t":"Compound","m":"Quads, Glutes","sets":3,"r":"12-15","rest":"2min","note":"Higher foot position targets glutes more. Full range of motion.","alt":["Hack Squat","Goblet Squat"]},
-{"n":"Leg Curl","t":"Isolation","m":"Hamstrings","sets":3,"r":"12-15","rest":"60s","note":"Slow and controlled. Do not let hips lift off the pad.","alt":["Nordic Curl"]},
-{"n":"Glute Kickback","t":"Isolation","m":"Glutes","sets":3,"r":"15-20","rest":"60s","note":"Cable or machine. Full extension, squeeze at the top. Do not swing.","alt":["Donkey Kick","Cable Kickback"]},
-{"n":"Calf Raise","t":"Isolation","m":"Calves","sets":3,"r":"15-20","rest":"60s","note":"Full range. Pause at top and bottom.","alt":["Seated Calf Raise"]}
-]},
-{"tag":"Upper","title":"Upper Body + Core","sub":"Back / Shoulders / Arms / Abs","accent":"#6366f1","coach":"Focus on scapular retraction on all pulling movements.","ex":[
-{"n":"Lat Pulldown","t":"Compound","m":"Lats, Biceps","sets":4,"r":"8-12","rest":"90s","note":"Lean slightly back, pull to upper chest. Full stretch at the top.","alt":["Pull-Up","Assisted Pull-Up"]},
-{"n":"Seated Cable Row","t":"Compound","m":"Mid Back, Rear Delts","sets":3,"r":"10-12","rest":"90s","note":"Sit tall, drive elbows back. Squeeze shoulder blades together.","alt":["Dumbbell Row","Machine Row"]},
-{"n":"Dumbbell Shoulder Press","t":"Compound","m":"Front Delts, Side Delts","sets":3,"r":"10-12","rest":"90s","note":"Controlled press overhead. Full range of motion.","alt":["Machine Shoulder Press","Arnold Press"]},
-{"n":"Lateral Raise","t":"Isolation","m":"Side Delts","sets":3,"r":"12-20","rest":"60s","note":"Lead with elbows. Light weight, high rep. No swinging.","alt":["Cable Lateral Raise"]},
-{"n":"Dumbbell Curl","t":"Isolation","m":"Biceps","sets":3,"r":"10-12","rest":"60s","note":"No swinging. Squeeze at the top.","alt":["Hammer Curl","Cable Curl"]},
-{"n":"Tricep Pushdown","t":"Isolation","m":"Triceps","sets":3,"r":"12-15","rest":"60s","note":"Elbows pinned at sides. Full extension.","alt":["Overhead Tricep Extension"]},
-{"n":"Cable Crunch","t":"Abs","m":"Abs","sets":3,"r":"15-20","rest":"60s","note":"Contract the abs, not a pulldown. Controlled movement.","alt":["Decline Crunch","Hanging Leg Raise"]}
-]},
-{"tag":"Full","title":"Full Body Compound","sub":"Strength / Power / Core","accent":"#10b981","coach":"Heavier weights today. Push yourself on the big compound movements.","ex":[
-{"n":"Goblet Squat","t":"Compound","m":"Quads, Glutes, Core","sets":4,"r":"10-15","rest":"90s","note":"Dumbbell or kettlebell at chest. Deep squat, chest up.","alt":["Barbell Back Squat","Leg Press"]},
-{"n":"Dumbbell Row","t":"Compound","m":"Lats, Rear Delts, Biceps","sets":4,"r":"10-12","rest":"90s","note":"Brace on bench. Row to hip, full stretch at the bottom.","alt":["Seated Cable Row","Machine Row"]},
-{"n":"Incline Dumbbell Press","t":"Compound","m":"Upper Chest, Front Delts","sets":3,"r":"10-12","rest":"2min","note":"Controlled descent. Full stretch at the bottom.","alt":["Dumbbell Bench Press","Cable Chest Press"]},
-{"n":"Walking Lunges","t":"Unilateral","m":"Quads, Glutes, Hamstrings","sets":3,"r":"10-12 each","rest":"90s","note":"Long stride, upright torso. Control the knee on the way down.","alt":["Reverse Lunge","Step Up"]},
-{"n":"Face Pull","t":"Isolation","m":"Rear Delts, Rotator Cuff","sets":3,"r":"15-20","rest":"60s","note":"Pull to forehead. External rotation at the end.","alt":["Rear Delt Fly","Band Pull Apart"]},
-{"n":"Plank","t":"Abs","m":"Core","sets":3,"r":"30-45s","rest":"60s","note":"Hips level, core tight. Do not hold your breath.","alt":["Dead Bug","Side Plank"]}
-]}
-]}
-};
 var WK = {"1":{"l":"FOUNDATION","c":"#60a5fa","n":"2-3 RIR. Establish patterns. Full ROM."},"2":{"l":"VOLUME","c":"#34d399","n":"+1 set on compounds. +2.5-5kg where form is solid."},"3":{"l":"INTENSITY","c":"#f59e0b","n":"+5% load. 3-second eccentric every rep."},"4":{"l":"OVERLOAD","c":"#f87171","n":"Drop set last isolation. 0-1 RIR. Deload next week."}};
 var CURRENCIES = ["GBP","USD","EUR","AED","SAR","QAR","CHF","CAD","AUD"];
 var CURRENCY_SYMBOLS = {GBP:'&#163;',USD:'$',EUR:'&#8364;',AED:'AED',SAR:'SR',QAR:'QR',CHF:'CHF',CAD:'CA$',AUD:'A$'};
@@ -2534,13 +2470,55 @@ return html;
 }
 
 function renderCliTraining(cid, cd, c, cp) {
-var sub = S.trSub||'log';
-var html = '<div style="display:flex;gap:6px;margin-bottom:14px">';
-html += '<button onclick="S.trSub=\'log\';R()" style="padding:7px 16px;border-radius:20px;border:1px solid '+(sub==='log'?'var(--acc)':'rgba(255,255,255,.1)')+';background:'+(sub==='log'?'var(--acc)':'rgba(255,255,255,.04)')+';color:'+(sub==='log'?'#fff':'var(--m1)')+';font-size:12px;font-weight:700;cursor:pointer">&#128203; Workout Log</button>';
-html += '<button onclick="S.trSub=\'prog\';R()" style="padding:7px 16px;border-radius:20px;border:1px solid '+(sub==='prog'?'var(--acc)':'rgba(255,255,255,.1)')+';background:'+(sub==='prog'?'var(--acc)':'rgba(255,255,255,.04)')+';color:'+(sub==='prog'?'#fff':'var(--m1)')+';font-size:12px;font-weight:700;cursor:pointer">&#128200; Progress</button>';
+var sub = S.trSub||'programs';
+var html = '<div style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none">';
+html += '<button onclick="S.trSub=\'programs\';R()" style="flex-shrink:0;padding:7px 16px;border-radius:20px;border:1px solid '+(sub==='programs'?'var(--acc)':'rgba(255,255,255,.1)')+';background:'+(sub==='programs'?'var(--acc)':'rgba(255,255,255,.04)')+';color:'+(sub==='programs'?'#fff':'var(--m1)')+';font-size:12px;font-weight:700;cursor:pointer">&#128170; Programs</button>';
+html += '<button onclick="S.trSub=\'log\';R()" style="flex-shrink:0;padding:7px 16px;border-radius:20px;border:1px solid '+(sub==='log'?'var(--acc)':'rgba(255,255,255,.1)')+';background:'+(sub==='log'?'var(--acc)':'rgba(255,255,255,.04)')+';color:'+(sub==='log'?'#fff':'var(--m1)')+';font-size:12px;font-weight:700;cursor:pointer">&#128203; Workout Log</button>';
+html += '<button onclick="S.trSub=\'stats\';R()" style="flex-shrink:0;padding:7px 16px;border-radius:20px;border:1px solid '+(sub==='stats'?'var(--acc)':'rgba(255,255,255,.1)')+';background:'+(sub==='stats'?'var(--acc)':'rgba(255,255,255,.04)')+';color:'+(sub==='stats'?'#fff':'var(--m1)')+';font-size:12px;font-weight:700;cursor:pointer">&#128200; Progress</button>';
 html += '</div>';
+if (sub==='programs') return html + renderCliPrograms(cid, cd, c);
 if (sub==='log') return html + renderCliLog(cid, cd, c);
 return html + renderCliProg(cid, cd, c);
+}
+function renderCliPrograms(cid, cd, c) {
+var progs = getProgs(cid);
+var cp2 = DB.get('cp_'+cid)||{};
+var curPid = cp2.currentProgId||null;
+var html = '';
+if (progs.length > 0) {
+html += '<div class="sect" style="margin-top:0">PROGRAMS</div>';
+html += progs.map(function(p) {
+var on = p.id === curPid;
+var days = p.days || [];
+return '<div style="background:var(--c1);border:1px solid '+(on?'var(--acc)':'var(--bdr)')+';border-radius:14px;padding:14px 16px;margin-bottom:10px">' +
+'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">' +
+'<div>' +
+'<div style="font-size:15px;font-weight:800;color:#fff;margin-bottom:3px">'+p.name+'</div>' +
+'<div style="font-size:11px;color:var(--m2)">'+days.length+' day'+(days.length===1?'':'s')+(p.duration?' &bull; '+p.duration+' weeks':'')+' '+(on?'<span style="color:var(--acc);font-weight:700">&bull; Active</span>':'')+'</div>' +
+'</div>' +
+'<div style="display:flex;gap:6px">' +
+(!on?'<button onclick="switchProg(\''+cid+'\',\''+p.id+'\')" style="padding:5px 10px;border-radius:8px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);color:#818cf8;font-size:11px;font-weight:700;cursor:pointer">Set Active</button>':'') +
+'<button onclick="editProg(\''+cid+'\',\''+p.id+'\')" style="width:30px;height:30px;border-radius:8px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);color:#818cf8;font-size:13px;cursor:pointer">&#9998;</button>' +
+'</div></div>' +
+(days.length?'<div style="display:flex;gap:5px;flex-wrap:wrap">'+days.map(function(d){
+return '<span style="padding:3px 9px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--bdr);font-size:10px;font-weight:700;color:var(--m1)">'+(d.title||d.tag||'Day')+'</span>';
+}).join('')+'</div>':'')+
+'</div>';
+}).join('');
+html += '<button onclick="openAddProg(\''+cid+'\')" style="width:100%;padding:11px;border-radius:12px;border:1px dashed var(--bdr);background:transparent;color:var(--m2);font-size:12px;font-weight:700;cursor:pointer;margin-bottom:14px">+ Add Another Program</button>';
+} else {
+html += '<div style="text-align:center;padding:30px 20px;background:var(--c1);border:1px solid var(--bdr);border-radius:14px;margin-bottom:14px">' +
+'<div style="font-size:40px;margin-bottom:10px">&#128170;</div>' +
+'<div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:6px">No program yet</div>' +
+'<div style="font-size:12px;color:var(--m1);margin-bottom:16px">Build a custom training program for '+c.name+'</div>' +
+'<button onclick="openAddProg(\''+cid+'\')" class="btn btn-acc" style="font-size:12px">+ Build Training Program</button>' +
+'</div>';
+}
+html += '<div class="sect">COACHING NOTE</div><div class="card"><div class="card-p">';
+html += '<textarea class="inp" id="tr_note" rows="3" placeholder="Training notes, form cues, next steps..." style="min-height:70px;margin-bottom:8px">'+getLatTrNote(cid,cd)+'</textarea>';
+html += '<button class="btn-sm btn-acc" onclick="saveTrNote(\''+cid+'\')">Send to Client &#10003;</button>';
+html += '</div></div>';
+return html;
 }
 
 function renderCliHealth(cid, c, cd) {
@@ -3296,36 +3274,22 @@ closeModal();
 function openAddProg(cid) {
 if (!canUse('programBuilder')) { showUpgradeModal('programBuilder'); return; }
 var saved=DB.get('prog_templates')||[];
-var tkeys=Object.keys(PROG);
 showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
-'<div class="modal-title">Add Program <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">×</button></div>' +
+'<div class="modal-title">Add Program <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>' +
 (saved.length>0?'<div class="sect" style="margin-top:0">YOUR SAVED PROGRAMS</div>'+
 saved.map(function(t,i){
 return '<div style="display:flex;gap:8px;margin-bottom:8px">' +
-'<button class="btn btn-acc" style="flex:1;text-align:left;display:flex;justify-content:space-between;align-items:center;margin-bottom:0" onclick="useTemplate(\''+cid+'\','+i+')">' +
+'<button class="btn btn-acc" style="flex:1;text-align:left;display:flex;justify-content:space-between;align-items:center;margin-bottom:0" onclick="useTemplate(''+cid+'','+i+')">' +
 '<div><div style="font-size:13px;font-weight:700">'+t.name+'</div>' +
-'<div style="font-size:10px;opacity:.7">'+(t.days?t.days.length:0)+' days</div></div><span>→</span></button>' +
-'<button onclick="delTemplate('+i+')" style="padding:8px 10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#f87171;cursor:pointer;font-size:12px">✕</button></div>';
-}).join(''):'') +
-'<div class="sect">BUILT-IN TEMPLATES</div>' +
-tkeys.map(function(k){
-return '<button class="btn btn-ghost" style="margin-bottom:8px;text-align:left;display:flex;justify-content:space-between;align-items:center" onclick="useBuiltIn(\''+cid+'\',\''+k+'\')">' +
-'<div><div style="font-size:13px;color:#fff;font-weight:700">'+PROG[k].name+'</div>' +
-'<div style="font-size:10px;color:var(--m1);margin-top:2px">'+PROG[k].days.length+' days</div></div><span style="font-size:16px">→</span></button>';
-}).join('') +
-'<div class="sect">BUILD FROM SCRATCH</div>' +
+'<div style="font-size:10px;opacity:.7">'+(t.days?t.days.length:0)+' days</div></div><span>&#8594;</span></button>' +
+'<button onclick="delTemplate('+i+')" style="padding:8px 10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#f87171;cursor:pointer;font-size:12px">&#215;</button></div>';
+}).join('')+'<div class="sect">BUILD FROM SCRATCH</div>':'<div class="sect" style="margin-top:0">BUILD FROM SCRATCH</div>') +
 '<div class="row"><div class="lbl">Program Name</div><input class="inp" id="np_name" placeholder="e.g. Strength Block Phase 2"></div>' +
-'<button class="btn btn-acc" style="margin-bottom:8px" onclick="startBuilder(\''+cid+'\')">BUILD CUSTOM PROGRAM →</button>' +
+'<button class="btn btn-acc" style="margin-bottom:8px" onclick="startBuilder(''+cid+'')">BUILD CUSTOM PROGRAM &#8594;</button>' +
 '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
 '</div></div>');
 }
-function useBuiltIn(cid, key) {
-var t=PROG[key]; if(!t)return;
-var prog=JSON.parse(JSON.stringify(t));
-prog.id='prog_'+Date.now(); prog.created=Date.now();
-if(!prog.duration)prog.duration=4;
-saveProg(cid,prog);
-}
+
 function useTemplate(cid, idx) {
 var saved=DB.get('prog_templates')||[];
 var t=saved[idx]; if(!t)return;

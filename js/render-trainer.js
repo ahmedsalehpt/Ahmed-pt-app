@@ -1898,7 +1898,7 @@ _bp.cid=cid; _bp.prog=JSON.parse(JSON.stringify(prog)); _bp.editId=pid;
 showBuilder();
 }
 
-var _bp={cid:null,prog:null,editId:null}, _bpDay=0;
+var _bp={cid:null,prog:null,editId:null}, _bpDay=0, _bpEditEx=null;
 function startBuilder(cid) {
 if (!canUse('programBuilder')) { showUpgradeModal('programBuilder'); return; }
 var name=((document.getElementById('np_name')||{}).value||'').trim();
@@ -1963,14 +1963,21 @@ var di=_bp.prog.days.length;
 _bp.prog.days.push({tag:'Day '+(di+1),title:'New Workout',sub:'',accent:_accs[di%6],ex:[],weekdays:[]});
 showBuilder();
 }
-function removeDay(di){_syncBP();_bp.prog.days.splice(di,1);showBuilder();}
+function removeDay(di){_syncBP();_bpEditEx=null;_bp.prog.days.splice(di,1);showBuilder();}
 function duplicateDay(di){
 var copy=JSON.parse(JSON.stringify(_bp.prog.days[di]));
 copy.weekdays=[];
 _bp.prog.days.push(copy);
 showBuilder();
 }
-function removeEx(di,ei){_bp.prog.days[di].ex.splice(ei,1);showBuilder();}
+function removeEx(di,ei){_bpEditEx=null;_bp.prog.days[di].ex.splice(ei,1);showBuilder();}
+function saveExEdit(di,ei) {
+var sEl=document.getElementById('bpex_sets_'+di+'_'+ei);
+var rEl=document.getElementById('bpex_r_'+di+'_'+ei);
+if(sEl){var s=parseInt(sEl.value);if(s>0)_bp.prog.days[di].ex[ei].sets=s;}
+if(rEl&&rEl.value.trim())_bp.prog.days[di].ex[ei].r=rEl.value.trim();
+_bpEditEx=null;showBuilder();
+}
 function linkSS(di, ei) {
 var exArr = _bp.prog.days[di].ex;
 if (ei+1 >= exArr.length) return;
@@ -1998,16 +2005,44 @@ var grp = '<div style="border:1.5px solid rgba(245,158,11,.4);border-radius:10px
 grp += '<div style="font-size:8px;font-weight:800;letter-spacing:1.5px;color:var(--amber);margin-bottom:6px">&#9889; SUPERSET &#8212; no rest between exercises</div>';
 while (i < d.ex.length && d.ex[i].ss === ssId) {
 var ssx = d.ex[i]; var sei = i;
+var ssEditing = _bpEditEx && _bpEditEx.di === di && _bpEditEx.ei === sei;
+if (ssEditing) {
+grp += '<div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)">' +
+'<div style="font-size:12px;font-weight:600;color:#fff;margin-bottom:6px">'+ssx.n+'</div>' +
+'<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">' +
+'<input id="bpex_sets_'+di+'_'+sei+'" type="number" value="'+ssx.sets+'" min="1" max="20" style="width:56px;background:var(--c2);border:1.5px solid var(--acc);border-radius:6px;color:#fff;font-size:13px;padding:4px 8px;text-align:center">' +
+'<span style="color:var(--m1);font-size:11px">sets</span>' +
+'<input id="bpex_r_'+di+'_'+sei+'" type="text" value="'+ssx.r+'" style="width:72px;background:var(--c2);border:1.5px solid var(--acc);border-radius:6px;color:#fff;font-size:13px;padding:4px 8px;text-align:center">' +
+'<span style="color:var(--m1);font-size:11px">reps</span>' +
+'<button onclick="saveExEdit('+di+','+sei+')" style="padding:4px 12px;background:var(--acc);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">Save</button>' +
+'<button onclick="_bpEditEx=null;showBuilder()" style="padding:4px 8px;background:none;border:1px solid var(--bdr);border-radius:6px;color:var(--m1);font-size:11px;cursor:pointer">Cancel</button>' +
+'</div></div>';
+} else {
 grp += '<div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)">' +
 '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:#fff">'+ssx.n+'</div>' +
 '<div style="font-size:10px;color:var(--m1)">'+ssx.sets+' sets &#8212; '+ssx.r+'</div></div>' +
+'<button onclick="_syncBP();_bpEditEx={di:'+di+',ei:'+sei+'};showBuilder()" style="font-size:13px;color:var(--m1);background:none;border:none;cursor:pointer;padding:2px 4px" title="Edit sets/reps">&#9998;</button>' +
 '<button onclick="_syncBP();unlinkSS('+di+','+sei+')" style="font-size:9px;color:var(--amber);background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:6px;padding:2px 7px;cursor:pointer">unlink</button>' +
 '<button onclick="_syncBP();removeEx('+di+','+sei+')" style="color:var(--red);background:none;border:none;cursor:pointer;font-size:16px">&#215;</button>' +
 '</div>';
+}
 i++;
 }
 grp += '</div>';
 out += grp;
+} else {
+var isEditing = _bpEditEx && _bpEditEx.di === di && _bpEditEx.ei === i;
+if (isEditing) {
+out += '<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">' +
+'<div style="font-size:12px;font-weight:600;color:#fff;margin-bottom:6px">'+ex.n+'</div>' +
+'<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">' +
+'<input id="bpex_sets_'+di+'_'+i+'" type="number" value="'+ex.sets+'" min="1" max="20" style="width:56px;background:var(--c2);border:1.5px solid var(--acc);border-radius:6px;color:#fff;font-size:13px;padding:4px 8px;text-align:center">' +
+'<span style="color:var(--m1);font-size:11px">sets</span>' +
+'<input id="bpex_r_'+di+'_'+i+'" type="text" value="'+ex.r+'" style="width:72px;background:var(--c2);border:1.5px solid var(--acc);border-radius:6px;color:#fff;font-size:13px;padding:4px 8px;text-align:center">' +
+'<span style="color:var(--m1);font-size:11px">reps</span>' +
+'<button onclick="saveExEdit('+di+','+i+')" style="padding:4px 12px;background:var(--acc);color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">Save</button>' +
+'<button onclick="_bpEditEx=null;showBuilder()" style="padding:4px 8px;background:none;border:1px solid var(--bdr);border-radius:6px;color:var(--m1);font-size:11px;cursor:pointer">Cancel</button>' +
+'</div></div>';
 } else {
 out += '<div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)">' +
 '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:#fff">'+ex.n+'</div>' +
@@ -2015,8 +2050,10 @@ out += '<div style="display:flex;gap:8px;align-items:center;padding:6px 0;border
 if (i+1 < d.ex.length && !d.ex[i+1].ss) {
 out += '<button onclick="_syncBP();linkSS('+di+','+i+')" title="Pair these two as a superset" style="font-size:9px;color:var(--m2);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:2px 7px;cursor:pointer;white-space:nowrap">&#8646; SS</button>';
 }
-out += '<button onclick="_syncBP();removeEx('+di+','+i+')" style="color:var(--red);background:none;border:none;cursor:pointer;font-size:16px">&#215;</button>' +
+out += '<button onclick="_syncBP();_bpEditEx={di:'+di+',ei:'+i+'};showBuilder()" style="font-size:13px;color:var(--m1);background:none;border:none;cursor:pointer;padding:2px 4px" title="Edit sets/reps">&#9998;</button>' +
+'<button onclick="_syncBP();removeEx('+di+','+i+')" style="color:var(--red);background:none;border:none;cursor:pointer;font-size:16px">&#215;</button>' +
 '</div>';
+}
 i++;
 }
 }

@@ -170,24 +170,11 @@ if(errEl) errEl.innerHTML='<div style="font-size:11px;color:var(--m1);padding:6p
 firebase.auth().signInWithEmailAndPassword(email, pass).then(function(cred) {
 var uid = cred.user.uid;
 DB._prefix = uid+'_'; DB._fbPath = 'trainers/'+uid; S.trId = uid;
-// Check localStorage first (works offline / after account creation)
-var localTdata = null;
-try { var _lt = localStorage.getItem(uid+'_trainer'); localTdata = _lt ? JSON.parse(_lt) : null; } catch(e) {}
-if (localTdata) {
+if (!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+DB._fb = firebase.database();
 DB.set('sess', {role:'trainer', trId:uid});
-_enterTrainerWithId(uid);
-return;
-}
-if (DB._fb) {
-DB._fb.ref('trainers/'+uid+'/trainer').once('value').then(function(snap) {
-var tdata = snap.val();
-if (tdata) {
-localStorage.setItem(uid+'_trainer', JSON.stringify(tdata));
-DB.set('sess', {role:'trainer', trId:uid});
-_enterTrainerWithId(uid);
-} else { showErr('Account found but no profile — try creating your account again, or contact support.'); }
-}).catch(function(e){ showErr(e.message||'Failed to load profile'); });
-} else { _enterTrainerWithId(uid); }
+if(errEl) errEl.innerHTML='<div style="font-size:11px;color:var(--m1);padding:6px">Loading your data...</div>';
+syncFromFirebase(function() { _enterTrainerWithId(uid); });
 }).catch(function(e) {
 showErr(_fbAuthErrMsg(e));
 });
@@ -215,6 +202,7 @@ S.role='trainer'; S.scr='trainer'; S.tTab='dash'; S.trId=uid;
 loadAll();
 S.referralCode = DB.get('referral_code') || null;
 loadSubscription();
+setupRealtimeSync(function() { loadAll(); R(); });
 R();
 }
 function doTLogin() {
@@ -295,6 +283,7 @@ R();
 }
 function doLogout() {
 teardownMsgListener();
+teardownRealtimeSync();
 S.role=null; S.scr='login'; S.cid=null; S.vCli=null; S.trId=null;
 S.logs={}; S.msgs=[]; S.streak={cur:0,best:0,lastDate:null}; S.prs={};
 DB._prefix=''; DB._fbPath='ahmedpt';

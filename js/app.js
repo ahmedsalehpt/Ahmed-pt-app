@@ -95,9 +95,16 @@ if (!window._fbAppLoaded || !window._fbDbLoaded || !window._fbAuthLoaded) return
 syncFromFirebase(function() {
 if (S.role === 'trainer') {
 loadSubscription();
+setupRealtimeSync(function() { loadAll(); R(); });
 } else if (S.role === 'client' && S.cid) {
 loadClientPremium(S.cid);
 setupMsgListener(S.cid, 'client');
+setupRealtimeSync(function() {
+S.logs = DB.get('logs_'+S.cid) || {};
+S.msgs = DB.get('msgs_'+S.cid) || [];
+S.unread = S.msgs.filter(function(m){ return m.from==='trainer'&&!m.read; }).length;
+R();
+});
 }
 });
 };

@@ -63,3 +63,38 @@ callback();
 });
 } catch(e) { toast('Firebase init error: ' + e.message, 'err'); callback(); }
 }
+
+var _realtimeSyncRef = null, _realtimeSyncTimer = null;
+function setupRealtimeSync(onUpdate) {
+teardownRealtimeSync();
+if (!DB._fb) return;
+var first = true;
+_realtimeSyncRef = DB._fb.ref(DB._fbPath);
+_realtimeSyncRef.on('value', function(snap) {
+if (first) { first = false; return; } // skip initial fire (already synced)
+var data = snap.val() || {};
+var changed = false;
+Object.keys(data).forEach(function(k) {
+if (FB_LOCAL_ONLY.indexOf(k) === -1) {
+var nv = JSON.stringify(data[k]);
+try {
+if (localStorage.getItem(DB._prefix+k) !== nv) {
+localStorage.setItem(DB._prefix+k, nv);
+changed = true;
+}
+} catch(e) {}
+}
+});
+if (changed && onUpdate) {
+clearTimeout(_realtimeSyncTimer);
+_realtimeSyncTimer = setTimeout(onUpdate, 400);
+}
+});
+}
+function teardownRealtimeSync() {
+if (_realtimeSyncRef) {
+try { _realtimeSyncRef.off('value'); } catch(e) {}
+_realtimeSyncRef = null;
+}
+clearTimeout(_realtimeSyncTimer);
+}

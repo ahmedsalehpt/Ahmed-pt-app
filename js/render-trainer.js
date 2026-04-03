@@ -1898,7 +1898,36 @@ _bp.cid=cid; _bp.prog=JSON.parse(JSON.stringify(prog)); _bp.editId=pid;
 showBuilder();
 }
 
-var _bp={cid:null,prog:null,editId:null}, _bpDay=0, _bpEditEx=null;
+var _bp={cid:null,prog:null,editId:null}, _bpDay=0, _bpEditEx=null, _bpDrag=null, _bpDragOver=null;
+// Touch drag handlers (attached once at load)
+document.addEventListener('touchmove', function(e){
+  if (!_bpDrag) return;
+  e.preventDefault();
+  var t = e.touches[0];
+  var el = document.elementFromPoint(t.clientX, t.clientY);
+  while (el && !('bpei' in (el.dataset||{}))) el = el.parentElement;
+  if (el && el.dataset) {
+    var ndi=parseInt(el.dataset.bpdi), nei=parseInt(el.dataset.bpei);
+    if (!_bpDragOver || _bpDragOver.di!==ndi || _bpDragOver.ei!==nei) {
+      _bpDragOver = {di:ndi, ei:nei};
+      document.querySelectorAll('[data-bpei]').forEach(function(r){ r.style.borderTop=''; r.style.opacity='1'; });
+      var tEl = document.querySelector('[data-bpdi="'+ndi+'"][data-bpei="'+nei+'"]');
+      if (tEl) tEl.style.borderTop = '2px solid #6366f1';
+      var dEl = document.querySelector('[data-bpdi="'+_bpDrag.di+'"][data-bpei="'+_bpDrag.ei+'"]');
+      if (dEl) dEl.style.opacity = '0.4';
+    }
+  }
+}, {passive:false});
+document.addEventListener('touchend', function(){
+  if (!_bpDrag) return;
+  if (_bpDragOver && _bpDrag.di===_bpDragOver.di && _bpDrag.ei!==_bpDragOver.ei) {
+    var di=_bpDrag.di, ex=_bp.prog.days[di].ex;
+    var item=ex.splice(_bpDrag.ei,1)[0];
+    var t=_bpDragOver.ei; if (_bpDrag.ei<t) t--;
+    ex.splice(t,0,item);
+  }
+  _bpDrag=null; _bpDragOver=null; showBuilder();
+});
 function startBuilder(cid) {
 if (!canUse('programBuilder')) { showUpgradeModal('programBuilder'); return; }
 var name=((document.getElementById('np_name')||{}).value||'').trim();
@@ -1978,6 +2007,19 @@ if(sEl){var s=parseInt(sEl.value);if(s>0)_bp.prog.days[di].ex[ei].sets=s;}
 if(rEl&&rEl.value.trim())_bp.prog.days[di].ex[ei].r=rEl.value.trim();
 _bpEditEx=null;showBuilder();
 }
+function bpDS(di,ei,e){ _syncBP(); _bpDrag={di:di,ei:ei}; e.dataTransfer.effectAllowed='move'; }
+function bpDO(di,ei,e){ e.preventDefault(); e.dataTransfer.dropEffect='move'; _bpDragOver={di:di,ei:ei}; }
+function bpDrop(di,e){ e.preventDefault();
+  if(_bpDrag&&_bpDragOver&&_bpDrag.di===di&&_bpDragOver.di===di&&_bpDrag.ei!==_bpDragOver.ei){
+    var ex=_bp.prog.days[di].ex;
+    var item=ex.splice(_bpDrag.ei,1)[0];
+    var t=_bpDragOver.ei; if(_bpDrag.ei<t)t--;
+    ex.splice(t,0,item);
+  }
+  _bpDrag=null; _bpDragOver=null; showBuilder();
+}
+function bpDEnd(){ _bpDrag=null; _bpDragOver=null; }
+function bpTS(di,ei,e){ e.stopPropagation(); _syncBP(); _bpDrag={di:di,ei:ei}; }
 function linkSS(di, ei) {
 var exArr = _bp.prog.days[di].ex;
 if (ei+1 >= exArr.length) return;
@@ -2044,7 +2086,11 @@ out += '<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)"
 '<button onclick="_bpEditEx=null;showBuilder()" style="padding:4px 8px;background:none;border:1px solid var(--bdr);border-radius:6px;color:var(--m1);font-size:11px;cursor:pointer">Cancel</button>' +
 '</div></div>';
 } else {
-out += '<div style="display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)">' +
+out += '<div draggable="true" data-bpdi="'+di+'" data-bpei="'+i+'" ' +
+'ondragstart="bpDS('+di+','+i+',event)" ondragover="bpDO('+di+','+i+',event)" ' +
+'ondrop="bpDrop('+di+',event)" ondragend="bpDEnd()" ' +
+'style="display:flex;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)">' +
+'<span ontouchstart="bpTS('+di+','+i+',event)" style="cursor:grab;touch-action:none;color:var(--m2);font-size:15px;padding:0 3px;user-select:none;flex-shrink:0">&#8942;&#8942;</span>' +
 '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:#fff">'+ex.n+'</div>' +
 '<div style="font-size:10px;color:var(--m1)">'+ex.sets+' sets &#8212; '+ex.r+'</div></div>';
 if (i+1 < d.ex.length && !d.ex[i+1].ss) {

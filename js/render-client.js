@@ -228,6 +228,7 @@ return '<div style="background:var(--c1);border:1px solid var(--bdr);border-radi
 }
 
 function renderClient() {
+if(S.cTab!=='account') S.confirmDelete = false;
 if(S.cTab==='home')return renderHome();
 if(S.cTab==='workout')return renderWorkout();
 if(S.cTab==='progress')return renderProgress();
@@ -936,6 +937,17 @@ return out;
 }
 
 function renderMyAcct() {
+if (S.confirmDelete) {
+return '<div class="hdr"><div class="hdr-top">' +
+'<div><div class="hdr-sub">My Account</div><div class="hdr-title">Delete Account</div></div></div></div>' +
+'<div class="page" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px;text-align:center">' +
+'<div style="font-size:48px">⚠️</div>' +
+'<div style="font-size:18px;font-weight:800;color:#fff">Delete your account?</div>' +
+'<div style="font-size:13px;color:var(--m1);max-width:280px">This will permanently delete all your data including training logs, sessions, and messages. This cannot be undone.</div>' +
+'<button class="btn" style="background:#ef4444;max-width:280px" onclick="confirmDeleteMyAccount()">YES, DELETE MY ACCOUNT</button>' +
+'<button class="btn" style="background:var(--card);max-width:280px" onclick="cancelDeleteMyAccount()">Cancel</button>' +
+'</div>' + cliNav();
+}
 return '<div class="hdr"><div class="hdr-top">' +
 '<div><div class="hdr-sub">My Account</div><div class="hdr-title">Account</div></div></div></div>' +
 '<div class="page" id="acct_page"><div class="big-bal">' +
@@ -945,6 +957,9 @@ return '<div class="hdr"><div class="hdr-top">' +
 '<div id="next_sess"></div>' +
 '<div class="sect">PAYMENT RECEIPTS</div>' +
 '<div id="pay_list"><div class="empty">Loading…</div></div>' +
+'<div style="padding:20px 0 8px;text-align:center">' +
+'<button onclick="deleteMyAccount()" style="background:none;border:none;color:#ef4444;font-size:12px;cursor:pointer;padding:8px 16px;opacity:0.7">Delete Account</button>' +
+'</div>' +
 '</div>' + cliNav();
 }
 function renderMyAcctData() {

@@ -53,6 +53,8 @@ try { lastCode = localStorage.getItem('_last_trainer_code') || ''; } catch(e) {}
 if (isSignup) {
 return '<div class="row"><div class="lbl">Your Name</div>' +
 '<input class="inp" id="cname" placeholder="e.g. Sarah"></div>' +
+'<div class="row"><div class="lbl">Username</div>' +
+'<input class="inp" id="cusername" placeholder="e.g. sarah_pt (letters, numbers, _ only)" autocomplete="username" style="text-transform:lowercase"></div>' +
 '<div class="row"><div class="lbl">Create a Password</div>' +
 '<input class="inp" id="cpin" type="password" placeholder="Choose a password"></div>' +
 '<div class="row"><div class="lbl">Trainer Invite Code</div>' +
@@ -61,8 +63,8 @@ return '<div class="row"><div class="lbl">Your Name</div>' +
 '<button class="btn" style="background:var(--pink)" onclick="doClientSignup()">CREATE ACCOUNT &#8594;</button>' +
 '<div style="text-align:center;margin-top:10px"><span style="font-size:11px;color:var(--m2)">Already have an account? </span><button onclick="S.lMode=\'login\';R()" style="font-size:11px;color:var(--acc);background:none;border:none;cursor:pointer;font-weight:700">Log in</button></div>';
 }
-return '<div class="row"><div class="lbl">Your Name</div>' +
-'<input class="inp" id="cname" placeholder="e.g. Sarah"></div>' +
+return '<div class="row"><div class="lbl">Username</div>' +
+'<input class="inp" id="cusername" placeholder="your username" autocomplete="username" style="text-transform:lowercase"></div>' +
 '<div class="row"><div class="lbl">Your Password</div>' +
 '<input class="inp" id="cpin" type="password" placeholder="Your password"></div>' +
 '<div id="clogin_err"></div>' +
@@ -71,11 +73,14 @@ return '<div class="row"><div class="lbl">Your Name</div>' +
 }
 function doClientSignup() {
 var name = ((document.getElementById('cname')||{}).value||'').trim();
+var username = ((document.getElementById('cusername')||{}).value||'').trim().toLowerCase();
 var pin = ((document.getElementById('cpin')||{}).value||'').trim();
 var invite = ((document.getElementById('cinvite')||{}).value||'').trim().toLowerCase();
 var errEl = document.getElementById('clogin_err');
 function showErr(msg){if(errEl)errEl.innerHTML='<div class="err-msg">'+msg+'</div>';}
 if (!name) { showErr('Enter your name'); return; }
+if (!username) { showErr('Enter a username'); return; }
+if (!/^[a-z0-9_]{3,20}$/.test(username)) { showErr('Username must be 3-20 characters: letters, numbers, and _ only'); return; }
 if (pin.length < 1) { showErr('Enter a password'); return; }
 if (!invite) { showErr('Enter the invite code from your trainer'); return; }
 try { localStorage.setItem('_last_trainer_code', invite); } catch(e) {}
@@ -84,38 +89,39 @@ DB._fb.ref('trainer_codes/'+invite).once('value').then(function(snap) {
 var trId = snap.val();
 if (trId) {
 DB._prefix = trId+'_'; DB._fbPath = 'trainers/'+trId; S.trId = trId;
-_doSignupInNamespace(name, pin, invite, errEl);
+_doSignupInNamespace(name, username, pin, invite, errEl);
 } else {
-_tryLegacySignup(name, pin, invite, errEl);
+_tryLegacySignup(name, username, pin, invite, errEl);
 }
-}).catch(function(){ _tryLegacySignup(name, pin, invite, errEl); });
+}).catch(function(){ _tryLegacySignup(name, username, pin, invite, errEl); });
 } else {
-_tryLegacySignup(name, pin, invite, errEl);
+_tryLegacySignup(name, username, pin, invite, errEl);
 }
 }
-function _tryLegacySignup(name, pin, invite, errEl) {
+function _tryLegacySignup(name, username, pin, invite, errEl) {
 var tdata = localStorage.getItem('trainer'); tdata = tdata ? JSON.parse(tdata) : {};
 var tCode = (tdata.inviteCode||(tdata.name||'').toLowerCase().replace(/[^a-z0-9]/g,'')).toLowerCase();
 if (!tCode || invite !== tCode) {
 if(errEl) errEl.innerHTML='<div class="err-msg">Invalid invite code. Ask your trainer for their code.</div>'; return;
 }
-_doSignupInNamespace(name, pin, invite, errEl);
+_doSignupInNamespace(name, username, pin, invite, errEl);
 }
-function _doSignupInNamespace(name, pin, invite, errEl) {
-var nameLower = name.toLowerCase();
-var pfx = DB._prefix;
-var existing = Object.keys(localStorage).filter(function(k){return k.startsWith(pfx+'cp_');});
-for (var i = 0; i < existing.length; i++) {
-var raw = localStorage.getItem(existing[i]); if(!raw)continue;
-var ec = JSON.parse(raw);
-if (ec && ec.name && ec.name.toLowerCase() === nameLower) {
-if(errEl) errEl.innerHTML='<div class="err-msg">Name already registered. Please log in instead.</div>'; return;
+function _doSignupInNamespace(name, username, pin, invite, errEl) {
+// Check username uniqueness globally across ALL trainer namespaces
+var allKeys = Object.keys(localStorage);
+for (var i = 0; i < allKeys.length; i++) {
+var k = allKeys[i];
+if (k.indexOf('cp_') < 0) continue;
+var raw = localStorage.getItem(k); if(!raw) continue;
+var ec; try { ec = JSON.parse(raw); } catch(e) { continue; }
+if (ec && ec.username && ec.username === username) {
+if(errEl) errEl.innerHTML='<div class="err-msg">Username already taken. Please choose a different one.</div>'; return;
 }
 }
 var cid = 'c' + Date.now();
-DB.set('cp_'+cid, {name:name, pin:pin, balance:0, type:'in_person', joined:today()});
+DB.set('cp_'+cid, {name:name, username:username, pin:pin, balance:0, type:'in_person', joined:today()});
 var tc = DB.get('tc') || {};
-tc[cid] = {name:name, type:'in_person', balance:0, rate:0, joined:today(), lastActive:today()};
+tc[cid] = {name:name, username:username, type:'in_person', balance:0, rate:0, joined:today(), lastActive:today()};
 DB.set('tc', tc);
 S.clients = tc;
 enterClient(cid);
@@ -225,11 +231,11 @@ loadSubscription();
 R();
 }
 function doCLogin() {
-var name = ((document.getElementById('cname')||{}).value||'').trim().toLowerCase();
+var username = ((document.getElementById('cusername')||{}).value||'').trim().toLowerCase();
 var pass = ((document.getElementById('cpin')||{}).value||'').trim();
 var errEl = document.getElementById('clogin_err');
 function showErr(m){if(errEl)errEl.innerHTML='<div class="err-msg">'+m+'</div>';}
-if (!name) { showErr('Enter your name'); return; }
+if (!username) { showErr('Enter your username'); return; }
 if (!pass) { showErr('Enter your password'); return; }
 // Search every localStorage key across all trainer namespaces
 var allKeys = Object.keys(localStorage);
@@ -242,21 +248,22 @@ var cpIdx = k.indexOf('cp_');
 if (cpIdx < 0) continue;
 var raw = localStorage.getItem(k); if(!raw) continue;
 var c; try { c = JSON.parse(raw); } catch(e){ continue; }
-if (c && c.name && c.name.toLowerCase() === name && c.pin === pass) {
+// Match by username (new accounts) or name (legacy accounts without username)
+var usernameMatch = c && c.username && c.username === username;
+var legacyMatch = c && !c.username && c.name && c.name.toLowerCase() === username;
+if ((usernameMatch || legacyMatch) && c.pin === pass) {
 matchCid = k.substring(cpIdx+3);
 matchPrefix = k.substring(0, cpIdx);
-// Determine fbPath from prefix
 if (matchPrefix === '') {
 matchFbPath = 'ahmedpt';
 } else {
-// prefix is "{uid}_"
 var uid = matchPrefix.replace(/_$/,'');
 matchFbPath = 'trainers/'+uid;
 }
 break;
 }
 }
-if (!matchCid) { showErr('Name or password not found. Ask your trainer if you need a new account.'); return; }
+if (!matchCid) { showErr('Username or password not found. Ask your trainer if you need a new account.'); return; }
 DB._prefix = matchPrefix;
 DB._fbPath = matchFbPath;
 if (matchPrefix !== '') {
@@ -318,4 +325,31 @@ if (S._msgListenerRef && S._msgListenerFn) {
 try { S._msgListenerRef.off('value', S._msgListenerFn); } catch(e) {}
 }
 S._msgListenerRef = null; S._msgListenerFn = null; S._msgListenerCid = null;
+}
+function deleteMyAccount() {
+S.confirmDelete = true;
+R();
+}
+function confirmDeleteMyAccount() {
+var cid = S.cid;
+var pfx = DB._prefix;
+// Remove client from trainer's client list
+var tc = DB.get('tc') || {};
+delete tc[cid];
+DB.set('tc', tc);
+// Delete all client data keys
+var dataKeys = ['cp_','logs_','progs_','sessions_','payments_','msgs_','streak_','prs_','sessnotes_','exnotes_','habits_','goals_','nots_','premium_'];
+dataKeys.forEach(function(prefix) {
+var key = prefix + cid;
+try { localStorage.removeItem(pfx + key); } catch(e) {}
+if (DB._fb) DB._fb.ref(DB._fbPath+'/'+key).remove().catch(function(){});
+});
+// Update tc on Firebase too
+if (DB._fb) DB._fb.ref(DB._fbPath+'/tc').set(tc).catch(function(){});
+toast('Account deleted.', 'ok');
+doLogout();
+}
+function cancelDeleteMyAccount() {
+S.confirmDelete = false;
+R();
 }

@@ -17,13 +17,16 @@ get: function(k) {
 try { var v = localStorage.getItem(DB._prefix+k); return v ? JSON.parse(v) : null; } catch(e) { return null; }
 },
 set: function(k, v) {
-try { localStorage.setItem(DB._prefix+k, JSON.stringify(v)); } catch(e) {}
+// FB_LOCAL_ONLY keys (e.g. 'sess') are stored without prefix so init() can always find them
+var lsKey = FB_LOCAL_ONLY.indexOf(k) !== -1 ? k : DB._prefix+k;
+try { localStorage.setItem(lsKey, JSON.stringify(v)); } catch(e) {}
 if (DB._fb && FB_LOCAL_ONLY.indexOf(k) === -1) {
 DB._fb.ref(DB._fbPath+'/'+k).set(v).catch(function(){});
 }
 },
 del: function(k) {
-try { localStorage.removeItem(DB._prefix+k); } catch(e) {}
+var lsKey = FB_LOCAL_ONLY.indexOf(k) !== -1 ? k : DB._prefix+k;
+try { localStorage.removeItem(lsKey); } catch(e) {}
 if (DB._fb && FB_LOCAL_ONLY.indexOf(k) === -1) {
 DB._fb.ref(DB._fbPath+'/'+k).remove().catch(function(){});
 }

@@ -298,7 +298,7 @@ S._msgListenerRef = ref;
 S._msgListenerFn = function(snap) {
 var msgs = snap.val() || [];
 if (!Array.isArray(msgs)) msgs = [];
-try { localStorage.setItem('msgs_' + cid, JSON.stringify(msgs)); } catch(e) {}
+try { localStorage.setItem(DB._prefix+'msgs_' + cid, JSON.stringify(msgs)); } catch(e) {}
 if (role === 'client' && S.cid === cid) {
 var prevLen = S.msgs.length;
 S.msgs = msgs;

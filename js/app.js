@@ -89,16 +89,10 @@ var app=document.getElementById('app');
 if(app) app.innerHTML='<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#07070e;color:#fff;flex-direction:column;gap:12px;text-align:center"><div style="font-size:48px">🏋</div><div style="font-size:9px;letter-spacing:3px;color:#ec4899;font-weight:700">AHMED PERSONAL TRAINING</div><div style="font-size:24px;font-weight:800">Error loading</div><div style="font-size:13px;color:#8892a4">'+e.message+'</div><button onclick="localStorage.clear();location.reload()" style="padding:12px 24px;background:#6366f1;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px">Reset & Reload</button></div>';
 }
 }
-function startApp() {
-// Render immediately from localStorage — no waiting for Firebase
-try { init(); } catch(e) {
-var app = document.getElementById('app');
-if (app) app.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#07070e;color:#fff;flex-direction:column;gap:12px;text-align:center"><div style="font-size:48px">&#127947;</div><div style="font-size:24px;font-weight:800">Error loading</div><div style="font-size:13px;color:#8892a4">' + e.message + '</div><button onclick="location.reload()" style="padding:12px 24px;background:#6366f1;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px">Reload</button></div>';
-}
-
-// Sync Firebase in background using the correct path (already set by init())
+// Called once all three Firebase SDK scripts have loaded
+window._trySetupFirebase = function() {
+if (!window._fbAppLoaded || !window._fbDbLoaded || !window._fbAuthLoaded) return;
 syncFromFirebase(function() {
-// After sync: refresh subscription and live data if we have a connection
 if (S.role === 'trainer') {
 loadSubscription();
 } else if (S.role === 'client' && S.cid) {
@@ -106,7 +100,17 @@ loadClientPremium(S.cid);
 setupMsgListener(S.cid, 'client');
 }
 });
+};
+
+function startApp() {
+// Render immediately from localStorage — never waits for Firebase
+try { init(); } catch(e) {
+var app = document.getElementById('app');
+if (app) app.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:#07070e;color:#fff;flex-direction:column;gap:12px;text-align:center"><div style="font-size:48px">&#127947;</div><div style="font-size:24px;font-weight:800">Error loading</div><div style="font-size:13px;color:#8892a4">' + e.message + '</div><button onclick="location.reload()" style="padding:12px 24px;background:#6366f1;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px">Reload</button></div>';
 }
+// Firebase sync happens separately via _trySetupFirebase once SDKs finish loading
+}
+
 if (document.readyState === 'loading') {
 document.addEventListener('DOMContentLoaded', startApp);
 } else {

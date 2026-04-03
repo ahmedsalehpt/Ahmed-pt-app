@@ -111,8 +111,5 @@ if (app) app.innerHTML = '<div style="min-height:100vh;display:flex;align-items:
 // Firebase sync happens separately via _trySetupFirebase once SDKs finish loading
 }
 
-if (document.readyState === 'loading') {
-document.addEventListener('DOMContentLoaded', startApp);
-} else {
+// #app div is already in the DOM when this script runs (scripts load after it in body)
 startApp();
-}

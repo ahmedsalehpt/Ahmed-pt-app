@@ -45,14 +45,24 @@ input[type=range].green-r{background:linear-gradient(to right,var(--green) 0%,va
 <div style="font-size:26px;font-weight:900;color:#fff">Loading...</div>
 </div>
 </div>
-<script src="js/constants.js"></script>
-<script src="js/db.js"></script>
-<script src="js/state.js"></script>
-<script src="js/utils.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/render-trainer.js"></script>
-<script src="js/render-client.js"></script>
-<script src="js/app.js"></script>
+<script>
+window.onerror = function(msg, src, line, col, err) {
+  var app = document.getElementById('app');
+  if (app) app.innerHTML = '<div style="padding:20px;color:#f87171;background:#07070e;min-height:100vh;font-family:monospace;font-size:12px"><b style="font-size:15px">JS Error</b><br><br>' + msg + '<br><br>File: ' + src + '<br>Line: ' + line + '<br><br><button onclick="location.reload()" style="padding:8px 16px;background:#6366f1;color:#fff;border:none;border-radius:8px;cursor:pointer">Reload</button></div>';
+};
+function _scriptErr(src) {
+  var app = document.getElementById('app');
+  if (app) app.innerHTML = '<div style="padding:20px;color:#f87171;background:#07070e;min-height:100vh;font-family:monospace;font-size:12px"><b style="font-size:15px">Script load failed</b><br><br>Could not load: ' + src + '<br><br>Make sure the js/ folder exists next to index.html.<br><br><button onclick="location.reload()" style="padding:8px 16px;background:#6366f1;color:#fff;border:none;border-radius:8px;cursor:pointer">Reload</button></div>';
+}
+</script>
+<script src="js/constants.js" onerror="_scriptErr('js/constants.js')"></script>
+<script src="js/db.js" onerror="_scriptErr('js/db.js')"></script>
+<script src="js/state.js" onerror="_scriptErr('js/state.js')"></script>
+<script src="js/utils.js" onerror="_scriptErr('js/utils.js')"></script>
+<script src="js/auth.js" onerror="_scriptErr('js/auth.js')"></script>
+<script src="js/render-trainer.js" onerror="_scriptErr('js/render-trainer.js')"></script>
+<script src="js/render-client.js" onerror="_scriptErr('js/render-client.js')"></script>
+<script src="js/app.js" onerror="_scriptErr('js/app.js')"></script>
 <script async src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" onload="window._fbAppLoaded=true;window._trySetupFirebase&&window._trySetupFirebase()"></script>
 <script async src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js" onload="window._fbDbLoaded=true;window._trySetupFirebase&&window._trySetupFirebase()"></script>
 <script async src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" onload="window._fbAuthLoaded=true;window._trySetupFirebase&&window._trySetupFirebase()"></script>

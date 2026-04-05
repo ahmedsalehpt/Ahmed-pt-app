@@ -512,6 +512,11 @@ stone: {
 label:'Stone', swatch:'#f5f5f3', ring:'#0891b2', light:true,
 vars:{'--bg':'#f5f5f3','--c1':'#ebebea','--c2':'#e0e0de','--bdr':'rgba(0,0,0,.08)','--tx':'#111110','--m1':'#6b7280','--m2':'#a8a8a0','--m3':'#d4d4d0','--acc':'#0891b2'},
 hdr:'rgba(245,245,243,.96)', nav:'rgba(245,245,243,.98)'
+},
+insta: {
+label:'Instagram', swatch:'#fafafa', ring:'#c13584', light:true,
+vars:{'--bg':'#fafafa','--c1':'#ffffff','--c2':'#efefef','--bdr':'rgba(0,0,0,.12)','--tx':'#0a0a0a','--m1':'#737373','--m2':'#b2b2b2','--m3':'#dbdbdb','--acc':'#c13584','--pink':'#e1306c','--blue':'#405de6','--green':'#56d364','--amber':'#f5a623','--red':'#ed4956'},
+hdr:'rgba(250,250,250,.97)', nav:'rgba(250,250,250,.98)'
 }
 };
 var _LIGHT_CSS = [

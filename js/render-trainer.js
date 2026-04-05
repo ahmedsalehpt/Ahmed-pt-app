@@ -844,7 +844,8 @@ var tdata = DB.get('trainer') || {};
 var trCurr = tdata.currency || 'GBP';
 showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
 '<div class="modal-title">Add Client <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>' +
-'<div class="row"><div class="lbl">Name</div><input class="inp" id="nc_n" placeholder="e.g. Sarah"></div>' +
+'<div class="row"><div class="lbl">Name</div><input class="inp" id="nc_n" placeholder="e.g. Sarah" oninput="var u=document.getElementById(\'nc_u\');if(u&&!u._edited)u.value=this.value.toLowerCase().replace(/[^a-z0-9]/g,\'_\').replace(/_+/g,\'_\').replace(/^_|_$/g,\'\')"></div>' +
+'<div class="row"><div class="lbl">Username (client uses this to log in)</div><input class="inp" id="nc_u" placeholder="e.g. sarah_jones" autocomplete="off" style="text-transform:lowercase" oninput="this._edited=true;this.value=this.value.toLowerCase().replace(/[^a-z0-9_]/g,\'\')"></div>' +
 '<div class="row"><div class="lbl">Type</div><select class="sel" id="nc_t" onchange="updateAddClientType()"><option value="inperson">In-Person</option><option value="online">Online</option></select></div>' +
 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
 '<div><div class="lbl">Currency</div><select class="sel" id="nc_c" style="margin-bottom:0">'+CURRENCIES.map(function(c){return '<option'+(c===trCurr?' selected':'')+'>'+c+'</option>';}).join('')+'</select></div>' +
@@ -874,6 +875,7 @@ if (lbl) lbl.textContent = t === 'online' ? 'Rate per month' : 'Rate per session
 function doAddClient() {
 if (!canAddClient()) { showUpgradeModal('clientLimit'); return; }
 var name = ((document.getElementById('nc_n')||{}).value||'').trim();
+var username = ((document.getElementById('nc_u')||{}).value||'').trim().toLowerCase();
 var type = (document.getElementById('nc_t')||{}).value||'inperson';
 var curr = (document.getElementById('nc_c')||{}).value||'GBP';
 var rate = parseFloat((document.getElementById('nc_r')||{}).value||'0')||0;
@@ -885,18 +887,29 @@ var tw = parseFloat((document.getElementById('nc_tw')||{}).value||'0')||0;
 var inj = ((document.getElementById('nc_inj')||{}).value||'').trim();
 var err = document.getElementById('nc_err');
 if (!name) { if(err) err.innerHTML='<div class="err-msg">Enter client name</div>'; return; }
+if (!username) { if(err) err.innerHTML='<div class="err-msg">Enter a username for the client</div>'; return; }
+if (!/^[a-z0-9_]{2,20}$/.test(username)) { if(err) err.innerHTML='<div class="err-msg">Username must be 2-20 characters: letters, numbers, _ only</div>'; return; }
 if (password.length < 4) { if(err) err.innerHTML='<div class="err-msg">Password must be at least 4 characters</div>'; return; }
-var cid = name.toLowerCase().replace(/[^a-z0-9]/g,'*') + '*' + Date.now();
+// Check username uniqueness globally
+var allKeys = Object.keys(localStorage);
+for (var i = 0; i < allKeys.length; i++) {
+var k = allKeys[i];
+if (k.indexOf('cp_') < 0) continue;
+var raw = localStorage.getItem(k); if (!raw) continue;
+var ec; try { ec = JSON.parse(raw); } catch(e) { continue; }
+if (ec && ec.username && ec.username === username) { if(err) err.innerHTML='<div class="err-msg">Username already taken. Choose a different one.</div>'; return; }
+}
+var cid = 'c' + Date.now();
 var intake = {goal:goal, experience:exp, bodyWeight:bw||null, targetWeight:tw||null, injuries:inj||null, addedAt:Date.now()};
-var data = {name:name, type:type, currency:curr, rate:rate, pin:password, unit:'kg', week:1, currentProgId:null, intake:intake};
+var data = {name:name, username:username, type:type, currency:curr, rate:rate, pin:password, unit:'kg', week:1, currentProgId:null, intake:intake};
 DB.set('cp_'+cid, data);
-S.clients[cid] = {name:name, type:type, currency:curr, rate:rate, balance:0, streak:{cur:0}, msgCount:0, sessions:{}, payments:{}};
+S.clients[cid] = {name:name, username:username, type:type, currency:curr, rate:rate, balance:0, streak:{cur:0}, msgCount:0, sessions:{}, payments:{}};
 DB.set('tc', S.clients);
 DB.set('sessions_'+cid, {});
 DB.set('payments_'+cid, {});
 DB.set('msgs_'+cid, []);
 closeModal();
-toast(name+' added!', 'ok');
+toast(name+' added! Login: '+username, 'ok');
 setTimeout(function(){ openAddProg(cid); }, 400);
 R();
 }
@@ -971,7 +984,8 @@ html += '<div style="background:linear-gradient(135deg,rgba(99,102,241,.13),rgba
 html += '<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">';
 html += '<div style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#fff;flex-shrink:0;box-shadow:0 4px 20px rgba(99,102,241,.35)">'+initials+'</div>';
 html += '<div style="flex:1">';
-html += '<div style="font-size:22px;font-weight:900;color:#fff;margin-bottom:6px">'+c.name+'</div>';
+html += '<div style="font-size:22px;font-weight:900;color:#fff;margin-bottom:4px">'+c.name+'</div>';
+if (cp.username) html += '<div style="font-size:11px;color:var(--m2);margin-bottom:6px">Login: <span style="color:var(--acc);font-weight:700">@'+cp.username+'</span></div>';
 html += '<div style="display:flex;gap:5px;flex-wrap:wrap">';
 html += '<span style="padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;background:'+(c.type==='online'?'rgba(99,102,241,.2)':'rgba(16,185,129,.2)')+';color:'+(c.type==='online'?'#818cf8':'#34d399')+'">'+(c.type==='online'?'Online':'In Person')+'</span>';
 if (goal) html += '<span style="padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(245,158,11,.15);color:var(--amber)">'+goal+'</span>';

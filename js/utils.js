@@ -491,6 +491,57 @@ DB.set('tc', S.clients);
 logActivity('session', (S.clients[cid].name||'Client')+' completed a session'+(local[sessId]&&local[sessId].date?' on '+fmtD(local[sessId].date):''), 'sessions');
 toast('Session completed - 1 session deducted', 'ok');
 }
+// ─── Theme system ─────────────────────────────────────────────────────────────
+var THEMES = {
+dark: {
+label:'Deep Space', swatch:'#07070e', ring:'#6366f1',
+vars:{'--bg':'#07070e','--c1':'#0f1117','--c2':'#161b26','--bdr':'rgba(255,255,255,.08)','--tx':'#e8eaf0','--m1':'#8892a4','--m2':'#4a5568','--m3':'#2d3748','--acc':'#6366f1'},
+hdr:'rgba(7,7,14,.94)', nav:'rgba(7,7,14,.96)'
+},
+navy: {
+label:'Midnight Navy', swatch:'#07090f', ring:'#c9a227',
+vars:{'--bg':'#07090f','--c1':'#0c1220','--c2':'#111b2e','--bdr':'rgba(180,155,80,.14)','--tx':'#e6ecf8','--m1':'#7a8daa','--m2':'#3a4f6a','--m3':'#1e3050','--acc':'#c9a227'},
+hdr:'rgba(7,9,15,.95)', nav:'rgba(7,9,15,.97)'
+},
+charcoal: {
+label:'Warm Charcoal', swatch:'#0f0f0c', ring:'#c8924a',
+vars:{'--bg':'#0f0f0c','--c1':'#1a1916','--c2':'#232018','--bdr':'rgba(210,185,120,.12)','--tx':'#f0ece4','--m1':'#a09880','--m2':'#5e5a50','--m3':'#383430','--acc':'#c8924a'},
+hdr:'rgba(15,15,12,.95)', nav:'rgba(15,15,12,.97)'
+},
+emerald: {
+label:'Forest Emerald', swatch:'#060e0b', ring:'#10d98a',
+vars:{'--bg':'#060e0b','--c1':'#0c1812','--c2':'#12201a','--bdr':'rgba(16,217,138,.1)','--tx':'#d8eeea','--m1':'#6a9488','--m2':'#354e46','--m3':'#1c3028','--acc':'#10d98a'},
+hdr:'rgba(6,14,11,.95)', nav:'rgba(6,14,11,.97)'
+}
+};
+function applyTheme(id) {
+var t = THEMES[id] || THEMES.dark;
+var r = document.documentElement;
+Object.keys(t.vars).forEach(function(k){ r.style.setProperty(k, t.vars[k]); });
+var st = document.getElementById('_theme_ovr');
+if (!st) { st = document.createElement('style'); st.id = '_theme_ovr'; document.head.appendChild(st); }
+st.textContent = '.hdr{background:'+t.hdr+'!important}.bnav{background:'+t.nav+'!important}.login-wrap{background:'+t.vars['--bg']+'!important}';
+try { localStorage.setItem('_theme', id); } catch(e) {}
+S._theme = id;
+}
+function loadTheme() {
+var saved = 'dark';
+try { saved = localStorage.getItem('_theme') || 'dark'; } catch(e) {}
+applyTheme(saved);
+}
+// ─── Profile photo ─────────────────────────────────────────────────────────────
+function compressPhoto(dataUrl, cb) {
+var img = new Image();
+img.onload = function() {
+var c = document.createElement('canvas'); c.width = 240; c.height = 240;
+var ctx = c.getContext('2d');
+var s = Math.min(img.width, img.height);
+ctx.drawImage(img, (img.width-s)/2, (img.height-s)/2, s, s, 0, 0, 240, 240);
+cb(c.toDataURL('image/jpeg', 0.72));
+};
+img.src = dataUrl;
+}
+// ──────────────────────────────────────────────────────────────────────────────
 function logPay(cid, amount, note) {
 var c = S.clients[cid] || {};
 var rate = c.rate || 0;

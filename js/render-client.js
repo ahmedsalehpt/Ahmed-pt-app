@@ -85,16 +85,22 @@ var calToday = Object.values(todayNut.meals||{}).reduce(function(acc, meal) {
 return acc + Object.values(meal||{}).reduce(function(s,item){ return s+(item.calories||0); }, 0);
 }, 0);
 
+var photo = DB.get('profile_photo_'+S.cid)||'';
+var initials = (cp.name||name).split(' ').map(function(w){return (w[0]||'').toUpperCase();}).join('').slice(0,2);
 return '<div class="hdr"><div class="hdr-top">' +
 '<div><div class="hdr-sub">Ahmed PT</div><div class="hdr-title">' + greet + '</div></div>' +
 '<div style="display:flex;align-items:center;gap:8px">' +
 (S.streak.cur>0?'<span class="pill p-amber">&#128293; '+S.streak.cur+'</span>':'') +
-'<button onclick="doLogout()" style="padding:5px 10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#f87171;font-size:10px;font-weight:700;cursor:pointer">&#128682; Logout</button>' +
+'<button onclick="doLogout()" style="padding:5px 10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#f87171;font-size:10px;font-weight:700;cursor:pointer">&#128682; Out</button>' +
 '</div></div></div><div class="page">' +
-'<div style="margin-bottom:14px">' +
+'<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">' +
+(photo
+? '<img src="'+photo+'" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--acc);flex-shrink:0" onclick="setCTab(\'account\')">'
+: '<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--pink));display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#fff;flex-shrink:0;cursor:pointer;border:2px solid var(--acc)" onclick="setCTab(\'account\')">'+initials+'</div>') +
+'<div>' +
 '<div style="font-size:24px;font-weight:900;color:#fff;letter-spacing:-.5px">' + name + ' &#128075;</div>' +
-'<div style="font-size:11px;color:var(--m1);margin-top:3px">'+new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})+'</div>' +
-'</div>' +
+'<div style="font-size:11px;color:var(--m1);margin-top:2px">'+new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})+'</div>' +
+'</div></div>' +
 
 // Training day OR session today OR rest day card
 (d ? renderTodayWorkoutCard(d, todayIdx) : (todaySession ? renderTodaySessionCard(todaySession) : renderRestDayCard())) +
@@ -957,26 +963,73 @@ if (S.confirmDelete) {
 return '<div class="hdr"><div class="hdr-top">' +
 '<div><div class="hdr-sub">My Account</div><div class="hdr-title">Delete Account</div></div></div></div>' +
 '<div class="page" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px;text-align:center">' +
-'<div style="font-size:48px">⚠️</div>' +
+'<div style="font-size:48px">&#9888;&#65039;</div>' +
 '<div style="font-size:18px;font-weight:800;color:#fff">Delete your account?</div>' +
 '<div style="font-size:13px;color:var(--m1);max-width:280px">This will permanently delete all your data including training logs, sessions, and messages. This cannot be undone.</div>' +
 '<button class="btn" style="background:#ef4444;max-width:280px" onclick="confirmDeleteMyAccount()">YES, DELETE MY ACCOUNT</button>' +
-'<button class="btn" style="background:var(--card);max-width:280px" onclick="cancelDeleteMyAccount()">Cancel</button>' +
+'<button class="btn" style="background:var(--c2);border:1.5px solid var(--bdr);color:var(--m1);max-width:280px" onclick="cancelDeleteMyAccount()">Cancel</button>' +
 '</div>' + cliNav();
 }
+var cp = DB.get('cp_'+S.cid)||{};
+var photo = DB.get('profile_photo_'+S.cid)||'';
+var initials = (cp.name||'?').split(' ').map(function(w){return (w[0]||'').toUpperCase();}).join('').slice(0,2);
+var curTheme = (S._theme) || (function(){try{return localStorage.getItem('_theme')||'dark';}catch(e){return 'dark';}})();
 return '<div class="hdr"><div class="hdr-top">' +
 '<div><div class="hdr-sub">My Account</div><div class="hdr-title">Account</div></div></div></div>' +
-'<div class="page" id="acct_page"><div class="big-bal">' +
+'<div class="page" id="acct_page">' +
+// Profile avatar
+'<div style="text-align:center;padding:24px 0 16px">' +
+'<div style="position:relative;display:inline-block">' +
+(photo
+? '<img src="'+photo+'" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid var(--acc);display:block">'
+: '<div style="width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--pink));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#fff;border:3px solid var(--acc)">'+initials+'</div>') +
+'<label for="prof_photo_inp" style="position:absolute;bottom:2px;right:2px;width:26px;height:26px;border-radius:50%;background:var(--c2);border:2px solid var(--bdr);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px">&#128247;</label>' +
+'<input type="file" id="prof_photo_inp" accept="image/*" style="display:none" onchange="handleProfilePhotoUpload(event)">' +
+'</div>' +
+'<div style="font-size:20px;font-weight:800;color:#fff;margin-top:10px">'+(cp.name||'')+'</div>' +
+(cp.username?'<div style="font-size:11px;color:var(--m2);margin-top:2px">@'+cp.username+'</div>':'') +
+'</div>' +
+// Balance
+'<div class="big-bal">' +
 '<div style="font-size:10px;color:var(--m1);letter-spacing:2px;margin-bottom:8px">SESSIONS REMAINING</div>' +
 '<div id="bal_num" style="font-size:70px;font-weight:900;line-height:1;color:var(--green)">-</div>' +
-'<div id="bal_msg" style="font-size:12px;color:var(--m1);margin-top:8px">Loading…</div></div>' +
+'<div id="bal_msg" style="font-size:12px;color:var(--m1);margin-top:8px">Loading&#8230;</div></div>' +
 '<div id="next_sess"></div>' +
+// Theme picker
+'<div class="sect">APPEARANCE</div>' +
+'<div class="card"><div class="card-p">' +
+'<div class="lbl" style="margin-bottom:10px">Theme</div>' +
+'<div style="display:flex;gap:10px;flex-wrap:wrap">' +
+Object.keys(THEMES).map(function(id) {
+var t = THEMES[id];
+var active = curTheme === id;
+return '<button onclick="applyTheme(\''+id+'\');S._theme=\''+id+'\';R()" style="display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:none;cursor:pointer;padding:4px">' +
+'<div style="width:44px;height:44px;border-radius:50%;background:'+t.swatch+';border:3px solid '+(active?t.ring:'rgba(255,255,255,.12)')+';box-shadow:'+(active?'0 0 0 2px '+t.ring:'none')+';position:relative;overflow:hidden">' +
+'<div style="position:absolute;bottom:0;left:0;right:0;height:50%;background:'+t.ring+'"></div>' +
+'</div>' +
+'<div style="font-size:9px;font-weight:700;color:'+(active?'var(--tx)':'var(--m2)')+';letter-spacing:.3px;text-align:center;white-space:nowrap">'+t.label+'</div>' +
+'</button>';
+}).join('') +
+'</div></div></div>' +
+// Payments
 '<div class="sect">PAYMENT RECEIPTS</div>' +
-'<div id="pay_list"><div class="empty">Loading…</div></div>' +
+'<div id="pay_list"><div class="empty">Loading&#8230;</div></div>' +
 '<div style="padding:20px 0 8px;text-align:center">' +
 '<button onclick="deleteMyAccount()" style="background:none;border:none;color:#ef4444;font-size:12px;cursor:pointer;padding:8px 16px;opacity:0.7">Delete Account</button>' +
 '</div>' +
 '</div>' + cliNav();
+}
+function handleProfilePhotoUpload(e) {
+var file = e.target.files && e.target.files[0]; if (!file) return;
+var reader = new FileReader();
+reader.onload = function(ev) {
+compressPhoto(ev.target.result, function(dataUrl) {
+DB.set('profile_photo_'+S.cid, dataUrl);
+toast('Photo updated', 'ok');
+R();
+});
+};
+reader.readAsDataURL(file);
 }
 function renderMyAcctData() {
 var balEl=document.getElementById('bal_num');

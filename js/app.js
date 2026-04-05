@@ -119,4 +119,5 @@ if (app) app.innerHTML = '<div style="min-height:100vh;display:flex;align-items:
 }
 
 // #app div is already in the DOM when this script runs (scripts load after it in body)
+loadTheme();
 startApp();

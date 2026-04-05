@@ -986,7 +986,10 @@ var injuries = cp.injuries||(cp.intake&&cp.intake.injuries)||'';
 var html = '';
 html += '<div style="background:linear-gradient(135deg,rgba(99,102,241,.13),rgba(139,92,246,.07));border:1px solid rgba(99,102,241,.22);border-radius:18px;padding:20px;margin-bottom:14px">';
 html += '<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">';
-html += '<div style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#fff;flex-shrink:0;box-shadow:0 4px 20px rgba(99,102,241,.35)">'+initials+'</div>';
+var cliPhoto = DB.get('profile_photo_'+cid)||'';
+html += cliPhoto
+? '<img src="'+cliPhoto+'" style="width:70px;height:70px;border-radius:50%;object-fit:cover;flex-shrink:0;border:3px solid #6366f1;box-shadow:0 4px 20px rgba(99,102,241,.35)">'
+: '<div style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#fff;flex-shrink:0;box-shadow:0 4px 20px rgba(99,102,241,.35)">'+initials+'</div>';
 html += '<div style="flex:1">';
 html += '<div style="font-size:22px;font-weight:900;color:#fff;margin-bottom:4px">'+c.name+'</div>';
 if (cp.username) html += '<div style="font-size:11px;color:var(--m2);margin-bottom:6px">Login: <span style="color:var(--acc);font-weight:700">@'+cp.username+'</span></div>';

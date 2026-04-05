@@ -124,6 +124,10 @@ var tc = DB.get('tc') || {};
 tc[cid] = {name:name, username:username, type:'in_person', balance:0, rate:0, joined:today(), lastActive:today()};
 DB.set('tc', tc);
 S.clients = tc;
+// Write global username index so client can log in from any device
+if (DB._fb && S.trId) {
+DB._fb.ref('client_usernames/'+username).set({trainerUid:S.trId, cid:cid, createdAt:Date.now()}).catch(function(){});
+}
 enterClient(cid);
 toast('Welcome '+name+'! Your trainer has been notified.', 'ok');
 }
@@ -237,39 +241,54 @@ var errEl = document.getElementById('clogin_err');
 function showErr(m){if(errEl)errEl.innerHTML='<div class="err-msg">'+m+'</div>';}
 if (!username) { showErr('Enter your username'); return; }
 if (!pass) { showErr('Enter your password'); return; }
-// Search every localStorage key across all trainer namespaces
+// Fast path: search localStorage (same device returning user)
+var local = _findClientLocal(username, pass);
+if (local) {
+DB._prefix = local.prefix; DB._fbPath = local.fbPath;
+if (local.prefix) S.trId = local.prefix.replace(/_$/,'');
+enterClient(local.cid);
+return;
+}
+// Not found locally — look up via Firebase global username index
+if (!DB._fb) { showErr('Account not found. Make sure you are connected to the internet.'); return; }
+if(errEl) errEl.innerHTML='<div style="font-size:11px;color:var(--m1);padding:6px">Looking up account...</div>';
+DB._fb.ref('client_usernames/'+username).once('value').then(function(snap) {
+var info = snap.val();
+if (!info || !info.trainerUid || !info.cid) { showErr('Username not found. Check with your trainer.'); return; }
+var trainerUid = info.trainerUid;
+var cid = info.cid;
+// Verify password against Firebase profile
+DB._fb.ref('trainers/'+trainerUid+'/cp_'+cid).once('value').then(function(cpSnap) {
+var cp = cpSnap.val();
+if (!cp) { showErr('Account not found. Contact your trainer.'); return; }
+if (cp.pin !== pass) { showErr('Incorrect password.'); return; }
+// Set namespace and pull all data down
+DB._prefix = trainerUid+'_'; DB._fbPath = 'trainers/'+trainerUid; S.trId = trainerUid;
+if(errEl) errEl.innerHTML='<div style="font-size:11px;color:var(--m1);padding:6px">Loading your data...</div>';
+syncFromFirebase(function() { enterClient(cid); });
+}).catch(function(e) { showErr('Connection error. Try again.'); });
+}).catch(function(e) { showErr('Connection error. Try again.'); });
+}
+function _findClientLocal(username, pass) {
 var allKeys = Object.keys(localStorage);
-var matchCid = null;
-var matchPrefix = null;
-var matchFbPath = null;
-for (var i=0; i<allKeys.length; i++) {
+for (var i = 0; i < allKeys.length; i++) {
 var k = allKeys[i];
 var cpIdx = k.indexOf('cp_');
 if (cpIdx < 0) continue;
-var raw = localStorage.getItem(k); if(!raw) continue;
-var c; try { c = JSON.parse(raw); } catch(e){ continue; }
-// Match by username (new accounts) or name (legacy accounts without username)
+var raw = localStorage.getItem(k); if (!raw) continue;
+var c; try { c = JSON.parse(raw); } catch(e) { continue; }
 var usernameMatch = c && c.username && c.username === username;
 var legacyMatch = c && !c.username && c.name && c.name.toLowerCase() === username;
 if ((usernameMatch || legacyMatch) && c.pin === pass) {
-matchCid = k.substring(cpIdx+3);
-matchPrefix = k.substring(0, cpIdx);
-if (matchPrefix === '') {
-matchFbPath = 'ahmedpt';
-} else {
-var uid = matchPrefix.replace(/_$/,'');
-matchFbPath = 'trainers/'+uid;
-}
-break;
+var pfx = k.substring(0, cpIdx);
+return {
+cid: k.substring(cpIdx+3),
+prefix: pfx,
+fbPath: pfx === '' ? 'ahmedpt' : 'trainers/'+pfx.replace(/_$/,'')
+};
 }
 }
-if (!matchCid) { showErr('Username or password not found. Ask your trainer if you need a new account.'); return; }
-DB._prefix = matchPrefix;
-DB._fbPath = matchFbPath;
-if (matchPrefix !== '') {
-S.trId = matchPrefix.replace(/_$/,'');
-}
-enterClient(matchCid);
+return null;
 }
 function enterClient(cid) {
 var cp = DB.get('cp_' + cid) || {};
@@ -286,6 +305,14 @@ S.unread=S.msgs.filter(function(m){return m.from==='trainer'&&!m.read;}).length;
 DB.set('sess', {role:'client', cid:cid, trId:S.trId||null});
 loadClientPremium(cid);
 setupMsgListener(cid, 'client');
+if (DB._fb) {
+setupRealtimeSync(function() {
+S.logs = DB.get('logs_'+cid) || {};
+S.msgs = DB.get('msgs_'+cid) || [];
+S.unread = S.msgs.filter(function(m){ return m.from==='trainer'&&!m.read; }).length;
+R();
+});
+}
 R();
 }
 function doLogout() {
@@ -333,6 +360,11 @@ R();
 function confirmDeleteMyAccount() {
 var cid = S.cid;
 var pfx = DB._prefix;
+// Remove from global username index
+var cp = DB.get('cp_'+cid);
+if (DB._fb && cp && cp.username) {
+DB._fb.ref('client_usernames/'+cp.username).remove().catch(function(){});
+}
 // Remove client from trainer's client list
 var tc = DB.get('tc') || {};
 delete tc[cid];

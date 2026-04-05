@@ -908,8 +908,12 @@ DB.set('tc', S.clients);
 DB.set('sessions_'+cid, {});
 DB.set('payments_'+cid, {});
 DB.set('msgs_'+cid, []);
+// Write global username index so client can log in from any device
+if (DB._fb && S.trId) {
+DB._fb.ref('client_usernames/'+username).set({trainerUid:S.trId, cid:cid, createdAt:Date.now()}).catch(function(){});
+}
 closeModal();
-toast(name+' added! Login: '+username, 'ok');
+toast(name+' added! Username: '+username, 'ok');
 setTimeout(function(){ openAddProg(cid); }, 400);
 R();
 }

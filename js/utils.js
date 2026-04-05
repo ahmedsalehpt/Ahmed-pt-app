@@ -494,33 +494,60 @@ toast('Session completed - 1 session deducted', 'ok');
 // ─── Theme system ─────────────────────────────────────────────────────────────
 var THEMES = {
 dark: {
-label:'Deep Space', swatch:'#07070e', ring:'#6366f1',
+label:'Dark', swatch:'#07070e', ring:'#6366f1', light:false,
 vars:{'--bg':'#07070e','--c1':'#0f1117','--c2':'#161b26','--bdr':'rgba(255,255,255,.08)','--tx':'#e8eaf0','--m1':'#8892a4','--m2':'#4a5568','--m3':'#2d3748','--acc':'#6366f1'},
 hdr:'rgba(7,7,14,.94)', nav:'rgba(7,7,14,.96)'
 },
 navy: {
-label:'Midnight Navy', swatch:'#07090f', ring:'#c9a227',
+label:'Navy Gold', swatch:'#07090f', ring:'#c9a227', light:false,
 vars:{'--bg':'#07090f','--c1':'#0c1220','--c2':'#111b2e','--bdr':'rgba(180,155,80,.14)','--tx':'#e6ecf8','--m1':'#7a8daa','--m2':'#3a4f6a','--m3':'#1e3050','--acc':'#c9a227'},
 hdr:'rgba(7,9,15,.95)', nav:'rgba(7,9,15,.97)'
 },
-charcoal: {
-label:'Warm Charcoal', swatch:'#0f0f0c', ring:'#c8924a',
-vars:{'--bg':'#0f0f0c','--c1':'#1a1916','--c2':'#232018','--bdr':'rgba(210,185,120,.12)','--tx':'#f0ece4','--m1':'#a09880','--m2':'#5e5a50','--m3':'#383430','--acc':'#c8924a'},
-hdr:'rgba(15,15,12,.95)', nav:'rgba(15,15,12,.97)'
+ivory: {
+label:'Ivory', swatch:'#f5f0e6', ring:'#b86e2a', light:true,
+vars:{'--bg':'#f5f0e6','--c1':'#ece6d8','--c2':'#e0d8c8','--bdr':'rgba(80,50,10,.13)','--tx':'#1e1810','--m1':'#7a6a58','--m2':'#b0a090','--m3':'#cfc4b6','--acc':'#b86e2a'},
+hdr:'rgba(245,240,230,.96)', nav:'rgba(245,240,230,.98)'
 },
-emerald: {
-label:'Forest Emerald', swatch:'#060e0b', ring:'#10d98a',
-vars:{'--bg':'#060e0b','--c1':'#0c1812','--c2':'#12201a','--bdr':'rgba(16,217,138,.1)','--tx':'#d8eeea','--m1':'#6a9488','--m2':'#354e46','--m3':'#1c3028','--acc':'#10d98a'},
-hdr:'rgba(6,14,11,.95)', nav:'rgba(6,14,11,.97)'
+sage: {
+label:'Sage Green', swatch:'#eef3ec', ring:'#3a7d50', light:true,
+vars:{'--bg':'#eef3ec','--c1':'#e2ebe0','--c2':'#d4e0d0','--bdr':'rgba(20,70,30,.12)','--tx':'#182018','--m1':'#587060','--m2':'#96aea0','--m3':'#bcd0c4','--acc':'#3a7d50'},
+hdr:'rgba(238,243,236,.96)', nav:'rgba(238,243,236,.98)'
 }
 };
+var _LIGHT_CSS = [
+'body[data-light]*{color:var(--tx)!important}',
+'body[data-light] .btn,body[data-light] .btn-sm,body[data-light] .btn-acc,body[data-light] .btn-green,body[data-light] .btn-red{color:#fff!important}',
+'body[data-light] .chat-send,body[data-light] .rpe-btn{color:var(--tx)!important}',
+'body[data-light] .rpe-btn[style*="color:#fff"]{color:#fff!important}',
+'body[data-light] .p-green{color:#1a6e40!important}',
+'body[data-light] .p-red{color:#b91c1c!important}',
+'body[data-light] .p-amber{color:#92400e!important}',
+'body[data-light] .p-blue{color:#3730a3!important}',
+'body[data-light] .p-pink{color:#9d174d!important}',
+'body[data-light] .p-gray{color:var(--m1)!important}',
+'body[data-light] .nb{color:var(--m2)!important}',
+'body[data-light] .nb.on{color:var(--acc)!important}',
+'body[data-light] .nbd{color:#fff!important}',
+'body[data-light] .t-ok,body[data-light] .t-err,body[data-light] .t-info{color:#fff!important}',
+'body[data-light] .err-msg{color:#b91c1c!important}',
+'body[data-light] .ok-msg{color:#1a6e40!important}',
+'body[data-light] .lpanel{background:rgba(0,0,0,.05)!important}',
+'body[data-light] #rest-banner{color:#fff!important}',
+'body[data-light] .bubble.from-me-bubble{color:#fff!important}',
+'body[data-light] .from-me .bubble{color:#fff!important}',
+'body[data-light] .role-card.on{background:rgba(0,0,0,.06)!important}'
+].join('');
 function applyTheme(id) {
 var t = THEMES[id] || THEMES.dark;
 var r = document.documentElement;
 Object.keys(t.vars).forEach(function(k){ r.style.setProperty(k, t.vars[k]); });
+document.body.style.background = t.vars['--bg'];
 var st = document.getElementById('_theme_ovr');
 if (!st) { st = document.createElement('style'); st.id = '_theme_ovr'; document.head.appendChild(st); }
-st.textContent = '.hdr{background:'+t.hdr+'!important}.bnav{background:'+t.nav+'!important}.login-wrap{background:'+t.vars['--bg']+'!important}';
+var base = '.hdr{background:'+t.hdr+'!important}.bnav{background:'+t.nav+'!important}.login-wrap{background:'+t.vars['--bg']+'!important}';
+st.textContent = base + (t.light ? _LIGHT_CSS : '');
+if (t.light) { document.body.setAttribute('data-light',''); }
+else { document.body.removeAttribute('data-light'); }
 try { localStorage.setItem('_theme', id); } catch(e) {}
 S._theme = id;
 }

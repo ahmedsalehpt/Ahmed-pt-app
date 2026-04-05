@@ -1010,11 +1010,13 @@ return '<div class="hdr"><div class="hdr-top">' +
 Object.keys(THEMES).map(function(id) {
 var t = THEMES[id];
 var active = curTheme === id;
+var labelColor = active ? (t.light ? '#1e1810' : '#fff') : (t.light ? '#7a6a58' : 'var(--m2)');
 return '<button onclick="applyTheme(\''+id+'\');S._theme=\''+id+'\';R()" style="display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:none;cursor:pointer;padding:4px">' +
-'<div style="width:44px;height:44px;border-radius:50%;background:'+t.swatch+';border:3px solid '+(active?t.ring:'rgba(255,255,255,.12)')+';box-shadow:'+(active?'0 0 0 2px '+t.ring:'none')+';position:relative;overflow:hidden">' +
-'<div style="position:absolute;bottom:0;left:0;right:0;height:50%;background:'+t.ring+'"></div>' +
+'<div style="width:48px;height:48px;border-radius:14px;background:'+t.swatch+';border:3px solid '+(active?t.ring:'rgba(128,128,128,.25)')+';box-shadow:'+(active?'0 0 0 2px '+t.ring+',0 4px 12px rgba(0,0,0,.15)':'0 2px 6px rgba(0,0,0,.1)')+';position:relative;overflow:hidden;display:flex;align-items:flex-end">' +
+'<div style="width:100%;height:44%;background:'+t.ring+'"></div>' +
+(active?'<div style="position:absolute;top:4px;right:4px;width:10px;height:10px;border-radius:50%;background:'+t.ring+';border:2px solid '+(t.light?'rgba(0,0,0,.2)':'rgba(255,255,255,.3)')+'"></div>':'') +
 '</div>' +
-'<div style="font-size:9px;font-weight:700;color:'+(active?'var(--tx)':'var(--m2)')+';letter-spacing:.3px;text-align:center;white-space:nowrap">'+t.label+'</div>' +
+'<div style="font-size:9px;font-weight:700;color:'+labelColor+';letter-spacing:.3px;text-align:center;white-space:nowrap">'+t.label+'</div>' +
 '</button>';
 }).join('') +
 '</div></div></div>' +

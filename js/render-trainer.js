@@ -1148,13 +1148,77 @@ return Object.values(sess).sort(function(a,b){return b.ts-a.ts;});
 
 function renderCliLog(cid, cd, c) {
 var sessions = buildSessLog(cd.logs||{}, cid);
-return (sessions.length===0?'<div class="empty">No workouts logged yet.<br>Data appears here as '+c.name+' trains.</div>':
-sessions.map(function(s){ return renderSessCard(s,cid,cd); }).join('')) +
-'<div class="sect">COACHING NOTE</div><div class="card"><div class="card-p">' +
+var LIMIT = 5;
+var isHistory = S.cliLogView === cid;
+var filters = S.cliLogFilters || {};
+var catF = filters.cat || '';
+var timeF = filters.time || '';
+var html = '';
+
+if (isHistory) {
+// Collect unique day/category names for filter dropdown
+var cats = [];
+sessions.forEach(function(s) {
+var n = s.day ? (s.day.title||s.day.name||s.day.tag||'') : '';
+if (n && cats.indexOf(n) < 0) cats.push(n);
+});
+// Apply filters
+var filtered = sessions.filter(function(s) {
+if (catF) {
+var n = s.day ? (s.day.title||s.day.name||s.day.tag||'') : '';
+if (n !== catF) return false;
+}
+if (timeF) {
+var age = Date.now() - s.ts;
+if (timeF==='week' && age>7*86400000) return false;
+if (timeF==='month' && age>30*86400000) return false;
+if (timeF==='3months' && age>90*86400000) return false;
+if (timeF==='year' && age>365*86400000) return false;
+}
+return true;
+});
+html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
+html += '<div style="font-size:15px;font-weight:800;color:#fff">All Workouts <span style="font-size:11px;color:var(--m1);font-weight:400">('+filtered.length+')</span></div>';
+html += '<button onclick="S.cliLogView=null;R()" style="font-size:11px;color:var(--acc);background:none;border:none;cursor:pointer;font-weight:700">&#8592; Back</button>';
+html += '</div>';
+// Filter controls
+html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">';
+html += '<select class="sel" style="flex:1;font-size:12px;padding:8px 10px" onchange="S.cliLogFilters=S.cliLogFilters||{};S.cliLogFilters.time=this.value;R()">';
+[{v:'',l:'All time'},{v:'week',l:'This week'},{v:'month',l:'This month'},{v:'3months',l:'Last 3 months'},{v:'year',l:'This year'}].forEach(function(o){
+html += '<option value="'+o.v+'"'+(timeF===o.v?' selected':'')+'>'+o.l+'</option>';
+});
+html += '</select>';
+if (cats.length > 1) {
+html += '<select class="sel" style="flex:1;font-size:12px;padding:8px 10px" onchange="S.cliLogFilters=S.cliLogFilters||{};S.cliLogFilters.cat=this.value;R()">';
+html += '<option value="">All workouts</option>';
+cats.forEach(function(cat){ html += '<option value="'+cat+'"'+(catF===cat?' selected':'')+'>'+cat+'</option>'; });
+html += '</select>';
+}
+html += '</div>';
+if (filtered.length === 0) {
+html += '<div class="empty">No workouts match the selected filters.</div>';
+} else {
+html += filtered.map(function(s){ return renderSessCard(s,cid,cd); }).join('');
+}
+} else {
+// Summary view — last 5 only
+if (sessions.length === 0) {
+html += '<div class="empty">No workouts logged yet.<br>Data appears here as '+c.name+' trains.</div>';
+} else {
+html += sessions.slice(0,LIMIT).map(function(s){ return renderSessCard(s,cid,cd); }).join('');
+if (sessions.length > LIMIT) {
+html += '<button onclick="S.cliLogView=\''+cid+'\';S.cliLogFilters={cat:\'\',time:\'\'};R()" style="width:100%;padding:12px;border-radius:11px;border:1.5px solid var(--bdr);background:none;color:var(--acc);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:14px">'+
+'+'+(sessions.length-LIMIT)+' more &#8212; View full history &#8594;</button>';
+}
+}
+}
+
+html += '<div class="sect">COACHING NOTE</div><div class="card"><div class="card-p">' +
 '<div class="lbl" style="margin-bottom:6px">Feedback - saved to '+c.name+'</div>' +
 '<textarea class="inp" id="tr_note" rows="3" placeholder="Training notes, form cues, next steps..." style="min-height:70px;margin-bottom:8px">'+getLatTrNote(cid,cd)+'</textarea>' +
 '<button class="btn-sm btn-acc" onclick="saveTrNote(\''+cid+'\')">Send to Client ✓</button>' +
 '</div></div>';
+return html;
 }
 function getLatTrNote(cid, cd) {
 var sn = cd.sessNotes || {};
@@ -1175,15 +1239,21 @@ toast('Note saved for '+cnn, 'ok');
 function renderSessCard(sess, cid, cd) {
 var isExp = S.expS[sess.sk];
 var di = sess.day;
+var exCnt = Object.keys(sess.exLogs).length;
 var setCnt = Object.values(sess.exLogs).reduce(function(t,e){return t+Object.keys(e.sets).length;},0);
 var sn = cd.sessNotes && cd.sessNotes[sess.sk];
 var accent = di?(di.accent||'#6366f1'):'#6366f1';
+var dayName = di ? (di.title||di.name||di.tag||'Workout') : 'Workout';
 return '<div class="card" style="border-color:'+(isExp?accent:'var(--bdr)')+';margin-bottom:8px">' +
 '<div style="padding:12px 13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="S.expS[\''+sess.sk+'\']=!S.expS[\''+sess.sk+'\'];R()">' +
-'<div><div style="font-weight:800;font-size:14px;color:'+accent+'">'+(di?di.title:'Session')+' <span style="font-size:11px;color:var(--m1);font-weight:400">Wk'+sess.w+'</span>' +
-(sn&&sn.rating?'<span style="font-size:11px;color:var(--amber);margin-left:6px">'+('&#11088;').repeat(sn.rating)+'</span>':'')+'</div>' +
-'<div style="font-size:10px;color:var(--m1);margin-top:2px">'+setCnt+' sets'+(sess.ts?' &#183; '+fmtD(new Date(sess.ts).toISOString().split('T')[0]):'')+'</div></div>' +
-'<span style="font-size:14px;color:var(--m2)">'+(isExp?'&#9652;':'&#9662;')+'</span></div>' +
+'<div style="flex:1;min-width:0">' +
+'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+'<div style="font-weight:800;font-size:14px;color:'+accent+'">'+dayName+'</div>' +
+'<span style="font-size:10px;color:var(--m2);background:var(--c2);padding:2px 7px;border-radius:20px">Wk'+sess.w+'</span>' +
+(sn&&sn.rating?'<span style="font-size:11px;color:var(--amber)">'+('&#11088;').repeat(sn.rating)+'</span>':'')+'</div>' +
+'<div style="font-size:10px;color:var(--m1);margin-top:3px">'+(sess.ts?fmtD(new Date(sess.ts).toISOString().split('T')[0])+' &#183; ':'')+exCnt+' exercise'+(exCnt===1?'':'s')+' &#183; '+setCnt+' sets</div>' +
+'</div>' +
+'<span style="font-size:14px;color:var(--m2);margin-left:8px;flex-shrink:0">'+(isExp?'&#9652;':'&#9662;')+'</span></div>' +
 (isExp?'<div style="padding:12px 13px;border-top:1px solid var(--bdr)">' +
 Object.keys(sess.exLogs).sort(function(a,b){return parseInt(a)-parseInt(b);}).map(function(ei){
 var exLog=sess.exLogs[ei], ex=exLog.ex;

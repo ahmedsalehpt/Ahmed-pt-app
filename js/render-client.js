@@ -483,12 +483,12 @@ return '<div class="lpanel">' +
 '<div class="lt" style="color:'+d.accent+'">SET '+(si+1)+' - '+ex.n.toUpperCase()+'</div>' +
 (prev?'<div class="prev">Wk'+prev.week+': '+(prev.data.weight?'<strong>'+prev.data.weight+S.unit+'</strong>':'')+(prev.data.reps?' x '+prev.data.reps:'')+(prev.data.rpe?' - RPE '+prev.data.rpe:'')+'</div>':'') +
 '<div class="two-col">' +
-'<div><div class="lbl">Weight ('+S.unit+')</div><input class="inp" type="number" id="inp_w" value="'+(lg.weight||'')+'" placeholder="'+(prev&&prev.data.weight?prev.data.weight:'e.g. 60')+'" inputmode="decimal" onfocus="this.style.borderColor=\''+d.accent+'\'" onblur="this.style.borderColor=\'\'"></div>' +
-'<div><div class="lbl">Reps done</div><input class="inp" type="number" id="inp_r" value="'+(lg.reps||'')+'" placeholder="'+(prev&&prev.data.reps?prev.data.reps:'e.g. 8')+'" inputmode="numeric" onfocus="this.style.borderColor=\''+d.accent+'\'" onblur="this.style.borderColor=\'\'"></div>' +
+'<div><div class="lbl">Weight ('+S.unit+')</div><input class="inp" type="number" id="inp_w" value="'+((S.aSet&&S.aSet.pw!=null)?S.aSet.pw:(lg.weight||''))+'" placeholder="'+(prev&&prev.data.weight?prev.data.weight:'e.g. 60')+'" inputmode="decimal" onfocus="this.style.borderColor=\''+d.accent+'\'" onblur="this.style.borderColor=\'\'"></div>' +
+'<div><div class="lbl">Reps done</div><input class="inp" type="number" id="inp_r" value="'+((S.aSet&&S.aSet.pr!=null)?S.aSet.pr:(lg.reps||''))+'" placeholder="'+(prev&&prev.data.reps?prev.data.reps:'e.g. 8')+'" inputmode="numeric" onfocus="this.style.borderColor=\''+d.accent+'\'" onblur="this.style.borderColor=\'\'"></div>' +
 '</div>' +
 '<div class="lbl">RPE</div>' +
 '<div class="rpe-row">'+[1,2,3,4,5,6,7,8,9,10].map(function(v){
-return '<button class="rpe-btn" onclick="S.rpe='+(S.rpe===v?'null':v)+';R()" style="'+(S.rpe===v?'background:'+rpeC(v)+';color:#fff;border-color:transparent;':'')+'">'+v+'</button>';
+return '<button class="rpe-btn" onclick="var _w=document.getElementById(\'inp_w\'),_r=document.getElementById(\'inp_r\');if(S.aSet){S.aSet.pw=_w?_w.value:null;S.aSet.pr=_r?_r.value:null;}S.rpe='+(S.rpe===v?'null':v)+';R()" style="'+(S.rpe===v?'background:'+rpeC(v)+';color:#fff;border-color:transparent;':'')+'">'+v+'</button>';
 }).join('')+(S.rpe?'<span style="font-size:11px;font-weight:700;color:'+rpeC(S.rpe)+';margin-left:4px">'+rpeN(S.rpe)+'</span>':'')+'</div>' +
 '<div class="log-acts">' +
 '<button class="btn btn-acc" style="flex:1;background:'+d.accent+';margin-bottom:0" onclick="doLog('+ei+','+si+')">✓ LOG SET</button>' +

@@ -177,13 +177,29 @@ return '<div onclick="setCTab(&apos;habits&apos;)" style="padding:12px;backgroun
 function renderTodayWorkoutCard(d, idx) {
 var prog = getProg();
 var estMins = d.ex ? d.ex.reduce(function(t,ex){return t+(ex.sets||3)*4;},0) : 0;
+var progress = sessP();
+var hasStarted = progress.done > 0;
+var isComplete = progress.total > 0 && progress.done >= progress.total;
+var btnText, btnStyle, subText;
+if (isComplete) {
+btnText = 'WORKOUT COMPLETE &#10003;';
+btnStyle = 'background:var(--green)';
+subText = 'All ' + progress.total + ' sets done — great work!';
+} else if (hasStarted) {
+btnText = 'CONTINUE WORKOUT &#8594;';
+btnStyle = 'background:var(--acc)';
+subText = progress.done + ' / ' + progress.total + ' sets done';
+} else {
+btnText = 'START WORKOUT &#8594;';
+btnStyle = 'background:var(--acc)';
+subText = d.ex ? d.ex.length + ' exercises &bull; ~' + estMins + ' min' : '';
+}
 return '<div style="background:linear-gradient(135deg,rgba(99,102,241,.18),rgba(236,72,153,.08));border:1px solid rgba(99,102,241,.35);border-radius:16px;padding:18px;margin-bottom:12px">' +
 '<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--acc);margin-bottom:8px">TODAY&#39;S WORKOUT</div>' +
 '<div style="font-size:26px;font-weight:900;color:#fff;letter-spacing:-.5px;margin-bottom:4px">' + (d.title||d.name||'Workout') + '</div>' +
-'<div style="font-size:12px;color:var(--m1);margin-bottom:4px">' +
-(d.ex ? d.ex.length + ' exercises &bull; ~' + estMins + ' min' : '') +
-'</div>' +
-'<button class="btn btn-acc" style="margin-bottom:0;font-size:15px" onclick="startWorkout(' + idx + ')">START WORKOUT &#8594;</button>' +
+'<div style="font-size:12px;color:var(--m1);margin-bottom:10px">' + subText + '</div>' +
+(hasStarted && !isComplete ? '<div style="background:rgba(0,0,0,.3);border-radius:6px;overflow:hidden;height:5px;margin-bottom:10px"><div style="height:100%;border-radius:6px;background:var(--acc);width:'+Math.round(progress.done/progress.total*100)+'%"></div></div>' : '') +
+'<button class="btn" style="margin-bottom:0;font-size:15px;'+btnStyle+'" onclick="startWorkout(' + idx + ')">'+btnText+'</button>' +
 '</div>';
 }
 

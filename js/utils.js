@@ -498,44 +498,46 @@ label:'Dark', swatch:'#07070e', ring:'#6366f1', light:false,
 vars:{'--bg':'#07070e','--c1':'#0f1117','--c2':'#161b26','--bdr':'rgba(255,255,255,.08)','--tx':'#e8eaf0','--m1':'#8892a4','--m2':'#4a5568','--m3':'#2d3748','--acc':'#6366f1'},
 hdr:'rgba(7,7,14,.94)', nav:'rgba(7,7,14,.96)'
 },
-navy: {
-label:'Navy Gold', swatch:'#07090f', ring:'#c9a227', light:false,
-vars:{'--bg':'#07090f','--c1':'#0c1220','--c2':'#111b2e','--bdr':'rgba(180,155,80,.14)','--tx':'#e6ecf8','--m1':'#7a8daa','--m2':'#3a4f6a','--m3':'#1e3050','--acc':'#c9a227'},
-hdr:'rgba(7,9,15,.95)', nav:'rgba(7,9,15,.97)'
+slate: {
+label:'Slate', swatch:'#1a2133', ring:'#60a5fa', light:false,
+vars:{'--bg':'#1a2133','--c1':'#232d42','--c2':'#2c3855','--bdr':'rgba(255,255,255,.09)','--tx':'#dce8f8','--m1':'#7a96b8','--m2':'#4a6280','--m3':'#2a3e58','--acc':'#60a5fa'},
+hdr:'rgba(26,33,51,.95)', nav:'rgba(26,33,51,.97)'
 },
-ivory: {
-label:'Ivory', swatch:'#f5f0e6', ring:'#b86e2a', light:true,
-vars:{'--bg':'#f5f0e6','--c1':'#ece6d8','--c2':'#e0d8c8','--bdr':'rgba(80,50,10,.13)','--tx':'#1e1810','--m1':'#7a6a58','--m2':'#b0a090','--m3':'#cfc4b6','--acc':'#b86e2a'},
-hdr:'rgba(245,240,230,.96)', nav:'rgba(245,240,230,.98)'
+cloud: {
+label:'Cloud', swatch:'#ffffff', ring:'#3b82f6', light:true,
+vars:{'--bg':'#ffffff','--c1':'#f1f4f9','--c2':'#e4e9f2','--bdr':'rgba(0,0,0,.09)','--tx':'#0d1117','--m1':'#5a6478','--m2':'#9ca3b4','--m3':'#d0d5e0','--acc':'#3b82f6'},
+hdr:'rgba(255,255,255,.96)', nav:'rgba(255,255,255,.98)'
 },
-sage: {
-label:'Sage Green', swatch:'#eef3ec', ring:'#3a7d50', light:true,
-vars:{'--bg':'#eef3ec','--c1':'#e2ebe0','--c2':'#d4e0d0','--bdr':'rgba(20,70,30,.12)','--tx':'#182018','--m1':'#587060','--m2':'#96aea0','--m3':'#bcd0c4','--acc':'#3a7d50'},
-hdr:'rgba(238,243,236,.96)', nav:'rgba(238,243,236,.98)'
+stone: {
+label:'Stone', swatch:'#f5f5f3', ring:'#0891b2', light:true,
+vars:{'--bg':'#f5f5f3','--c1':'#ebebea','--c2':'#e0e0de','--bdr':'rgba(0,0,0,.08)','--tx':'#111110','--m1':'#6b7280','--m2':'#a8a8a0','--m3':'#d4d4d0','--acc':'#0891b2'},
+hdr:'rgba(245,245,243,.96)', nav:'rgba(245,245,243,.98)'
 }
 };
 var _LIGHT_CSS = [
 'body[data-light]*{color:var(--tx)!important}',
 'body[data-light] .btn,body[data-light] .btn-sm,body[data-light] .btn-acc,body[data-light] .btn-green,body[data-light] .btn-red{color:#fff!important}',
-'body[data-light] .chat-send,body[data-light] .rpe-btn{color:var(--tx)!important}',
-'body[data-light] .rpe-btn[style*="color:#fff"]{color:#fff!important}',
-'body[data-light] .p-green{color:#1a6e40!important}',
-'body[data-light] .p-red{color:#b91c1c!important}',
-'body[data-light] .p-amber{color:#92400e!important}',
-'body[data-light] .p-blue{color:#3730a3!important}',
-'body[data-light] .p-pink{color:#9d174d!important}',
-'body[data-light] .p-gray{color:var(--m1)!important}',
+'body[data-light] .chat-send{color:#fff!important}',
+'body[data-light] .rpe-btn{color:var(--m1)!important;background:var(--c2)!important;border-color:var(--bdr)!important}',
+'body[data-light] .p-green{color:#166534!important;background:rgba(22,101,52,.1)!important;border-color:rgba(22,101,52,.2)!important}',
+'body[data-light] .p-red{color:#991b1b!important;background:rgba(153,27,27,.1)!important;border-color:rgba(153,27,27,.2)!important}',
+'body[data-light] .p-amber{color:#92400e!important;background:rgba(146,64,14,.1)!important;border-color:rgba(146,64,14,.2)!important}',
+'body[data-light] .p-blue{color:#1e3a8a!important;background:rgba(30,58,138,.1)!important;border-color:rgba(30,58,138,.2)!important}',
+'body[data-light] .p-pink{color:#9d174d!important;background:rgba(157,23,77,.1)!important;border-color:rgba(157,23,77,.2)!important}',
+'body[data-light] .p-gray{color:var(--m1)!important;background:var(--c2)!important}',
 'body[data-light] .nb{color:var(--m2)!important}',
 'body[data-light] .nb.on{color:var(--acc)!important}',
 'body[data-light] .nbd{color:#fff!important}',
 'body[data-light] .t-ok,body[data-light] .t-err,body[data-light] .t-info{color:#fff!important}',
-'body[data-light] .err-msg{color:#b91c1c!important}',
-'body[data-light] .ok-msg{color:#1a6e40!important}',
-'body[data-light] .lpanel{background:rgba(0,0,0,.05)!important}',
+'body[data-light] .err-msg{color:#991b1b!important;background:rgba(153,27,27,.06)!important;border-color:rgba(153,27,27,.15)!important}',
+'body[data-light] .ok-msg{color:#166534!important;background:rgba(22,101,52,.06)!important}',
+'body[data-light] .lpanel{background:rgba(0,0,0,.04)!important;border-top-color:var(--bdr)!important}',
 'body[data-light] #rest-banner{color:#fff!important}',
-'body[data-light] .bubble.from-me-bubble{color:#fff!important}',
 'body[data-light] .from-me .bubble{color:#fff!important}',
-'body[data-light] .role-card.on{background:rgba(0,0,0,.06)!important}'
+'body[data-light] .modal-box{background:var(--bg)!important}',
+'body[data-light] .sdot{border-color:var(--bdr)!important}',
+'body[data-light] .sdot.done{background:var(--acc)!important;border-color:var(--acc)!important}',
+'body[data-light] .role-card.on{background:rgba(59,130,246,.08)!important}'
 ].join('');
 function applyTheme(id) {
 var t = THEMES[id] || THEMES.dark;

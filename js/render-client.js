@@ -265,21 +265,28 @@ if(S.cTab==='messages')return renderMsgs();
 return renderHome();
 }
 function cliNav() {
+var photo = DB.get('profile_photo_'+S.cid)||'';
+var cp = DB.get('cp_'+S.cid)||{};
+var initials = (cp.name||'?').split(' ').map(function(w){return (w[0]||'').toUpperCase();}).join('').slice(0,2);
+var avatarIcon = photo
+? '<img src="'+photo+'" style="width:22px;height:22px;border-radius:50%;object-fit:cover;border:1.5px solid currentColor;display:block;margin:0 auto 2px">'
+: '<div style="width:22px;height:22px;border-radius:50%;background:currentColor;opacity:.85;display:flex;align-items:center;justify-content:center;margin:0 auto 2px;font-size:9px;font-weight:900;color:var(--bg)">'+initials+'</div>';
 var tabs=[
 {id:'home',icon:'&#127968;',lbl:'Home'},
 {id:'workout',icon:'&#128170;',lbl:'Workout'},
+{id:'messages',icon:'&#128172;',lbl:'Coach',badge:S.unread},
 {id:'sessions',icon:'&#128197;',lbl:'Schedule'},
-{id:'nutrition',icon:'&#127822;',lbl:'Nutrition'},
-{id:'messages',icon:'&#128172;',lbl:'Coach',badge:S.unread}
+{id:'account',avatar:true,lbl:'Profile'}
 ];
 var navOn=S.cTab;
-if(navOn==='goals'||navOn==='habits'||navOn==='recovery'||navOn==='measurements'||navOn==='progress'||navOn==='account')navOn='home';
+if(navOn==='goals'||navOn==='habits'||navOn==='recovery'||navOn==='measurements'||navOn==='progress'||navOn==='nutrition')navOn='home';
 return '<nav class="bnav">'+tabs.map(function(t){
 var on=navOn===t.id;
 var color=on?'var(--acc)':'var(--m2)';
 var click=t.id==='workout'?'S.wkDayOpen=null;S.cTab=\'workout\';R()':'S.cTab=\''+t.id+'\';R()';
 return '<button class="nb" onclick="'+click+'" style="color:'+color+'">' +
-'<span class="nbi">'+t.icon+'</span>'+t.lbl+
+(t.avatar ? avatarIcon : '<span class="nbi">'+t.icon+'</span>') +
+t.lbl +
 (t.badge&&t.badge>0?'<span class="nbd">'+t.badge+'</span>':'')+
 '</button>';
 }).join('')+'</nav>';

@@ -494,14 +494,14 @@ toast('Session completed - 1 session deducted', 'ok');
 // ─── Theme system ─────────────────────────────────────────────────────────────
 var THEMES = {
 dark: {
-label:'Dark', swatch:'#07070e', ring:'#6366f1', light:false,
-vars:{'--bg':'#07070e','--c1':'#0f1117','--c2':'#161b26','--bdr':'rgba(255,255,255,.08)','--tx':'#e8eaf0','--m1':'#8892a4','--m2':'#4a5568','--m3':'#2d3748','--acc':'#6366f1'},
-hdr:'rgba(7,7,14,.94)', nav:'rgba(7,7,14,.96)'
+label:'CONQR', swatch:'#060810', ring:'#2563EB', light:false,
+vars:{'--bg':'#060810','--c1':'#0D1117','--c2':'#111827','--bdr':'#1A2340','--tx':'#E8F0FF','--m1':'#6B7FA3','--m2':'#2A3450','--m3':'#1A2340','--acc':'#2563EB','--acc-l':'#4F86F7','--acc-d':'#1A3F9E','--green':'#16A34A','--amber':'#D97706','--red':'#DC2626','--pink':'#EC4899','--blue':'#4F86F7','--purple':'#8B5CF6','--cobalt-glow':'rgba(37,99,235,0.15)','--shadow-cobalt':'0 8px 24px rgba(37,99,235,0.4)'},
+hdr:'rgba(6,8,16,.96)', nav:'rgba(13,17,23,.98)'
 },
 slate: {
-label:'Slate', swatch:'#1a2133', ring:'#60a5fa', light:false,
-vars:{'--bg':'#1a2133','--c1':'#232d42','--c2':'#2c3855','--bdr':'rgba(255,255,255,.09)','--tx':'#dce8f8','--m1':'#7a96b8','--m2':'#4a6280','--m3':'#2a3e58','--acc':'#60a5fa'},
-hdr:'rgba(26,33,51,.95)', nav:'rgba(26,33,51,.97)'
+label:'Navy', swatch:'#0A0F1E', ring:'#4F86F7', light:false,
+vars:{'--bg':'#0A0F1E','--c1':'#111827','--c2':'#1A2340','--bdr':'rgba(74,134,247,.12)','--tx':'#E8F0FF','--m1':'#7A96B8','--m2':'#2A3A5C','--m3':'#1A2340','--acc':'#4F86F7','--green':'#16A34A','--amber':'#D97706','--red':'#DC2626','--pink':'#EC4899','--blue':'#4F86F7'},
+hdr:'rgba(10,15,30,.96)', nav:'rgba(17,24,39,.98)'
 },
 cloud: {
 label:'Cloud', swatch:'#ffffff', ring:'#3b82f6', light:true,
@@ -548,13 +548,19 @@ function applyTheme(id) {
 var t = THEMES[id] || THEMES.dark;
 var r = document.documentElement;
 Object.keys(t.vars).forEach(function(k){ r.style.setProperty(k, t.vars[k]); });
-document.body.style.background = t.vars['--bg'];
+// For dark themes, use cobalt radial glow; for light themes, flat background
+if (t.light) {
+  document.body.style.background = t.vars['--bg'];
+  document.body.setAttribute('data-light','');
+} else {
+  document.body.style.background = '';
+  document.body.style.backgroundColor = t.vars['--bg'];
+  document.body.removeAttribute('data-light');
+}
 var st = document.getElementById('_theme_ovr');
 if (!st) { st = document.createElement('style'); st.id = '_theme_ovr'; document.head.appendChild(st); }
 var base = '.hdr{background:'+t.hdr+'!important}.bnav{background:'+t.nav+'!important}.login-wrap{background:'+t.vars['--bg']+'!important}';
 st.textContent = base + (t.light ? _LIGHT_CSS : '');
-if (t.light) { document.body.setAttribute('data-light',''); }
-else { document.body.removeAttribute('data-light'); }
 try { localStorage.setItem('_theme', id); } catch(e) {}
 S._theme = id;
 }

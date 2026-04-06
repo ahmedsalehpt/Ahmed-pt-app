@@ -2007,20 +2007,38 @@ closeModal();
 function openAddProg(cid) {
 if (!canUse('programBuilder')) { showUpgradeModal('programBuilder'); return; }
 var saved=DB.get('prog_templates')||[];
+var conqrHtml='<div class="sect" style="margin-top:0">CONQR PROGRAM LIBRARY</div>'+
+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">'+
+CONQR_PRESETS.map(function(p,i){
+var accent=p.days&&p.days[0]?p.days[0].accent:'var(--acc)';
+return '<button onclick="useConqrPreset(\''+cid+'\','+i+')" style="text-align:left;padding:10px 12px;border-radius:10px;border:2px solid '+accent+'55;background:'+accent+'12;cursor:pointer;color:var(--tx)">'+
+'<div style="font-size:9px;font-weight:800;color:'+accent+';letter-spacing:1px;margin-bottom:3px">'+p.days.length+'-DAY PLAN</div>'+
+'<div style="font-size:11px;font-weight:700;margin-bottom:2px;line-height:1.3">'+p.name.replace(/^CONQR: /,'').replace(/ \(.*\)$/,'')+'</div>'+
+'<div style="font-size:10px;color:var(--m2)">4-week \u00b7 '+p.days.map(function(d){return d.tag;}).join(' / ')+'</div>'+
+'</button>';
+}).join('')+'</div>';
 showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
 '<div class="modal-title">Add Program <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>' +
-(saved.length>0?'<div class="sect" style="margin-top:0">YOUR SAVED PROGRAMS</div>'+
+conqrHtml +
+(saved.length>0?'<div class="sect">YOUR SAVED PROGRAMS</div>'+
 saved.map(function(t,i){
 return '<div style="display:flex;gap:8px;margin-bottom:8px">' +
 '<button class="btn btn-acc" style="flex:1;text-align:left;display:flex;justify-content:space-between;align-items:center;margin-bottom:0" onclick="useTemplate(\''+cid+'\','+i+')">' +
 '<div><div style="font-size:13px;font-weight:700">'+t.name+'</div>' +
 '<div style="font-size:10px;opacity:.7">'+(t.days?t.days.length:0)+' days</div></div><span>&#8594;</span></button>' +
 '<button onclick="delTemplate('+i+')" style="padding:8px 10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#f87171;cursor:pointer;font-size:12px">&#215;</button></div>';
-}).join('')+'<div class="sect">BUILD FROM SCRATCH</div>':'<div class="sect" style="margin-top:0">BUILD FROM SCRATCH</div>') +
+}).join('')+'<div class="sect">BUILD FROM SCRATCH</div>':'<div class="sect">BUILD FROM SCRATCH</div>') +
 '<div class="row"><div class="lbl">Program Name</div><input class="inp" id="np_name" placeholder="e.g. Strength Block Phase 2"></div>' +
 '<button class="btn btn-acc" style="margin-bottom:8px" onclick="startBuilder(\''+cid+'\')">BUILD CUSTOM PROGRAM &#8594;</button>' +
 '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
 '</div></div>');
+}
+function useConqrPreset(cid, idx) {
+var p=CONQR_PRESETS[idx]; if(!p)return;
+var prog=JSON.parse(JSON.stringify(p));
+prog.id='prog_'+Date.now(); prog.created=Date.now();
+saveProg(cid,prog);
+closeModal(); toast(p.name+' added!','ok'); R();
 }
 
 function useTemplate(cid, idx) {

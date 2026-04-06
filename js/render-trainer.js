@@ -20,7 +20,7 @@ return '<div class="tr-topbar">' +
 '<div style="font-size:16px;font-weight:800;color:#fff;flex:1;text-align:center">' + title + '</div>' +
 '<div style="display:flex;align-items:center;gap:6px">' +
 (totalUnread > 0 ? '<div style="position:relative"><button onclick="S.tTab=&quot;chats&quot;;S.sidebarOpen=false;R()" style="width:34px;height:34px;background:var(--c2);border:1px solid var(--bdr);border-radius:8px;color:var(--m1);font-size:16px;cursor:pointer">&#128172;</button><span style="position:absolute;top:-2px;right:-2px;background:var(--red);color:#fff;font-size:8px;font-weight:800;min-width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:0 3px">' + totalUnread + '</span></div>' : '') +
-'<button onclick="openTrainerProfile()" style="width:34px;height:34px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.25);border-radius:50%;color:var(--acc);font-size:14px;cursor:pointer">&#128100;</button>' +
+'<button onclick="openTrainerProfile()" style="width:34px;height:34px;background:rgba(37,99,235,.15);border:1px solid rgba(37,99,235,.25);border-radius:50%;color:var(--acc);font-size:14px;cursor:pointer">&#128100;</button>' +
 '</div></div>';
 }
 
@@ -127,22 +127,22 @@ return '<div class="page"><div style="text-align:center;padding:48px 20px">' +
 '</div></div>' + trNav();
 }
 function renderClientUpgrade() {
-return '<div style="text-align:center;padding:28px 16px;background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(236,72,153,.05));border:1px solid rgba(99,102,241,.2);border-radius:14px;margin-bottom:14px">' +
+return '<div style="text-align:center;padding:28px 16px;background:linear-gradient(135deg,rgba(37,99,235,.08),rgba(37,99,235,.02));border:1px solid rgba(37,99,235,.2);border-radius:14px;margin-bottom:14px">' +
 '<div style="font-size:36px;margin-bottom:10px">&#11088;</div>' +
 '<div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:8px">Premium Feature</div>' +
 '<div style="font-size:13px;color:var(--m1);line-height:1.6;margin-bottom:16px">Unlock detailed progress charts, milestone badges, body composition tracking and more.</div>' +
 '<div style="background:var(--c2);border-radius:12px;padding:12px 14px;margin-bottom:14px;text-align:left">' +
-'<div style="font-size:11px;font-weight:800;letter-spacing:1px;color:var(--pink);margin-bottom:8px">PREMIUM &#8212; &#163;4.99/MONTH</div>' +
+'<div style="font-size:11px;font-weight:800;letter-spacing:1px;color:var(--acc-l);margin-bottom:8px">PREMIUM &#8212; &#163;4.99/MONTH</div>' +
 '<div style="font-size:12px;color:var(--m1);line-height:1.9">&#10003; Detailed progress analytics<br>&#10003; Milestone badges<br>&#10003; Body composition tracker<br>&#10003; Daily coaching tips<br>&#10003; Export progress<br>&#10003; Extended workout history</div>' +
 '</div>' +
-'<button class="btn" style="background:var(--pink);margin-bottom:8px" onclick="goToClientCheckout()">UPGRADE &#8212; &#163;4.99/mo</button>' +
+'<button class="btn" style="background:var(--acc);margin-bottom:8px" onclick="goToClientCheckout()">UPGRADE &#8212; &#163;4.99/mo</button>' +
 '<div style="font-size:11px;color:var(--m2);margin-top:6px">Or ask Ahmed to include Premium in your package</div>' +
 '</div>';
 }
 function renderSubBanner() {
 var days=daysRemaining();
 if (S.sub.status==='trial'&&days>0) {
-return '<div style="background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.25);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">' +
+return '<div style="background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.25);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">' +
 '<div><div style="font-size:12px;font-weight:700;color:var(--acc)">Pro Trial Active</div>' +
 '<div style="font-size:10px;color:var(--m1)">'+days+' day'+(days===1?'':'s')+' remaining</div></div>' +
 '<button class="btn-sm btn-acc" onclick="showUpgradeModal(\'trial\')">Upgrade</button></div>';
@@ -168,7 +168,7 @@ return '<div style="background:rgba(16,185,129,.06);border:1px solid rgba(16,185
 '<div><div style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:var(--green);margin-bottom:4px">YOUR REFERRAL CODE</div>' +
 '<div style="font-size:22px;font-weight:900;color:#fff;letter-spacing:4px">'+S.referralCode+'</div>' +
 '<div style="font-size:10px;color:var(--m1);margin-top:2px">Both get 1 month free when a trainer signs up</div></div>' +
-'<button class="btn-sm btn-green" onclick="copyReferralCode()">Copy</button>' +
+'<button class="btn-sm btn-acc" onclick="copyReferralCode()">Copy</button>' +
 '</div>';
 }
 function renderAIInsights() {
@@ -191,9 +191,9 @@ return!logs||Object.keys(logs).length===0;
 if(newClients.length)insights.push({c:'blue',icon:'&#128221;',text:newClients[0][1].name+(newClients.length>1?' and '+(newClients.length-1)+' others':'')+' &#8212; no workouts logged yet. Set up a program and send a message.'});
 if(!insights.length)insights.push({c:'green',icon:'&#9989;',text:'All clients are active and sessions are up to date. Nice work!'});
 return '<div class="sect">AI INSIGHTS</div>'+insights.map(function(ins){
-var bc=ins.c==='green'?'rgba(16,185,129,.08)':ins.c==='red'?'rgba(239,68,68,.08)':ins.c==='blue'?'rgba(99,102,241,.08)':'rgba(245,158,11,.08)';
-var bdr=ins.c==='green'?'rgba(16,185,129,.2)':ins.c==='red'?'rgba(239,68,68,.2)':ins.c==='blue'?'rgba(99,102,241,.2)':'rgba(245,158,11,.2)';
-var tc=ins.c==='green'?'#34d399':ins.c==='red'?'#f87171':ins.c==='blue'?'#818cf8':'var(--amber)';
+var bc=ins.c==='green'?'rgba(16,185,129,.08)':ins.c==='red'?'rgba(239,68,68,.08)':ins.c==='blue'?'rgba(37,99,235,.08)':'rgba(245,158,11,.08)';
+var bdr=ins.c==='green'?'rgba(16,185,129,.2)':ins.c==='red'?'rgba(239,68,68,.2)':ins.c==='blue'?'rgba(37,99,235,.2)':'rgba(245,158,11,.2)';
+var tc=ins.c==='green'?'#34d399':ins.c==='red'?'#f87171':ins.c==='blue'?'var(--acc-l)':'var(--amber)';
 return '<div style="background:'+bc+';border:1px solid '+bdr+';border-radius:10px;padding:10px 13px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start">' +
 '<div style="font-size:18px;flex-shrink:0">'+ins.icon+'</div>' +
 '<div style="font-size:12px;color:'+tc+';line-height:1.5;font-weight:600">'+ins.text+'</div></div>';
@@ -213,7 +213,7 @@ return trTopBar('Chats') +
 (allChats.length===0?'<div class="empty">No messages yet.<br>Start a conversation from a client profile.</div>':
 allChats.map(function(x){
 return '<div class="ccard" onclick="openCli(\''+x.cid+'\');S.cliTab=\'chat\';R()" style="display:flex;align-items:center;gap:12px">' +
-'<div style="width:40px;height:40px;border-radius:50%;background:rgba(99,102,241,.2);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--acc);flex-shrink:0">'+x.name.charAt(0).toUpperCase()+'</div>' +
+'<div style="width:40px;height:40px;border-radius:50%;background:rgba(37,99,235,.2);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--acc);flex-shrink:0">'+x.name.charAt(0).toUpperCase()+'</div>' +
 '<div style="flex:1;min-width:0">' +
 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">' +
 '<div class="cname" style="font-size:14px">'+x.name+'</div>' +
@@ -299,7 +299,7 @@ currSym() + stats.total.toLocaleString() +
 '<div style="display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-bottom:8px;margin-bottom:10px">' +
 months.map(function(m) {
 var on = S.incomeMonth === m.key;
-return '<button onclick="setIncomeMonth(this)" data-month="' + m.key + '" style="flex-shrink:0;padding:5px 12px;border-radius:20px;border:1px solid ' + (on?'var(--acc)':'var(--bdr)') + ';background:' + (on?'rgba(99,102,241,.15)':'transparent') + ';color:' + (on?'var(--acc)':'var(--m1)') + ';font-size:11px;font-weight:700;cursor:pointer">' + m.label + '</button>';
+return '<button onclick="setIncomeMonth(this)" data-month="' + m.key + '" style="flex-shrink:0;padding:5px 12px;border-radius:20px;border:1px solid ' + (on?'var(--acc)':'var(--bdr)') + ';background:' + (on?'rgba(37,99,235,.15)':'transparent') + ';color:' + (on?'var(--acc)':'var(--m1)') + ';font-size:11px;font-weight:700;cursor:pointer">' + m.label + '</button>';
 }).join('') + '</div>' +
 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">' +
 '<div onclick="S.tTab=\'finance\';R()" style="background:var(--c2);border-radius:10px;padding:10px;text-align:center;cursor:pointer"><div style="font-size:18px;font-weight:800;color:var(--green)">' + currSym() + stats.total.toLocaleString() + '</div><div style="font-size:9px;color:var(--m2)">Received &#8594;</div></div>' +
@@ -338,10 +338,10 @@ todaySess.map(function(s) {
 var c = S.clients[s.clientId] || {};
 return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bdr);cursor:pointer" onclick="openCli(\''+s.clientId+'\')">' +
 '<div style="min-width:44px;text-align:center"><div style="font-size:12px;font-weight:700;color:#fff">' + (s.time||'--') + '</div></div>' +
-'<div style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:' + (c.type==='online'?'var(--blue)':'var(--green)') + '"></div>' +
+'<div style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:' + (c.type==='online'?'var(--acc)':'var(--green)') + '"></div>' +
 '<div style="flex:1"><div style="font-size:13px;font-weight:600;color:#fff">' + c.name + '</div>' +
 '<div style="font-size:10px;color:var(--m1)">' + (c.type==='online'?'Online':'In Person') + (s.workoutName?' &bull; '+s.workoutName:'') + '</div></div>' +
-'<button onclick="event.stopPropagation();confirmDone(\''+s.clientId+'\',\''+s.id+'\')" style="padding:5px 10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);border-radius:8px;color:var(--green);font-size:10px;font-weight:700;cursor:pointer">Done &#10003;</button>' +
+'<button onclick="event.stopPropagation();confirmDone(\''+s.clientId+'\',\''+s.id+'\')" style="padding:5px 10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);border-radius:8px;color:var(--acc-l);font-size:10px;font-weight:700;cursor:pointer">Done &#10003;</button>' +
 '</div>';
 }).join('') + '</div>') : '') +
 '</div><div style="height:1px;background:var(--bdr);margin-bottom:12px"></div>';
@@ -419,7 +419,7 @@ allEvents.push({cid: wf[wi].cid, clientName: wf[wi].clientName, ts: wf[wi].ts, t
 allEvents.sort(function(a,b){ return (b.ts||0) - (a.ts||0); });
 allEvents = allEvents.slice(0, 15);
 var typeIcon = {weight: '&#9878;', food: '&#127828;', workout: '&#127947;', habit: '&#9989;', goal: '&#127919;'};
-var typeColor = {weight: '#6366f1', food: '#10b981', workout: '#f59e0b', habit: '#34d399', goal: '#ec4899'};
+var typeColor = {weight: 'var(--acc)', food: '#10b981', workout: '#f59e0b', habit: '#34d399', goal: '#ec4899'};
 if (allEvents.length === 0) {
 return '<div class="dash-section">' + renderAIInsights() + '</div>';
 }
@@ -467,12 +467,12 @@ return Math.floor(diff / 86400000) + 'd ago';
 function sessRow(s) {
 return '<div class="si">' +
 '<div class="si-time"><div class="si-th">'+(s.time||'&#8211;:&#8211;')+'</div><div class="si-td">'+fmtD(s.date)+'</div></div>' +
-'<div class="si-dot" style="background:'+(s.clientType==='online'?'#6366f1':'#10b981')+'"></div>' +
+'<div class="si-dot" style="background:'+(s.clientType==='online'?'var(--acc)':'var(--green)')+'"></div>' +
 '<div class="si-info"><div class="si-name">'+(s.clientName||'')+'</div>' +
 '<div class="si-meta">'+(s.clientType==='online'?'Online':'In Person')+(s.note?' &#8212; '+s.note:'')+'</div></div>' +
 '<div style="display:flex;gap:4px">' +
 '<button class="btn-sm" style="background:var(--green)" onclick="confirmDone(\''+s.clientId+'\',\''+s.id+'\')">Done</button>' +
-'<button style="width:26px;height:26px;border-radius:7px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);color:#818cf8;font-size:12px;cursor:pointer" onclick="openEditSess(\''+s.clientId+'\',\''+s.id+'\')">&#9998;</button>' +
+'<button style="width:26px;height:26px;border-radius:7px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);color:var(--acc-l);font-size:12px;cursor:pointer" onclick="openEditSess(\''+s.clientId+'\',\''+s.id+'\')">&#9998;</button>' +
 '<button style="width:26px;height:26px;border-radius:7px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;font-size:12px;cursor:pointer" onclick="deleteSessConfirm(\''+s.clientId+'\',\''+s.id+'\')">&#215;</button>' +
 '</div></div>';
 }
@@ -504,7 +504,7 @@ return '<button onclick="S.clientFilter=\'' + f.id + '\';R()" style="flex-shrink
 }).join('') + '</div>' +
 '<div class="page">' +
 '<div style="display:flex;justify-content:flex-end;margin-bottom:12px">' +
-'<button class="btn-sm btn-green" onclick="openAddClient()">+ Add Client</button></div>' +
+'<button class="btn-sm btn-acc" onclick="openAddClient()">+ Add Client</button></div>' +
 (filtered.length === 0 ? '<div class="empty">No clients in this filter.</div>' : '') +
 filtered.map(function(e) {
 var cid = e[0], c = e[1];
@@ -521,7 +521,7 @@ hasWallet ? '<span class="pill p-amber">' + currSym(cid) + (c.walletCredit||0) +
 return '<div class="ccard" onclick="openCli(\''+cid+'\')">' +
 '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">' +
 '<div style="display:flex;align-items:center;gap:8px">' +
-'<div style="width:38px;height:38px;border-radius:50%;background:' + (isOnline?'rgba(99,102,241,.3)':'rgba(16,185,129,.3)') + ';display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0">' + c.name.charAt(0).toUpperCase() + '</div>' +
+'<div style="width:38px;height:38px;border-radius:50%;background:' + (isOnline?'rgba(37,99,235,.3)':'rgba(16,185,129,.3)') + ';display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0">' + c.name.charAt(0).toUpperCase() + '</div>' +
 '<div><div class="cname" style="margin-bottom:2px">' + c.name + '</div>' +
 '<span class="pill ' + (isOnline?'p-blue':'p-green') + '" style="font-size:9px">' + (isOnline?'&#127760; Online':'&#127947; In Person') + '</span></div></div>' +
 '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">' + balDisplay +
@@ -549,9 +549,9 @@ return trTopBar('Schedule') +
 '<div style="display:flex;gap:4px">' +
 ['day','week','month'].map(function(v) {
 var on = S.schedView === v;
-return '<button onclick="S.schedView=\'' + v + '\';R()" style="padding:5px 12px;border-radius:8px;border:1px solid ' + (on?'var(--acc)':'var(--bdr)') + ';background:' + (on?'rgba(99,102,241,.15)':'transparent') + ';color:' + (on?'var(--acc)':'var(--m1)') + ';font-size:11px;font-weight:700;cursor:pointer">' + v.charAt(0).toUpperCase() + v.slice(1) + '</button>';
+return '<button onclick="S.schedView=\'' + v + '\';R()" style="padding:5px 12px;border-radius:8px;border:1px solid ' + (on?'var(--acc)':'var(--bdr)') + ';background:' + (on?'rgba(37,99,235,.15)':'transparent') + ';color:' + (on?'var(--acc)':'var(--m1)') + ';font-size:11px;font-weight:700;cursor:pointer">' + v.charAt(0).toUpperCase() + v.slice(1) + '</button>';
 }).join('') + '</div>' +
-'<button class="btn-sm" style="background:var(--pink)" onclick="openBookSess(null)">+ Book</button>' +
+'<button class="btn-sm btn-acc" onclick="openBookSess(null)">+ Book</button>' +
 '</div>' +
 '<div class="page">' +
 (S.schedView === 'day' ? renderDayView() : '') +
@@ -610,7 +610,7 @@ return '<div style="display:flex;gap:10px;min-height:48px;border-bottom:1px soli
 '<div style="flex:1;padding:2px 0">' +
 sess.map(function(s) {
 var c = S.clients[s.clientId] || {};
-return '<div onclick="openCli(\''+s.clientId+'\')" style="padding:6px 10px;background:' + (s.clientType==='online'?'rgba(99,102,241,.15)':'rgba(16,185,129,.15)') + ';border-left:3px solid ' + (s.clientType==='online'?'var(--blue)':'var(--green)') + ';border-radius:0 8px 8px 0;margin-bottom:3px;cursor:pointer">' +
+return '<div onclick="openCli(\''+s.clientId+'\')" style="padding:6px 10px;background:' + (s.clientType==='online'?'rgba(37,99,235,.15)':'rgba(16,185,129,.15)') + ';border-left:3px solid ' + (s.clientType==='online'?'var(--acc)':'var(--green)') + ';border-radius:0 8px 8px 0;margin-bottom:3px;cursor:pointer">' +
 '<div style="font-size:12px;font-weight:700;color:#fff">' + (c.name||'Client') + '</div>' +
 '<div style="font-size:10px;color:var(--m1)">' + (s.workoutName||s.clientType==='online'?'Online':'In Person') + '</div></div>';
 }).join('') + '</div></div>';
@@ -640,11 +640,11 @@ var isToday = dateStr === today();
 var isSelected = dateStr === S.schedDate;
 var daySess = allSess.filter(function(s){ return s.date === dateStr; });
 var d2 = new Date(dateStr + 'T12:00:00');
-return '<div onclick="setSchedDay(this)" data-date="' + dateStr + '"" style="background:' + (isSelected?'var(--acc)':isToday?'rgba(99,102,241,.1)':'var(--c2)') + ';border:1px solid ' + (isToday?'var(--acc)':'var(--bdr)') + ';border-radius:10px;padding:7px 4px;text-align:center;cursor:pointer;min-height:64px">' +
+return '<div onclick="setSchedDay(this)" data-date="' + dateStr + '"" style="background:' + (isSelected?'var(--acc)':isToday?'rgba(37,99,235,.1)':'var(--c2)') + ';border:1px solid ' + (isToday?'var(--acc)':'var(--bdr)') + ';border-radius:10px;padding:7px 4px;text-align:center;cursor:pointer;min-height:64px">' +
 '<div style="font-size:9px;color:' + (isSelected?'rgba(255,255,255,.7)':'var(--m2)') + '">' + ['Su','Mo','Tu','We','Th','Fr','Sa'][d2.getDay()] + '</div>' +
 '<div style="font-size:15px;font-weight:800;color:#fff;margin:3px 0">' + d2.getDate() + '</div>' +
 daySess.slice(0,3).map(function(s) {
-return '<div style="height:4px;border-radius:2px;background:' + (s.clientType==='online'?'var(--blue)':'var(--green)') + ';margin:1px 2px"></div>';
+return '<div style="height:4px;border-radius:2px;background:' + (s.clientType==='online'?'var(--acc)':'var(--green)') + ';margin:1px 2px"></div>';
 }).join('') +
 (daySess.length > 3 ? '<div style="font-size:8px;color:' + (isSelected?'rgba(255,255,255,.6)':'var(--m2)') + '">+' + (daySess.length-3) + '</div>' : '') +
 '</div>';
@@ -684,10 +684,10 @@ if (!day) return '<div></div>';
 var dateStr = year + '-' + String(month+1).padStart(2,'0') + '-' + String(day).padStart(2,'0');
 var isToday = dateStr === today();
 var daySess = allSess.filter(function(s){ return s.date === dateStr; });
-return '<div onclick="setSchedDay(this)" data-date="' + dateStr + '"" style="background:' + (isToday?'rgba(99,102,241,.15)':'var(--c2)') + ';border:1px solid ' + (isToday?'var(--acc)':'var(--bdr)') + ';border-radius:8px;padding:5px;text-align:center;min-height:42px;cursor:pointer">' +
+return '<div onclick="setSchedDay(this)" data-date="' + dateStr + '"" style="background:' + (isToday?'rgba(37,99,235,.15)':'var(--c2)') + ';border:1px solid ' + (isToday?'var(--acc)':'var(--bdr)') + ';border-radius:8px;padding:5px;text-align:center;min-height:42px;cursor:pointer">' +
 '<div style="font-size:12px;font-weight:700;color:' + (isToday?'var(--acc)':'#fff') + '">' + day + '</div>' +
 daySess.slice(0,2).map(function(s) {
-return '<div style="height:3px;border-radius:2px;background:' + (s.clientType==='online'?'var(--blue)':'var(--green)') + ';margin-top:2px"></div>';
+return '<div style="height:3px;border-radius:2px;background:' + (s.clientType==='online'?'var(--acc)':'var(--green)') + ';margin-top:2px"></div>';
 }).join('') + '</div>';
 }).join('') + '</div>';
 }
@@ -715,7 +715,7 @@ return trTopBar('Settings') +
 '<div class="card" style="margin-bottom:12px">' +
 '<div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--m2);margin-bottom:12px">CLIENT INVITE</div>' +
 '<div style="font-size:11px;color:var(--m1);margin-bottom:8px">Share this code with clients so they can create their account.</div>' +
-'<div style="background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.3);border-radius:10px;padding:14px;text-align:center;margin-bottom:12px">' +
+'<div style="background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.3);border-radius:10px;padding:14px;text-align:center;margin-bottom:12px">' +
 '<div style="font-size:9px;letter-spacing:2px;color:var(--acc);font-weight:700;margin-bottom:4px">YOUR INVITE CODE</div>' +
 '<div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:3px" id="invite_code_disp">' + code + '</div>' +
 '</div>' +
@@ -783,7 +783,7 @@ return pending.map(function(p) {
 return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bdr)">' +
 '<div style="flex:1"><div style="font-size:13px;font-weight:600;color:#fff">' + p.data.name + '</div>' +
 '<div style="font-size:10px;color:var(--m1)">' + (p.data.date||'') + '</div></div>' +
-'<button onclick="approvePending(\''+p.key+'\')" style="padding:5px 10px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);border-radius:8px;color:var(--green);font-size:10px;font-weight:700;cursor:pointer">Approve</button>' +
+'<button onclick="approvePending(\''+p.key+'\')" style="padding:5px 10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.3);border-radius:8px;color:var(--acc-l);font-size:10px;font-weight:700;cursor:pointer">Approve</button>' +
 '<button onclick="declinePending(\''+p.key+'\')" style="padding:5px 10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:8px;color:var(--red);font-size:10px;font-weight:700;cursor:pointer">Decline</button>' +
 '</div>';
 }).join('');
@@ -821,7 +821,7 @@ return trTopBar('Finance') + '<div class="page">' +
 '<div class="sgrid">' +
 '<div class="scard"><div class="sv" style="color:var(--green)">'+totalRev.toLocaleString()+'</div><div class="sl">This Month</div></div>' +
 '<div class="scard"><div class="sv" style="color:var(--amber)">'+allRev.toLocaleString()+'</div><div class="sl">All Time</div></div>' +
-'<div class="scard"><div class="sv" style="color:var(--blue)">'+cs.length+'</div><div class="sl">Clients</div></div>' +
+'<div class="scard"><div class="sv" style="color:var(--acc)">'+cs.length+'</div><div class="sl">Clients</div></div>' +
 '<div class="scard"><div class="sv" style="color:var(--red)">'+rows.filter(function(c){return c.balance<=0;}).length+'</div><div class="sl">Owe Payment</div></div>' +
 '</div>' +
 '<div class="sect">PER CLIENT - '+fmtMon(today())+'</div>' +
@@ -835,7 +835,7 @@ rows.map(function(c){ return '<div class="ccard" onclick="openCli(\''+c.cid+'\')
 '<div class="sect">LOG PAYMENT</div><div class="card"><div class="card-p">' +
 '<div class="row"><div class="lbl">Client</div><select class="sel" id="fp_cli">'+cs.map(function(e){return '<option value="'+e[0]+'">'+e[1].name+'</option>';}).join('')+'</select></div>' +
 '<div class="row"><div class="lbl">Amount</div><input class="inp" id="fp_amt" type="number" placeholder="e.g. 240" inputmode="decimal"></div>' +
-'<button class="btn btn-green" onclick="doFinPay()">LOG PAYMENT ✓</button>' +
+'<button class="btn btn-acc" onclick="doFinPay()">LOG PAYMENT ✓</button>' +
 '</div></div></div>' + trNav();
 }
 
@@ -863,7 +863,7 @@ showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" o
 '<div class="row"><div class="lbl">Injuries / Limitations (optional)</div><input class="inp" id="nc_inj" placeholder="e.g. Lower back pain, bad knees"></div>' +
 '</div>' +
 '<div id="nc_err"></div>' +
-'<button class="btn btn-green" onclick="doAddClient()">ADD CLIENT &#8594;</button>' +
+'<button class="btn btn-acc" onclick="doAddClient()">ADD CLIENT &#8594;</button>' +
 '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
 '</div></div>');
 }
@@ -936,11 +936,11 @@ var hdr = '<div class="hdr" style="padding-bottom:0">' +
 '<div class="hdr-top">' +
 '<button onclick="S.vCli=null;R()" style="font-size:13px;color:var(--m1);font-weight:600;background:none;border:none;cursor:pointer">&#8592; Back</button>' +
 '<div style="display:flex;align-items:center;gap:8px">' +
-'<div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;flex-shrink:0">'+initials+'</div>' +
+'<div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc-l));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;flex-shrink:0">'+initials+'</div>' +
 '<span style="font-size:16px;font-weight:800;color:#fff">'+c.name+'</span>' +
 '</div>' +
 '<div style="display:flex;gap:5px">' +
-'<button onclick="openEditClient(\''+cid+'\')" style="width:30px;height:30px;border-radius:8px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);color:#818cf8;font-size:13px;cursor:pointer">&#9998;</button>' +
+'<button onclick="openEditClient(\''+cid+'\')" style="width:30px;height:30px;border-radius:8px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);color:var(--acc-l);font-size:13px;cursor:pointer">&#9998;</button>' +
 '<button onclick="deleteClientConfirm(\''+cid+'\')" style="width:30px;height:30px;border-radius:8px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;font-size:13px;cursor:pointer">&#128465;</button>' +
 '</div>' +
 '</div>' +
@@ -984,29 +984,29 @@ var goal = cp.goal||(cp.intake&&cp.intake.goal)||'';
 var exp = cp.exp||(cp.intake&&cp.intake.experience)||'';
 var injuries = cp.injuries||(cp.intake&&cp.intake.injuries)||'';
 var html = '';
-html += '<div style="background:linear-gradient(135deg,rgba(99,102,241,.13),rgba(139,92,246,.07));border:1px solid rgba(99,102,241,.22);border-radius:18px;padding:20px;margin-bottom:14px">';
+html += '<div style="background:linear-gradient(135deg,rgba(37,99,235,.12),rgba(37,99,235,.04));border:1px solid rgba(37,99,235,.22);border-radius:18px;padding:20px;margin-bottom:14px">';
 html += '<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">';
 var cliPhoto = DB.get('profile_photo_'+cid)||'';
 html += cliPhoto
-? '<img src="'+cliPhoto+'" style="width:70px;height:70px;border-radius:50%;object-fit:cover;flex-shrink:0;border:3px solid #6366f1;box-shadow:0 4px 20px rgba(99,102,241,.35)">'
-: '<div style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#fff;flex-shrink:0;box-shadow:0 4px 20px rgba(99,102,241,.35)">'+initials+'</div>';
+? '<img src="'+cliPhoto+'" style="width:70px;height:70px;border-radius:50%;object-fit:cover;flex-shrink:0;border:3px solid var(--acc);box-shadow:0 4px 20px rgba(37,99,235,.35)">'
+: '<div style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc-l));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#fff;flex-shrink:0;box-shadow:0 4px 20px rgba(37,99,235,.35)">'+initials+'</div>';
 html += '<div style="flex:1">';
 html += '<div style="font-size:22px;font-weight:900;color:#fff;margin-bottom:4px">'+c.name+'</div>';
 if (cp.username) html += '<div style="font-size:11px;color:var(--m2);margin-bottom:6px">Login: <span style="color:var(--acc);font-weight:700">@'+cp.username+'</span></div>';
 html += '<div style="display:flex;gap:5px;flex-wrap:wrap">';
-html += '<span style="padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;background:'+(c.type==='online'?'rgba(99,102,241,.2)':'rgba(16,185,129,.2)')+';color:'+(c.type==='online'?'#818cf8':'#34d399')+'">'+(c.type==='online'?'Online':'In Person')+'</span>';
-if (goal) html += '<span style="padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(245,158,11,.15);color:var(--amber)">'+goal+'</span>';
+html += '<span style="padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;background:'+(c.type==='online'?'rgba(37,99,235,.2)':'rgba(16,185,129,.2)')+';color:'+(c.type==='online'?'var(--acc-l)':'#34d399')+'">'+(c.type==='online'?'Online':'In Person')+'</span>';
+if (goal) html += '<span style="padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(37,99,235,.15);color:var(--acc-l)">'+goal+'</span>';
 if (c.rate) html += '<span style="padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(255,255,255,.07);color:var(--m1)">'+currSym(cid)+c.rate+'/sess</span>';
 html += '</div></div></div>';
 html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">';
-html += '<div style="text-align:center;background:rgba(0,0,0,.25);border-radius:12px;padding:13px 6px"><div style="font-size:30px;font-weight:900;color:#6366f1;line-height:1">'+totalSess+'</div><div style="font-size:8px;color:var(--m2);font-weight:700;margin-top:4px;letter-spacing:.5px">SESSIONS DONE</div></div>';
+html += '<div style="text-align:center;background:rgba(0,0,0,.25);border-radius:12px;padding:13px 6px"><div style="font-size:30px;font-weight:900;color:var(--acc);line-height:1">'+totalSess+'</div><div style="font-size:8px;color:var(--m2);font-weight:700;margin-top:4px;letter-spacing:.5px">SESSIONS DONE</div></div>';
 html += '<div style="text-align:center;background:rgba(0,0,0,.25);border-radius:12px;padding:13px 6px"><div style="font-size:30px;font-weight:900;color:'+(streak>0?'var(--amber)':'var(--m2)')+';line-height:1">'+streak+'</div><div style="font-size:8px;color:var(--m2);font-weight:700;margin-top:4px;letter-spacing:.5px">'+(streak>0?'&#128293; STREAK':'STREAK')+'</div></div>';
 html += '<div style="text-align:center;background:rgba(0,0,0,.25);border-radius:12px;padding:13px 6px"><div style="font-size:'+(balVal.length>5?'16':'28')+'px;font-weight:900;color:'+balColor+';line-height:1.1">'+balVal+'</div><div style="font-size:8px;color:var(--m2);font-weight:700;margin-top:4px;letter-spacing:.5px">'+balSub+'</div></div>';
 html += '</div></div>';
 html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">';
-html += '<button onclick="S.cliTab=\'account\';S.acSub=\'chat\';R()" style="padding:11px 6px;border-radius:12px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);color:#818cf8;font-size:11px;font-weight:700;cursor:pointer;text-align:center">&#128172; Message'+(c.msgCount>0?'<br><span style="font-size:10px;color:var(--amber)">'+c.msgCount+' new</span>':'')+'</button>';
-html += '<button onclick="openBookSess(\''+cid+'\')" style="padding:11px 6px;border-radius:12px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:var(--green);font-size:11px;font-weight:700;cursor:pointer;text-align:center">&#128197; Book<br>Session</button>';
-html += '<button onclick="S.cliTab=\'account\';S.acSub=\'pay\';R()" style="padding:11px 6px;border-radius:12px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);color:var(--amber);font-size:11px;font-weight:700;cursor:pointer;text-align:center">&#128176; Log<br>Payment</button>';
+html += '<button onclick="S.cliTab=\'account\';S.acSub=\'chat\';R()" style="padding:11px 6px;border-radius:12px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);color:var(--acc-l);font-size:11px;font-weight:700;cursor:pointer;text-align:center">&#128172; Message'+(c.msgCount>0?'<br><span style="font-size:10px;color:var(--amber)">'+c.msgCount+' new</span>':'')+'</button>';
+html += '<button onclick="openBookSess(\''+cid+'\')" style="padding:11px 6px;border-radius:12px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);color:var(--acc-l);font-size:11px;font-weight:700;cursor:pointer;text-align:center">&#128197; Book<br>Session</button>';
+html += '<button onclick="S.cliTab=\'account\';S.acSub=\'pay\';R()" style="padding:11px 6px;border-radius:12px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);color:var(--acc-l);font-size:11px;font-weight:700;cursor:pointer;text-align:center">&#128176; Log<br>Payment</button>';
 html += '</div>';
 if (bw||tw||exp||injuries||c.lastActive) {
 html += '<div class="sect">PERSONAL DETAILS</div><div class="card"><div class="card-p">';
@@ -1024,9 +1024,9 @@ if (upcomingSess.length>0) {
 html += '<div class="card"><div class="card-p" style="padding:8px">';
 html += upcomingSess.map(function(s){
 return '<div style="display:flex;align-items:center;gap:10px;padding:9px;border-radius:10px;background:var(--c2);margin-bottom:6px">' +
-'<div style="width:38px;height:38px;border-radius:10px;background:'+(c.type==='online'?'rgba(99,102,241,.15)':'rgba(16,185,129,.15)')+';display:flex;align-items:center;justify-content:center;font-size:18px">'+(c.type==='online'?'&#128187;':'&#127947;')+'</div>' +
+'<div style="width:38px;height:38px;border-radius:10px;background:'+(c.type==='online'?'rgba(37,99,235,.15)':'rgba(16,185,129,.15)')+';display:flex;align-items:center;justify-content:center;font-size:18px">'+(c.type==='online'?'&#128187;':'&#127947;')+'</div>' +
 '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:#fff">'+fmtD(s.date)+'</div><div style="font-size:11px;color:var(--m1);margin-top:1px">'+(s.time||'Time TBD')+(s.note?' &#183; '+s.note:'')+'</div></div>' +
-'<button class="btn-sm btn-green" onclick="confirmDone(\''+cid+'\',\''+s.id+'\')">Done</button>' +
+'<button class="btn-sm btn-acc" onclick="confirmDone(\''+cid+'\',\''+s.id+'\')">Done</button>' +
 '</div>';
 }).join('');
 html += '</div></div>';
@@ -1042,14 +1042,14 @@ html += '<div class="sect">PROGRAMS</div><div style="display:flex;gap:6px;flex-w
 html += progs.map(function(p){
 var on=p.id===curPid;
 return '<span style="display:inline-flex;align-items:center">' +
-'<button onclick="switchProg(\''+cid+'\',\''+p.id+'\')" style="padding:7px 12px;border-radius:12px 0 0 12px;border:1px solid '+(on?'var(--acc)':'var(--bdr)')+';border-right:none;background:'+(on?'rgba(99,102,241,.12)':'transparent')+';color:'+(on?'var(--acc)':'var(--m1)')+';font-size:11px;font-weight:700;cursor:pointer">'+(on?'&#10003; ':'')+p.name+'</button>' +
-'<button onclick="editProg(\''+cid+'\',\''+p.id+'\')" style="padding:7px 9px;border-radius:0 12px 12px 0;border:1px solid '+(on?'var(--acc)':'var(--bdr)')+';background:'+(on?'rgba(99,102,241,.12)':'transparent')+';color:'+(on?'var(--acc)':'var(--m1)')+';font-size:11px;cursor:pointer">&#9998;</button>' +
+'<button onclick="switchProg(\''+cid+'\',\''+p.id+'\')" style="padding:7px 12px;border-radius:12px 0 0 12px;border:1px solid '+(on?'var(--acc)':'var(--bdr)')+';border-right:none;background:'+(on?'rgba(37,99,235,.12)':'transparent')+';color:'+(on?'var(--acc)':'var(--m1)')+';font-size:11px;font-weight:700;cursor:pointer">'+(on?'&#10003; ':'')+p.name+'</button>' +
+'<button onclick="editProg(\''+cid+'\',\''+p.id+'\')" style="padding:7px 9px;border-radius:0 12px 12px 0;border:1px solid '+(on?'var(--acc)':'var(--bdr)')+';background:'+(on?'rgba(37,99,235,.12)':'transparent')+';color:'+(on?'var(--acc)':'var(--m1)')+';font-size:11px;cursor:pointer">&#9998;</button>' +
 '</span>';
 }).join('');
 html += '<button onclick="openAddProg(\''+cid+'\')" style="padding:7px 12px;border-radius:12px;border:1px dashed var(--bdr);background:transparent;color:var(--m2);font-size:11px;font-weight:700;cursor:pointer">+ Add</button>';
 html += '</div>';
 } else {
-html += '<button onclick="openAddProg(\''+cid+'\')" style="width:100%;padding:12px;border-radius:12px;border:1px dashed var(--acc);background:rgba(99,102,241,.05);color:var(--acc);font-size:12px;font-weight:700;cursor:pointer;margin-bottom:14px">+ Add Training Program for '+c.name+'</button>';
+html += '<button onclick="openAddProg(\''+cid+'\')" style="width:100%;padding:12px;border-radius:12px;border:1px dashed var(--acc);background:rgba(37,99,235,.05);color:var(--acc);font-size:12px;font-weight:700;cursor:pointer;margin-bottom:14px">+ Add Training Program for '+c.name+'</button>';
 }
 html += '<div class="sect">COACHING NOTE</div><div class="card"><div class="card-p">';
 html += '<textarea class="inp" id="tr_note" rows="3" placeholder="Training notes, form cues, next steps..." style="min-height:70px;margin-bottom:8px">'+getLatTrNote(cid,cd)+'</textarea>';
@@ -1086,8 +1086,8 @@ return '<div style="background:var(--c1);border:1px solid '+(on?'var(--acc)':'va
 '<div style="font-size:11px;color:var(--m2)">'+days.length+' day'+(days.length===1?'':'s')+(p.duration?' &bull; '+p.duration+' weeks':'')+' '+(on?'<span style="color:var(--acc);font-weight:700">&bull; Active</span>':'')+'</div>' +
 '</div>' +
 '<div style="display:flex;gap:6px">' +
-(!on?'<button onclick="switchProg(\''+cid+'\',\''+p.id+'\')" style="padding:5px 10px;border-radius:8px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);color:#818cf8;font-size:11px;font-weight:700;cursor:pointer">Set Active</button>':'') +
-'<button onclick="editProg(\''+cid+'\',\''+p.id+'\')" style="width:30px;height:30px;border-radius:8px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);color:#818cf8;font-size:13px;cursor:pointer">&#9998;</button>' +
+(!on?'<button onclick="switchProg(\''+cid+'\',\''+p.id+'\')" style="padding:5px 10px;border-radius:8px;background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.25);color:var(--acc-l);font-size:11px;font-weight:700;cursor:pointer">Set Active</button>':'') +
+'<button onclick="editProg(\''+cid+'\',\''+p.id+'\')" style="width:30px;height:30px;border-radius:8px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);color:var(--acc-l);font-size:13px;cursor:pointer">&#9998;</button>' +
 '</div></div>' +
 (days.length?'<div style="display:flex;gap:5px;flex-wrap:wrap">'+days.map(function(d){
 return '<span style="padding:3px 9px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--bdr);font-size:10px;font-weight:700;color:var(--m1)">'+(d.title||d.tag||'Day')+'</span>';
@@ -1245,7 +1245,7 @@ var di = sess.day;
 var exCnt = Object.keys(sess.exLogs).length;
 var setCnt = Object.values(sess.exLogs).reduce(function(t,e){return t+Object.keys(e.sets).length;},0);
 var sn = cd.sessNotes && cd.sessNotes[sess.sk];
-var accent = di?(di.accent||'#6366f1'):'#6366f1';
+var accent = di?(di.accent||'var(--acc)'):'var(--acc)';
 var dayName = di ? (di.title||di.name||di.tag||'Workout') : 'Workout';
 return '<div class="card" style="border-color:'+(isExp?accent:'var(--bdr)')+';margin-bottom:8px">' +
 '<div style="padding:12px 13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="S.expS[\''+sess.sk+'\']=!S.expS[\''+sess.sk+'\'];R()">' +
@@ -1343,12 +1343,12 @@ return '<div style="display:flex;justify-content:space-between;align-items:cente
 var done=s.status==='done';
 return '<div class="si">' +
 '<div class="si-time"><div class="si-th">'+(s.time||'&#8211;')+'</div><div class="si-td">'+fmtD(s.date)+'</div></div>' +
-'<div class="si-dot" style="background:'+(done?'#2d3748':c.type==='online'?'#6366f1':'#10b981')+'"></div>' +
+'<div class="si-dot" style="background:'+(done?'#2d3748':c.type==='online'?'var(--acc)':'#10b981')+'"></div>' +
 '<div class="si-info"><div class="si-name" style="color:'+(done?'var(--m2)':'#fff')+'">'+(done?'Done':'Upcoming')+'</div>' +
 '<div class="si-meta">'+(c.type==='online'?'Online':'In Person')+(s.workoutName?' &#8212; &#128170; '+s.workoutName:s.note?' &#8212; '+s.note:'')+'</div></div>' +
 '<div style="display:flex;gap:4px">' +
 (!done?'<button class="btn-sm" style="background:var(--green)" onclick="confirmDone(\''+cid+'\',\''+s.id+'\')">Done</button>':'') +
-(!done?'<button style="width:26px;height:26px;border-radius:7px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);color:#818cf8;font-size:12px;cursor:pointer" onclick="openEditSess(\''+cid+'\',\''+s.id+'\')">&#9998;</button>':'') +
+(!done?'<button style="width:26px;height:26px;border-radius:7px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);color:var(--acc-l);font-size:12px;cursor:pointer" onclick="openEditSess(\''+cid+'\',\''+s.id+'\')">&#9998;</button>':'') +
 '<button style="width:26px;height:26px;border-radius:7px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171;font-size:12px;cursor:pointer" onclick="deleteSessConfirm(\''+cid+'\',\''+s.id+'\')">&#215;</button>' +
 '</div>' +
 '</div>';
@@ -1376,7 +1376,7 @@ var wallet=c.walletCredit||0;
 var pays=Object.values(cd.payments||{}).sort(function(a,b){return b.ts-a.ts;});
 var alertHtml='';
 if(isOnline){
-if(wallet>0)alertHtml='<div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">' +
+if(wallet>0)alertHtml='<div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">' +
 '<div style="font-size:12px;color:var(--m1)">Wallet Balance</div>' +
 '<div style="font-size:16px;font-weight:800;color:var(--acc)">'+currSym(cid)+wallet+'</div></div>';
 } else {
@@ -1414,7 +1414,7 @@ return alertHtml +
 '<div class="row"><div class="lbl">Amount ('+currSym(cid)+')</div><input class="inp" id="pp_amt" type="number" placeholder="e.g. 240" inputmode="decimal"></div>' +
 '<div class="row"><div class="lbl">Note (optional)</div><input class="inp" id="pp_note" placeholder="e.g. Bank transfer"></div>' +
 rateHint +
-'<button class="btn btn-green" onclick="doCliPay(\''+cid+'\')">LOG PAYMENT &#10003;</button>' +
+'<button class="btn btn-acc" onclick="doCliPay(\''+cid+'\')">LOG PAYMENT &#10003;</button>' +
 '</div></div>' +
 renderPremiumToggle(cid, cd);
 }
@@ -1536,7 +1536,7 @@ showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" o
 '<div id="bs_note_row" class="row"><div class="lbl">Note (optional)</div><input class="inp" id="bs_n" placeholder="e.g. Legs day"></div>' +
 '<div id="bs_rpt_section"><div class="row"><div class="lbl">Repeat</div><select class="sel" id="bs_rpt" onchange="togRecur()"><option value="none">No Repeat</option><option value="7">Weekly</option><option value="14">Every 2 Weeks</option><option value="30">Monthly</option></select></div>' +
 '<div id="bs_rpt_row" style="display:none" class="row"><div class="lbl">Number of Sessions</div><input class="inp" id="bs_cnt" type="number" value="4" min="2" max="52" inputmode="numeric"></div></div>' +
-'<button class="btn btn-pink" style="background:var(--pink)" onclick="doBookSess()">BOOK &#8594;</button>' +
+'<button class="btn btn-acc" onclick="doBookSess()">BOOK &#8594;</button>' +
 '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
 '</div></div>');
 autoDetectBsWorkout();
@@ -1712,7 +1712,7 @@ showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" o
 '<div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:8px">'+c.name+'</div>' +
 '<div style="font-size:13px;color:var(--m1);margin-bottom:6px">Mark session as completed?</div>' +
 '<div style="font-size:13px;color:var(--amber);font-weight:700;margin-bottom:20px">1 session will be deducted</div></div>' +
-'<button class="btn btn-green" onclick="doDone(\''+cid+'\',\''+sessId+'\')">YES - DONE &#10003;</button>' +
+'<button class="btn btn-acc" onclick="doDone(\''+cid+'\',\''+sessId+'\')">YES - DONE &#10003;</button>' +
 '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
 '</div></div>');
 }
@@ -1866,14 +1866,14 @@ var tr=DB.get('trainer')||{};
 showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
 '<div class="modal-title">My Profile <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>' +
 '<div style="text-align:center;margin-bottom:20px">' +
-'<div style="width:64px;height:64px;border-radius:50%;background:rgba(99,102,241,.2);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:var(--acc);margin:0 auto 10px">'+((tr.name||'A').charAt(0).toUpperCase())+'</div>' +
+'<div style="width:64px;height:64px;border-radius:50%;background:rgba(37,99,235,.2);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:var(--acc);margin:0 auto 10px">'+((tr.name||'A').charAt(0).toUpperCase())+'</div>' +
 '<div style="font-size:16px;font-weight:700;color:#fff">'+(tr.name||'Trainer')+'</div>' +
 '<div style="font-size:11px;color:var(--m2);margin-top:3px">Ahmed Personal Training</div>' +
 '</div>' +
-(S.referralCode?'<div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:10px;padding:12px;margin-bottom:16px;text-align:center">' +
+(S.referralCode?'<div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:10px;padding:12px;margin-bottom:16px;text-align:center">' +
 '<div style="font-size:9px;letter-spacing:2px;color:var(--m2);font-weight:700;margin-bottom:4px">YOUR REFERRAL CODE</div>' +
 '<div style="font-size:22px;font-weight:900;color:var(--acc);letter-spacing:3px">'+S.referralCode+'</div>' +
-'<button onclick="copyReferralCode()" style="margin-top:6px;padding:4px 12px;border-radius:8px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);color:var(--acc);font-size:10px;font-weight:700;cursor:pointer">COPY CODE</button>' +
+'<button onclick="copyReferralCode()" style="margin-top:6px;padding:4px 12px;border-radius:8px;background:rgba(37,99,235,.15);border:1px solid rgba(37,99,235,.3);color:var(--acc);font-size:10px;font-weight:700;cursor:pointer">COPY CODE</button>' +
 '</div>':'') +
 '<div style="border-top:1px solid var(--bdr);padding-top:14px">' +
 '<div class="row"><div class="lbl">Display Name</div><input class="inp" id="tp_n" value="'+(tr.name||'')+'"></div>' +
@@ -1991,7 +1991,7 @@ showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" o
 rateNote + walletNote +
 '<div class="row"><div class="lbl">Amount ('+currSym(cid)+')</div><input class="inp" id="qp_amt" type="number" placeholder="e.g. 240" inputmode="decimal"></div>' +
 '<div class="row"><div class="lbl">Note (optional)</div><input class="inp" id="qp_note" placeholder="e.g. Bank transfer"></div>' +
-'<button class="btn btn-green" onclick="doQuickPay(\''+cid+'\')">LOG PAYMENT &#10003;</button>' +
+'<button class="btn btn-acc" onclick="doQuickPay(\''+cid+'\')">LOG PAYMENT &#10003;</button>' +
 (!c.rate?'<button class="btn btn-acc" style="margin-bottom:8px" onclick="closeModal();openEditClient(\''+cid+'\')">&#9998; Set Rate</button>':'') +
 '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
 '</div></div>');
@@ -2099,7 +2099,7 @@ document.addEventListener('touchmove', function(e){
       _bpDragOver = {di:ndi, ei:nei};
       document.querySelectorAll('[data-bpei]').forEach(function(r){ r.style.borderTop=''; r.style.opacity='1'; });
       var tEl = document.querySelector('[data-bpdi="'+ndi+'"][data-bpei="'+nei+'"]');
-      if (tEl) tEl.style.borderTop = '2px solid #6366f1';
+      if (tEl) tEl.style.borderTop = '2px solid var(--acc)';
       var dEl = document.querySelector('[data-bpdi="'+_bpDrag.di+'"][data-bpei="'+_bpDrag.ei+'"]');
       if (dEl) dEl.style.opacity = '0.4';
     }
@@ -2130,7 +2130,7 @@ var accs=['#ef4444','#10b981','#3b82f6','#a855f7','#ec4899','#f59e0b'];
 showModal('<div class="modal-bg"><div class="modal-box" style="max-height:94vh">' +
 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">' +
 '<div style="font-size:18px;font-weight:800;color:#fff">'+p.name+'</div>' +
-'<div style="display:flex;gap:6px"><button class="btn-sm btn-green" onclick="doSaveBuilder()">Save &#10003;</button>' +
+'<div style="display:flex;gap:6px"><button class="btn-sm btn-acc" onclick="doSaveBuilder()">Save &#10003;</button>' +
 '<button class="btn-sm btn-ghost" onclick="closeModal()">Cancel</button></div></div>' +
 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">' +
 '<div><div class="lbl">Program Duration</div>' +
@@ -2166,10 +2166,10 @@ return '<button onclick="toggleBPDay('+di+','+i+')" style="padding:4px 9px;borde
 accs.map(function(c){return '<button onclick="setBPAccent('+di+',\''+c+'\')" style="width:22px;height:22px;border-radius:50%;background:'+c+';border:'+(d.accent===c?'3px solid #fff':'2px solid transparent')+';cursor:pointer"></button>';}).join('') +
 '</div></div>' +
 _buildExList(d, di) +
-'<button onclick="_syncBP();openAddEx('+di+')" style="width:100%;padding:7px;background:rgba(99,102,241,.06);border:1px dashed rgba(99,102,241,.25);border-radius:8px;color:var(--acc);font-size:11px;font-weight:700;margin-top:8px;cursor:pointer">+ Add Exercise</button>' +
+'<button onclick="_syncBP();openAddEx('+di+')" style="width:100%;padding:7px;background:rgba(37,99,235,.06);border:1px dashed rgba(37,99,235,.25);border-radius:8px;color:var(--acc);font-size:11px;font-weight:700;margin-top:8px;cursor:pointer">+ Add Exercise</button>' +
 '</div>';
 }).join('') +
-'<button onclick="_syncBP();addDay()" style="width:100%;padding:10px;background:rgba(16,185,129,.06);border:1px dashed rgba(16,185,129,.25);border-radius:10px;color:var(--green);font-size:12px;font-weight:700;margin-bottom:12px;cursor:pointer">+ Add Workout Day</button>' +
+'<button onclick="_syncBP();addDay()" style="width:100%;padding:10px;background:rgba(37,99,235,.06);border:1px dashed rgba(37,99,235,.25);border-radius:10px;color:var(--acc);font-size:12px;font-weight:700;margin-bottom:12px;cursor:pointer">+ Add Workout Day</button>' +
 '</div></div>');
 }
 var _accs=['#ef4444','#10b981','#3b82f6','#a855f7','#ec4899','#f59e0b'];
@@ -2333,7 +2333,7 @@ return kws.some(function(k){return mLow.indexOf(k)>=0;});
 });
 var stageHtml='';
 if(_stageEx.length>0){
-stageHtml='<div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:10px;padding:10px;margin-bottom:12px">' +
+stageHtml='<div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:10px;padding:10px;margin-bottom:12px">' +
 '<div style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:var(--acc);margin-bottom:8px">&#128203; QUEUED — '+_stageEx.length+' exercise'+(_stageEx.length>1?'s':'')+' to add</div>' +
 _stageEx.map(function(e,qi){
 return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.05)">' +
@@ -2355,8 +2355,8 @@ var gridHtml='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;max
 filtered.map(function(e){
 var safe=e.n.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
 var staged=_stageEx.some(function(s){return s.n===e.n;});
-return '<button onclick="stageEx(\''+safe+'\')" style="padding:9px 8px;border-radius:10px;border:1px solid '+(staged?'var(--acc)':'var(--bdr)')+';background:'+(staged?'rgba(99,102,241,.14)':'var(--c2)')+';text-align:left;cursor:pointer;transition:all .15s">' +
-'<div style="font-size:11px;font-weight:700;color:'+(staged?'#818cf8':'#fff')+';margin-bottom:2px">'+(staged?'&#10003; ':'')+e.n+'</div>' +
+return '<button onclick="stageEx(\''+safe+'\')" style="padding:9px 8px;border-radius:10px;border:1px solid '+(staged?'var(--acc)':'var(--bdr)')+';background:'+(staged?'rgba(37,99,235,.14)':'var(--c2)')+';text-align:left;cursor:pointer;transition:all .15s">' +
+'<div style="font-size:11px;font-weight:700;color:'+(staged?'var(--acc-l)':'#fff')+';margin-bottom:2px">'+(staged?'&#10003; ':'')+e.n+'</div>' +
 '<div style="font-size:9px;color:var(--m2)">'+e.m+'</div>' +
 '</button>';
 }).join('') +

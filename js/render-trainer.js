@@ -2005,8 +2005,8 @@ closeModal();
 }
 
 function openAddProg(cid) {
-if (!canUse('programBuilder')) { showUpgradeModal('programBuilder'); return; }
 var saved=DB.get('prog_templates')||[];
+var canBuild=canUse('programBuilder');
 var conqrHtml='<div class="sect" style="margin-top:0">CONQR PROGRAM LIBRARY</div>'+
 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">'+
 CONQR_PRESETS.map(function(p,i){
@@ -2017,22 +2017,26 @@ return '<button onclick="useConqrPreset(\''+cid+'\','+i+')" style="text-align:le
 '<div style="font-size:10px;color:var(--m2)">4-week \u00b7 '+p.days.map(function(d){return d.tag;}).join(' / ')+'</div>'+
 '</button>';
 }).join('')+'</div>';
-showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
-'<div class="modal-title">Add Program <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>' +
-conqrHtml +
-(saved.length>0?'<div class="sect">YOUR SAVED PROGRAMS</div>'+
+var savedHtml=saved.length>0?'<div class="sect">YOUR SAVED PROGRAMS</div>'+
 saved.map(function(t,i){
 return '<div style="display:flex;gap:8px;margin-bottom:8px">' +
 '<button class="btn btn-acc" style="flex:1;text-align:left;display:flex;justify-content:space-between;align-items:center;margin-bottom:0" onclick="useTemplate(\''+cid+'\','+i+')">' +
 '<div><div style="font-size:13px;font-weight:700">'+t.name+'</div>' +
 '<div style="font-size:10px;opacity:.7">'+(t.days?t.days.length:0)+' days</div></div><span>&#8594;</span></button>' +
 '<button onclick="delTemplate('+i+')" style="padding:8px 10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px;color:#f87171;cursor:pointer;font-size:12px">&#215;</button></div>';
-}).join('')+'<div class="sect">BUILD FROM SCRATCH</div>':'<div class="sect">BUILD FROM SCRATCH</div>') +
-'<div class="row"><div class="lbl">Program Name</div><input class="inp" id="np_name" placeholder="e.g. Strength Block Phase 2"></div>' +
-'<button class="btn btn-acc" style="margin-bottom:8px" onclick="startBuilder(\''+cid+'\')">BUILD CUSTOM PROGRAM &#8594;</button>' +
+}).join(''):'';
+var buildHtml=canBuild?
+'<div class="sect">BUILD FROM SCRATCH</div>'+
+'<div class="row"><div class="lbl">Program Name</div><input class="inp" id="np_name" placeholder="e.g. Strength Block Phase 2"></div>'+
+'<button class="btn btn-acc" style="margin-bottom:8px" onclick="startBuilder(\''+cid+'\')">BUILD CUSTOM PROGRAM &#8594;</button>':
+'<div style="text-align:center;padding:10px;font-size:11px;color:var(--m2);border:1px dashed var(--bdr);border-radius:8px;margin-bottom:8px">Upgrade to Pro to build custom programs</div>';
+showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" onclick="event.stopPropagation()">' +
+'<div class="modal-title">Add Program <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>' +
+conqrHtml + savedHtml + buildHtml +
 '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
 '</div></div>');
 }
+
 function useConqrPreset(cid, idx) {
 var p=CONQR_PRESETS[idx]; if(!p)return;
 var prog=JSON.parse(JSON.stringify(p));

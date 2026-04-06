@@ -1507,7 +1507,9 @@ logPay(cid,amt,'');
 document.getElementById('fp_amt').value='';
 }
 
+var _bsMode='single', _bsWkOff=0, _bsDays={};
 function openBookSess(cid) {
+_bsMode='single'; _bsWkOff=0; _bsDays={};
 var cs=Object.entries(S.clients);
 var selCid=cid||(cs.length?cs[0][0]:'');
 var selClient=S.clients[selCid]||{};
@@ -1516,17 +1518,81 @@ showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" o
 '<div class="modal-title">Book Session <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>' +
 '<div class="row"><div class="lbl">Client</div><select class="sel" id="bs_c" onchange="onBsClientChange()">'+cs.map(function(e){return '<option value="'+e[0]+'"'+(cid&&cid===e[0]?' selected':'')+'>'+e[1].name+'</option>';}).join('')+'</select></div>' +
 '<div id="bs_calltype_row" class="row" style="display:'+(isOnline?'block':'none')+'"><div class="lbl">Session Type</div><select class="sel" id="bs_calltype" onchange="onBsCallTypeChange()"><option value="weekly_call">Weekly Call</option><option value="inperson">In-Person Session</option></select></div>' +
-'<div class="row"><div class="lbl">Date</div><input class="inp" id="bs_d" type="date" value="'+today()+'" onchange="autoDetectBsWorkout()"></div>' +
+'<div class="row" style="padding-bottom:0"><div style="display:flex;gap:6px;border-radius:10px;background:var(--c2);padding:4px">'+
+'<button id="bs_tab_s" onclick="setBsMode(\'single\')" style="flex:1;padding:7px 0;border-radius:7px;border:none;background:var(--c1);color:var(--tx);font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.12)">Single Date</button>'+
+'<button id="bs_tab_m" onclick="setBsMode(\'multi\')" style="flex:1;padding:7px 0;border-radius:7px;border:none;background:transparent;color:var(--m1);font-size:13px;font-weight:600;cursor:pointer">Multiple Days</button>'+
+'</div></div>' +
+'<div id="bs_single_row" class="row"><div class="lbl">Date</div><input class="inp" id="bs_d" type="date" value="'+today()+'" onchange="autoDetectBsWorkout()"></div>' +
+'<div id="bs_multi_row" style="display:none" class="row"><div class="lbl" style="margin-bottom:8px">Pick Days</div>'+
+'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
+'<button onclick="bsWeekNav(-1)" style="width:32px;height:32px;border-radius:50%;border:1px solid var(--bdr);background:var(--c2);color:var(--tx);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">&#8249;</button>'+
+'<span id="bs_week_label" style="font-size:13px;font-weight:600;color:var(--tx)"></span>'+
+'<button onclick="bsWeekNav(1)" style="width:32px;height:32px;border-radius:50%;border:1px solid var(--bdr);background:var(--c2);color:var(--tx);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">&#8250;</button>'+
+'</div>'+
+'<div id="bs_day_chips" style="display:flex;gap:4px"></div></div>' +
 '<div class="row"><div class="lbl">Time</div><input class="inp" id="bs_t" type="time" value="10:00"></div>' +
 '<div id="bs_wk_row" class="row" style="display:'+(isOnline?'none':'block')+'"><div class="lbl">Link Workout (optional)</div><select class="sel" id="bs_wk">'+_getBsWorkoutOpts(cid)+'</select></div>' +
 '<div id="bs_topics_row" class="row" style="display:'+(isOnline?'block':'none')+'"><div class="lbl">Topics / Notes</div><textarea class="inp" id="bs_topics" rows="3" placeholder="What to discuss in this call..." style="resize:vertical;min-height:70px"></textarea></div>' +
 '<div id="bs_note_row" class="row"><div class="lbl">Note (optional)</div><input class="inp" id="bs_n" placeholder="e.g. Legs day"></div>' +
-'<div class="row"><div class="lbl">Repeat</div><select class="sel" id="bs_rpt" onchange="togRecur()"><option value="none">No Repeat</option><option value="7">Weekly</option><option value="14">Every 2 Weeks</option><option value="30">Monthly</option></select></div>' +
-'<div id="bs_rpt_row" style="display:none" class="row"><div class="lbl">Number of Sessions</div><input class="inp" id="bs_cnt" type="number" value="4" min="2" max="52" inputmode="numeric"></div>' +
+'<div id="bs_rpt_section"><div class="row"><div class="lbl">Repeat</div><select class="sel" id="bs_rpt" onchange="togRecur()"><option value="none">No Repeat</option><option value="7">Weekly</option><option value="14">Every 2 Weeks</option><option value="30">Monthly</option></select></div>' +
+'<div id="bs_rpt_row" style="display:none" class="row"><div class="lbl">Number of Sessions</div><input class="inp" id="bs_cnt" type="number" value="4" min="2" max="52" inputmode="numeric"></div></div>' +
 '<button class="btn btn-pink" style="background:var(--pink)" onclick="doBookSess()">BOOK &#8594;</button>' +
 '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>' +
 '</div></div>');
 autoDetectBsWorkout();
+_renderBsDayChips();
+}
+function setBsMode(mode) {
+_bsMode=mode;
+var sRow=document.getElementById('bs_single_row');
+var mRow=document.getElementById('bs_multi_row');
+var rptSec=document.getElementById('bs_rpt_section');
+var tabS=document.getElementById('bs_tab_s');
+var tabM=document.getElementById('bs_tab_m');
+if(sRow)sRow.style.display=mode==='single'?'block':'none';
+if(mRow)mRow.style.display=mode==='multi'?'block':'none';
+if(rptSec)rptSec.style.display=mode==='single'?'block':'none';
+if(tabS){tabS.style.background=mode==='single'?'var(--c1)':'transparent';tabS.style.color=mode==='single'?'var(--tx)':'var(--m1)';tabS.style.fontWeight=mode==='single'?'700':'600';tabS.style.boxShadow=mode==='single'?'0 1px 3px rgba(0,0,0,.12)':'none';}
+if(tabM){tabM.style.background=mode==='multi'?'var(--c1)':'transparent';tabM.style.color=mode==='multi'?'var(--tx)':'var(--m1)';tabM.style.fontWeight=mode==='multi'?'700':'600';tabM.style.boxShadow=mode==='multi'?'0 1px 3px rgba(0,0,0,.12)':'none';}
+}
+function bsWeekNav(dir) {
+_bsWkOff+=dir;
+_renderBsDayChips();
+}
+function toggleBsDay(ds) {
+if(_bsDays[ds])delete _bsDays[ds]; else _bsDays[ds]=true;
+_renderBsDayChips();
+}
+function _bsMondayOf(wkOff) {
+var now=new Date(); var day=now.getDay();
+var diff=(day===0)?-6:1-day;
+var mon=new Date(now);
+mon.setDate(now.getDate()+diff+(wkOff*7));
+mon.setHours(12,0,0,0);
+return mon;
+}
+function _renderBsDayChips() {
+var mon=_bsMondayOf(_bsWkOff);
+var DAY=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var end=new Date(mon); end.setDate(mon.getDate()+6);
+var lbl=document.getElementById('bs_week_label');
+if(lbl)lbl.textContent=MON[mon.getMonth()]+' '+mon.getDate()+' \u2013 '+(mon.getMonth()!==end.getMonth()?MON[end.getMonth()]+' ':'')+end.getDate();
+var todayStr=today();
+var html='';
+for(var i=0;i<7;i++){
+var d=new Date(mon); d.setDate(mon.getDate()+i);
+var ds=d.toISOString().split('T')[0];
+var sel=!!_bsDays[ds];
+var isToday=ds===todayStr;
+html+='<button onclick="toggleBsDay(\''+ds+'\')" style="flex:1;min-width:0;padding:6px 2px;border-radius:9px;border:2px solid '+(sel?'var(--acc)':'var(--bdr)')+';background:'+(sel?'var(--acc)':'var(--c2)')+';color:'+(sel?'#fff':'var(--tx)')+';font-size:10px;font-weight:600;cursor:pointer;line-height:1.3;text-align:center">'+
+'<div style="font-size:10px;opacity:.8">'+DAY[i]+'</div>'+
+'<div style="font-size:16px;font-weight:800">'+d.getDate()+'</div>'+
+(isToday?'<div style="width:5px;height:5px;border-radius:50%;background:'+(sel?'#fff':'var(--acc)')+';margin:2px auto 0"></div>':'<div style="height:7px"></div>')+
+'</button>';
+}
+var chips=document.getElementById('bs_day_chips');
+if(chips)chips.innerHTML=html;
 }
 function onBsClientChange() {
 var cidEl=document.getElementById('bs_c'); if(!cidEl)return;
@@ -1586,15 +1652,12 @@ if(row)row.style.display=(v&&v!=='none')?'block':'none';
 }
 function doBookSess() {
 var cid=(document.getElementById('bs_c')||{}).value;
-var date=(document.getElementById('bs_d')||{}).value;
 var time=(document.getElementById('bs_t')||{}).value;
 var note=((document.getElementById('bs_n')||{}).value||'').trim();
-var rpt=(document.getElementById('bs_rpt')||{}).value||'none';
-var cnt=parseInt((document.getElementById('bs_cnt')||{}).value)||4;
 var wkIdxStr=((document.getElementById('bs_wk')||{}).value||'');
 var callType=((document.getElementById('bs_calltype')||{}).value||'');
 var topics=((document.getElementById('bs_topics')||{}).value||'').trim();
-if(!cid||!date){toast('Select client and date','err');return;}
+if(!cid){toast('Select a client','err');return;}
 var c=S.clients[cid]||{};
 var prog=getProg(cid);
 function _buildSessData(dateStr){
@@ -1616,6 +1679,17 @@ base.workoutName=prog.days[resolvedIdx].title||prog.days[resolvedIdx].tag||'Work
 }
 return base;
 }
+if(_bsMode==='multi'){
+var selectedDates=Object.keys(_bsDays).sort();
+if(!selectedDates.length){toast('Select at least one day','err');return;}
+selectedDates.forEach(function(ds){bookSess(cid,_buildSessData(ds));});
+toast(selectedDates.length+' session'+(selectedDates.length>1?'s':'')+' booked','ok');
+closeModal(); R(); return;
+}
+var date=(document.getElementById('bs_d')||{}).value;
+var rpt=(document.getElementById('bs_rpt')||{}).value||'none';
+var cnt=parseInt((document.getElementById('bs_cnt')||{}).value)||4;
+if(!date){toast('Select a date','err');return;}
 if(rpt==='none'){
 bookSess(cid,_buildSessData(date));
 }else{

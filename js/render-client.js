@@ -17,7 +17,7 @@ return '<div style="display:flex;justify-content:space-between;align-items:cente
 '<div style="width:100%;max-width:400px">' +
 '<div style="font-size:13px;color:var(--m1);margin-bottom:8px;font-weight:600">Add a session note?</div>' +
 '<textarea class="inp" id="complete_note" rows="3" placeholder="How did it feel? Any wins or struggles?" style="margin-bottom:14px;text-align:left"></textarea>' +
-'<button class="btn btn-green" style="margin-bottom:8px" onclick="finishSession()">FINISH &#10003;</button>' +
+'<button class="btn btn-acc" style="margin-bottom:8px" onclick="finishSession()">FINISH &#10003;</button>' +
 '<button onclick="shareCompletion()" style="width:100%;padding:12px;background:transparent;border:1px solid var(--bdr);border-radius:12px;color:var(--m1);font-size:13px;cursor:pointer">&#128248; Share Progress</button>' +
 '</div></div>';
 }
@@ -96,7 +96,7 @@ return '<div class="hdr"><div class="hdr-top">' +
 '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">' +
 (photo
 ? '<img src="'+photo+'" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--acc);flex-shrink:0" onclick="setCTab(\'account\')">'
-: '<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--pink));display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#fff;flex-shrink:0;cursor:pointer;border:2px solid var(--acc)" onclick="setCTab(\'account\')">'+initials+'</div>') +
+: '<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc));display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#fff;flex-shrink:0;cursor:pointer;border:2px solid var(--acc)" onclick="setCTab(\'account\')">'+initials+'</div>') +
 '<div>' +
 '<div style="font-size:24px;font-weight:900;color:#fff;letter-spacing:-.5px">' + name + ' &#128075;</div>' +
 '<div style="font-size:11px;color:var(--m1);margin-top:2px">'+new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})+'</div>' +
@@ -112,7 +112,7 @@ return '<div class="hdr"><div class="hdr-top">' +
 (function(){
 var recAll=DB.get('recovery_'+S.cid)||{};
 var todayRec=recAll[today()]||null;
-return (!todayRec?'<div onclick="setCTab(&apos;recovery&apos;)" style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:12px;margin-bottom:8px;cursor:pointer">' +
+return (!todayRec?'<div onclick="setCTab(&apos;recovery&apos;)" style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(37,99,235,.06);border:1px solid rgba(37,99,235,.2);border-radius:12px;margin-bottom:8px;cursor:pointer">' +
 '<div style="font-size:28px">&#128526;</div>' +
 '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:#fff">Morning Check-In</div>' +
 '<div style="font-size:11px;color:var(--m1)">How are you feeling today?</div></div>' +
@@ -120,8 +120,8 @@ return (!todayRec?'<div onclick="setCTab(&apos;recovery&apos;)" style="display:f
 })() +
 
 // Coach note
-(tNote?'<div style="padding:12px 14px;background:rgba(99,102,241,.06);border-left:3px solid var(--blue);border-radius:0 10px 10px 0;margin-bottom:10px">' +
-'<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--blue);margin-bottom:5px">COACH AHMED</div>' +
+(tNote?'<div style="padding:12px 14px;background:rgba(37,99,235,.06);border-left:3px solid var(--acc);border-radius:0 10px 10px 0;margin-bottom:10px">' +
+'<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--acc);margin-bottom:5px">COACH AHMED</div>' +
 '<div style="font-size:12px;color:var(--m1);line-height:1.6;font-style:italic">'+tNote+'</div>' +
 '</div>':'') +
 
@@ -137,7 +137,7 @@ return '<div onclick="S.cTab=\'sessions\';R()" style="background:var(--c1);borde
 '</div>' +
 upcoming.map(function(s){
 return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bdr);last-child:border-none">' +
-'<div style="width:36px;height:36px;border-radius:10px;background:'+(s.type==='online'?'rgba(99,102,241,.15)':'rgba(16,185,129,.15)')+';display:flex;align-items:center;justify-content:center;font-size:16px">'+(s.type==='online'?'&#128187;':'&#127947;')+'</div>' +
+'<div style="width:36px;height:36px;border-radius:10px;background:'+(s.type==='online'?'rgba(37,99,235,.15)':'rgba(16,185,129,.15)')+';display:flex;align-items:center;justify-content:center;font-size:16px">'+(s.type==='online'?'&#128187;':'&#127947;')+'</div>' +
 '<div><div style="font-size:13px;font-weight:700;color:#fff">'+fmtD(s.date)+'</div>' +
 '<div style="font-size:11px;color:var(--m1)">'+(s.time||'Time TBD')+'</div></div>' +
 '</div>';
@@ -200,7 +200,7 @@ btnText = 'START WORKOUT &#8594;';
 btnStyle = 'background:var(--acc)';
 subText = d.ex ? d.ex.length + ' exercises &bull; ~' + estMins + ' min' : '';
 }
-return '<div style="background:linear-gradient(135deg,rgba(99,102,241,.18),rgba(236,72,153,.08));border:1px solid rgba(99,102,241,.35);border-radius:16px;padding:18px;margin-bottom:12px">' +
+return '<div style="background:linear-gradient(135deg,rgba(37,99,235,.18),rgba(37,99,235,.08));border:1px solid rgba(37,99,235,.35);border-radius:16px;padding:18px;margin-bottom:12px">' +
 '<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--acc);margin-bottom:8px">TODAY&#39;S WORKOUT</div>' +
 '<div style="font-size:26px;font-weight:900;color:#fff;letter-spacing:-.5px;margin-bottom:4px">' + (d.title||d.name||'Workout') + '</div>' +
 '<div style="font-size:12px;color:var(--m1);margin-bottom:10px">' + subText + '</div>' +
@@ -213,7 +213,7 @@ function renderTodaySessionCard(s) {
 return '<div onclick="S.cTab=\'sessions\';R()" style="background:linear-gradient(135deg,rgba(16,185,129,.15),rgba(16,185,129,.05));border:1px solid rgba(16,185,129,.35);border-radius:16px;padding:18px;margin-bottom:12px;cursor:pointer">' +
 '<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#10b981;margin-bottom:8px">SESSION TODAY</div>' +
 '<div style="font-size:26px;font-weight:900;color:#fff;letter-spacing:-.5px;margin-bottom:4px">'+(s.time||'Today')+'</div>' +
-'<div style="font-size:12px;color:var(--m1);margin-bottom:12px">'+(s.note||'In-person session with your trainer')+(s.workoutName?' &bull; <span style="color:#818cf8">'+s.workoutName+'</span>':'')+'</div>' +
+'<div style="font-size:12px;color:var(--m1);margin-bottom:12px">'+(s.note||'In-person session with your trainer')+(s.workoutName?' &bull; <span style="color:var(--acc-l)">'+s.workoutName+'</span>':'')+'</div>' +
 '<button class="btn" style="background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.4);color:#10b981;margin-bottom:0;font-size:13px">VIEW SCHEDULE &#8594;</button>' +
 '</div>';
 }
@@ -412,8 +412,8 @@ var hdr='<div class="hdr"><div class="hdr-top">' +
 '</div>' +
 '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">' +
 (S.streak.cur>0?'<span class="pill p-amber">&#128293; '+S.streak.cur+'</span>':'') +
-'<div style="display:flex;gap:3px"><button onclick="setUnit(\'kg\')" style="padding:2px 7px;border-radius:8px;border:1px solid '+(S.unit==='kg'?'var(--acc)':'var(--bdr)')+';background:'+(S.unit==='kg'?'rgba(99,102,241,.15)':'transparent')+';color:'+(S.unit==='kg'?'var(--acc)':'var(--m2)')+';font-size:10px;font-weight:700;cursor:pointer">KG</button>' +
-'<button onclick="setUnit(\'lb\')" style="padding:2px 7px;border-radius:8px;border:1px solid '+(S.unit==='lb'?'var(--acc)':'var(--bdr)')+';background:'+(S.unit==='lb'?'rgba(99,102,241,.15)':'transparent')+';color:'+(S.unit==='lb'?'var(--acc)':'var(--m2)')+';font-size:10px;font-weight:700;cursor:pointer">LB</button></div>' +
+'<div style="display:flex;gap:3px"><button onclick="setUnit(\'kg\')" style="padding:2px 7px;border-radius:8px;border:1px solid '+(S.unit==='kg'?'var(--acc)':'var(--bdr)')+';background:'+(S.unit==='kg'?'rgba(37,99,235,.15)':'transparent')+';color:'+(S.unit==='kg'?'var(--acc)':'var(--m2)')+';font-size:10px;font-weight:700;cursor:pointer">KG</button>' +
+'<button onclick="setUnit(\'lb\')" style="padding:2px 7px;border-radius:8px;border:1px solid '+(S.unit==='lb'?'var(--acc)':'var(--bdr)')+';background:'+(S.unit==='lb'?'rgba(37,99,235,.15)':'transparent')+';color:'+(S.unit==='lb'?'var(--acc)':'var(--m2)')+';font-size:10px;font-weight:700;cursor:pointer">LB</button></div>' +
 '</div></div>' +
 '<div style="padding:8px 14px 4px">'+weekNav+dayPills+'</div>' +
 '</div>';
@@ -438,7 +438,7 @@ pageBody=
 '<div style="text-align:right"><div style="font-size:22px;font-weight:900;color:'+ac+'">'+pr.done+'<span style="color:var(--m2)">/'+pr.total+'</span></div>' +
 '<div style="width:80px;height:3px;background:var(--m3);border-radius:2px;margin-left:auto;margin-top:3px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+ac+';border-radius:2px;transition:width .3s"></div></div></div></div>' +
 (!isActiveTodayDay?'<div style="padding:8px 12px;background:rgba(255,255,255,.04);border:1px solid var(--bdr);border-radius:9px;font-size:11px;color:var(--m2);margin-bottom:12px">&#128196; Viewing &#8212; this is not today\'s scheduled workout</div>':'') +
-'<div id="motiv_card" style="background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(236,72,153,.08));border:1px solid rgba(99,102,241,.25);border-radius:14px;padding:16px;margin-bottom:14px">' +
+'<div id="motiv_card" style="background:linear-gradient(135deg,rgba(37,99,235,.15),rgba(37,99,235,.08));border:1px solid rgba(37,99,235,.25);border-radius:14px;padding:16px;margin-bottom:14px">' +
 buildMotivInner(getDailyMotivation(d,S.streak.cur,S.week)) +
 '</div>' +
 (d.coach?'<div style="padding:8px 12px;background:'+ac+'0d;border-left:3px solid '+ac+';border-radius:0 8px 8px 0;margin-bottom:12px;font-size:11px;color:var(--m1);line-height:1.6"><strong style="color:'+ac+'">COACH: </strong>'+d.coach+'</div>':'') +
@@ -484,7 +484,7 @@ return '<div class="ex-card'+(allDone?' done':'')+'" id="exc_'+ei+'">' +
 '<span style="font-size:12px;color:var(--m2)">'+(showNote?'▴':'▾')+'</span>' +
 '</div></div></div>' +
 '<div class="ex-cue'+(showNote?' show':'')+'">'+ex.note+'</div>' +
-(exN&&exN.trainer?'<div style="padding:6px 13px 8px;border-left:3px solid var(--blue);margin:0 0 0 13px;background:rgba(99,102,241,.04);border-radius:0 6px 6px 0;font-size:11px;color:var(--m1);line-height:1.5;font-style:italic"><span style="font-weight:700;color:var(--blue);font-style:normal">Coach: </span>'+exN.trainer+'</div>':'') +
+(exN&&exN.trainer?'<div style="padding:6px 13px 8px;border-left:3px solid var(--acc);margin:0 0 0 13px;background:rgba(37,99,235,.04);border-radius:0 6px 6px 0;font-size:11px;color:var(--m1);line-height:1.5;font-style:italic"><span style="font-weight:700;color:var(--acc);font-style:normal">Coach: </span>'+exN.trainer+'</div>':'') +
 (showAlt&&hasAlt?'<div class="alt-wrap"><div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--amber);margin-bottom:7px">SWAP EXERCISE</div>' +
 '<button class="alt-btn" onclick="doSwap('+ei+',undefined)" style="'+(S.swaps[S.day+'_'+ei]===undefined?'background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.3)':'')+'">'+origEx.n+' (original)</button>' +
 origEx.alt.map(function(a,ai){return '<button class="alt-btn" onclick="doSwap('+ei+','+ai+')" style="'+(S.swaps[S.day+'_'+ei]===ai?'background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.3)':'')+'">'+a+'</button>';}).join('') +
@@ -528,7 +528,7 @@ return '<button class="rpe-btn" onclick="var _w=document.getElementById(\'inp_w\
 function renderExNoteBox(ei, exN, d) {
 var tN=exN&&exN.trainer?exN.trainer:'', cN=exN&&exN.client?exN.client:'';
 return '<div style="padding:10px 13px;background:rgba(0,0,0,.2)">' +
-(tN?'<div style="margin-bottom:7px"><div class="lbl" style="color:var(--blue)">AHMED&#39;S NOTE</div><div style="padding:7px 10px;background:rgba(99,102,241,.08);border-radius:8px;border:1px solid rgba(99,102,241,.15);font-size:11px;color:var(--m1)">'+tN+'</div></div>':'') +
+(tN?'<div style="margin-bottom:7px"><div class="lbl" style="color:var(--acc)">AHMED&#39;S NOTE</div><div style="padding:7px 10px;background:rgba(37,99,235,.08);border-radius:8px;border:1px solid rgba(37,99,235,.15);font-size:11px;color:var(--m1)">'+tN+'</div></div>':'') +
 (cN?'<div style="margin-bottom:7px"><div class="lbl" style="color:var(--green)">YOUR NOTE</div><div style="padding:7px 10px;background:rgba(16,185,129,.06);border-radius:8px;border:1px solid rgba(16,185,129,.15);font-size:11px;color:var(--m1)">'+cN+'</div></div>':'') +
 '<div style="display:flex;gap:6px;align-items:flex-end">' +
 '<textarea class="inp" id="exn_'+ei+'" rows="2" placeholder="Add a note..." style="flex:1;min-height:36px">'+cN+'</textarea>' +
@@ -538,7 +538,7 @@ function renderSessNoteBox() {
 var k=sk(S.week,S.day), sn=S.sN[k]||{}, tN=sn.trainer||'', cN=sn.client||'', rating=sn.rating||0;
 return '<div class="card" style="margin-top:12px"><div class="card-p">' +
 '<div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--m1);margin-bottom:10px;text-transform:uppercase">&#128203; Session Notes</div>' +
-(tN?'<div style="margin-bottom:10px"><div class="lbl" style="color:var(--blue)">AHMED&#39;S FEEDBACK</div><div style="padding:8px 10px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.15);border-radius:9px;font-size:11px;color:var(--m1);line-height:1.6">'+tN+'</div></div>':'') +
+(tN?'<div style="margin-bottom:10px"><div class="lbl" style="color:var(--acc)">AHMED&#39;S FEEDBACK</div><div style="padding:8px 10px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.15);border-radius:9px;font-size:11px;color:var(--m1);line-height:1.6">'+tN+'</div></div>':'') +
 '<div class="lbl" style="color:var(--green)">YOUR NOTES</div>' +
 '<textarea class="inp" id="sn_inp" rows="3" placeholder="How did the session go?" style="min-height:60px;margin-bottom:8px">'+cN+'</textarea>' +
 '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +
@@ -546,7 +546,7 @@ return '<div class="card" style="margin-top:12px"><div class="card-p">' +
 [1,2,3,4,5].map(function(v){return '<button onclick="doSessRating('+v+')" style="font-size:22px;background:none;border:none;cursor:pointer;padding:0;line-height:1;opacity:'+(v<=rating?'1':'.25')+'">'+(v<=rating?'&#11088;':'&#11088;')+'</button>';}).join('') +
 (rating?'<span style="font-size:11px;color:var(--amber);font-weight:700">'+rating+'/5</span>':'') +
 '</div>' +
-'<button class="btn-sm btn-green" onclick="doSessNote()">Save &#10003;</button>' +
+'<button class="btn-sm btn-acc" onclick="doSessNote()">Save &#10003;</button>' +
 '</div></div>';
 }
 function doSessRating(v) {
@@ -583,7 +583,7 @@ return '<div class="sect">BODY WEIGHT</div>' +
 '<div><div class="lbl">Weight</div><input class="inp" id="bw_v" type="number" placeholder="e.g. 75" inputmode="decimal" style="margin-bottom:0"></div>' +
 '<div><div class="lbl">Unit</div><select class="sel" id="bw_u" style="margin-bottom:0"><option value="kg">kg</option><option value="lb">lb</option></select></div>' +
 '</div>' +
-'<button class="btn-sm btn-green" onclick="doLogBW()">Log Weight +</button>' +
+'<button class="btn-sm btn-acc" onclick="doLogBW()">Log Weight +</button>' +
 '</div></div>' +
 (arr.length?'<div style="padding:4px 0">'+arr.slice(-10).reverse().map(function(e){
 var pct=range>0?Math.round((e.weight-min)/range*80)+10:50;
@@ -744,7 +744,7 @@ return '<div class="card"><div class="card-p">' +
 '<div style="text-align:right"><div style="font-size:11px;font-weight:700;color:'+(di?di.accent||'var(--acc)':'var(--acc)')+'">Week '+wn+'</div>' +
 '<div style="font-size:10px;color:var(--m1)">'+s.sets+' sets - '+Object.keys(s.exs).length+' exercises</div></div></div>' +
 (sn&&sn.client?'<div style="font-size:11px;color:var(--m1);padding:5px 8px;background:rgba(16,185,129,.05);border-radius:7px;border-left:2px solid var(--green)">"'+sn.client+'"</div>':'') +
-(sn&&sn.trainer?'<div style="font-size:11px;color:var(--m1);padding:5px 8px;background:rgba(99,102,241,.05);border-radius:7px;border-left:2px solid var(--acc);margin-top:4px">Ahmed: '+sn.trainer+'</div>':'') +
+(sn&&sn.trainer?'<div style="font-size:11px;color:var(--m1);padding:5px 8px;background:rgba(37,99,235,.05);border-radius:7px;border-left:2px solid var(--acc);margin-top:4px">Ahmed: '+sn.trainer+'</div>':'') +
 '</div></div>';
 }).join('');
 }
@@ -777,12 +777,12 @@ var isToday=cellDs===todayStr;
 var cellWd=cellDate.getDay();
 var hasSess=!!sessDateSet[cellDs];
 var hasWk=!!(workoutWdMap[cellWd]);
-var dotBg=hasSess?'#10b981':(hasWk&&isOnline?'#6366f1':'rgba(0,0,0,0)');
+var dotBg=hasSess?'#10b981':(hasWk&&isOnline?'var(--acc)':'rgba(0,0,0,0)');
 var cellClickable = (isOnline && hasWk) || (!isOnline && hasSess);
 var cellClick = '';
 if (isOnline && hasWk) { cellClick = ' onclick="openWorkoutDay('+workoutWdMap[cellWd].idx+')"'; }
 else if (!isOnline && hasSess) { cellClick = ' onclick="S.cTab=\'sessions\';R()"'; }
-weekStripHtml+='<div'+cellClick+' style="text-align:center;padding:7px 2px 8px;border-radius:10px;'+(cellClickable?'cursor:pointer;':'')+';background:'+(isToday?'rgba(99,102,241,.18)':'transparent')+';border:1.5px solid '+(isToday?'var(--acc)':cellClickable?'rgba(255,255,255,.1)':'transparent')+'">' +
+weekStripHtml+='<div'+cellClick+' style="text-align:center;padding:7px 2px 8px;border-radius:10px;'+(cellClickable?'cursor:pointer;':'')+';background:'+(isToday?'rgba(37,99,235,.18)':'transparent')+';border:1.5px solid '+(isToday?'var(--acc)':cellClickable?'rgba(255,255,255,.1)':'transparent')+'">' +
 '<div style="font-size:9px;color:'+(isToday?'var(--acc)':'var(--m2)')+';font-weight:700;margin-bottom:4px">'+DAY_LETTERS[d]+'</div>' +
 '<div style="font-size:15px;font-weight:800;color:'+(isToday?'var(--acc)':'#fff')+';margin-bottom:5px">'+cellDate.getDate()+'</div>' +
 '<div style="width:6px;height:6px;border-radius:50%;background:'+dotBg+';margin:0 auto"></div>' +
@@ -791,7 +791,7 @@ weekStripHtml+='<div'+cellClick+' style="text-align:center;padding:7px 2px 8px;b
 weekStripHtml+='</div>';
 var legendHtml='<div style="display:flex;gap:12px;flex-wrap:wrap">';
 if(!isOnline)legendHtml+='<div style="display:flex;align-items:center;gap:5px"><div style="width:7px;height:7px;border-radius:50%;background:#10b981"></div><span style="font-size:10px;color:var(--m2)">Session booked</span></div>';
-if(isOnline&&days.length)legendHtml+='<div style="display:flex;align-items:center;gap:5px"><div style="width:7px;height:7px;border-radius:50%;background:#6366f1"></div><span style="font-size:10px;color:var(--m2)">Workout day</span></div>';
+if(isOnline&&days.length)legendHtml+='<div style="display:flex;align-items:center;gap:5px"><div style="width:7px;height:7px;border-radius:50%;background:var(--acc)"></div><span style="font-size:10px;color:var(--m2)">Workout day</span></div>';
 legendHtml+='<div style="display:flex;align-items:center;gap:5px"><div style="width:14px;height:14px;border-radius:4px;border:1.5px solid var(--acc)"></div><span style="font-size:10px;color:var(--m2)">Today</span></div>';
 legendHtml+='</div>';
 var html='<div class="hdr"><div class="hdr-top">' +
@@ -825,16 +825,16 @@ var whenColor=daysUntil<=0?'var(--green)':daysUntil<=1?'var(--green)':daysUntil<
 var isCall=us.callType==='weekly_call';
 var sessIcon=isCall?'&#128222;':'&#127947;';
 var sessLabel=isCall?'Weekly Call':'In-Person Session';
-out+='<div style="background:var(--c1);border:1px solid var(--bdr);border-left:3px solid '+(isCall?'#6366f1':'#10b981')+';border-radius:0 14px 14px 0;padding:14px 16px;margin-bottom:8px">' +
+out+='<div style="background:var(--c1);border:1px solid var(--bdr);border-left:3px solid '+(isCall?'var(--acc)':'#10b981')+';border-radius:0 14px 14px 0;padding:14px 16px;margin-bottom:8px">' +
 '<div style="display:flex;justify-content:space-between;align-items:flex-start">' +
 '<div>' +
 '<div style="font-size:9px;color:'+whenColor+';font-weight:800;letter-spacing:1.5px;margin-bottom:5px">'+when.toUpperCase()+'</div>' +
 '<div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:-.5px;margin-bottom:3px">'+fmtD(us.date)+'</div>' +
 '<div style="font-size:12px;color:var(--m1)">'+(us.time||'Time TBD')+' &bull; '+sessLabel+'</div>' +
-(us.topics?'<div style="margin-top:6px;font-size:11px;color:var(--m2);background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:8px;padding:6px 10px">'+us.topics+'</div>':'')+
+(us.topics?'<div style="margin-top:6px;font-size:11px;color:var(--m2);background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:8px;padding:6px 10px">'+us.topics+'</div>':'')+
 (us.note&&!us.topics?'<div style="font-size:11px;color:var(--m2);margin-top:4px">'+us.note+'</div>':'')+
 '</div>' +
-'<div style="width:46px;height:46px;border-radius:13px;background:'+(isCall?'rgba(99,102,241,.12)':'rgba(16,185,129,.12)')+';display:flex;align-items:center;justify-content:center;font-size:24px">'+sessIcon+'</div>' +
+'<div style="width:46px;height:46px;border-radius:13px;background:'+(isCall?'rgba(37,99,235,.12)':'rgba(16,185,129,.12)')+';display:flex;align-items:center;justify-content:center;font-size:24px">'+sessIcon+'</div>' +
 '</div></div>';
 }
 }
@@ -854,8 +854,8 @@ var wd=dt.getDay();
 var isToday=ds===todayStr;
 var entry=workoutWdMap[wd]||null;
 var isWorkout=!!entry;
-var bg=isToday&&isWorkout?'rgba(99,102,241,.12)':'var(--c1)';
-var bdr=isToday?'1px solid rgba(99,102,241,.4)':'1px solid var(--bdr)';
+var bg=isToday&&isWorkout?'rgba(37,99,235,.12)':'var(--c1)';
+var bdr=isToday?'1px solid rgba(37,99,235,.4)':'1px solid var(--bdr)';
 var icon=isWorkout?'&#128170;':'&#128564;';
 var label=isWorkout?(entry.day.title||entry.day.name||'Workout'):'Rest Day';
 var labelColor=isWorkout?'#fff':'var(--m2)';
@@ -864,7 +864,7 @@ var dateLabel=dt.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
 var exCount=(isWorkout&&entry.day.ex)?entry.day.ex.length:0;
 var clickAttr=isWorkout?' onclick="selDay('+entry.idx+')"':'';
 out+='<div'+clickAttr+' style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:'+bg+';border:'+bdr+';border-radius:12px;margin-bottom:6px;'+(isWorkout?'cursor:pointer':'')+'">' +
-'<div style="width:42px;height:42px;border-radius:11px;background:'+(isWorkout?'rgba(99,102,241,.15)':'rgba(255,255,255,.04)')+';display:flex;align-items:center;justify-content:center;font-size:20px">'+icon+'</div>' +
+'<div style="width:42px;height:42px;border-radius:11px;background:'+(isWorkout?'rgba(37,99,235,.15)':'rgba(255,255,255,.04)')+';display:flex;align-items:center;justify-content:center;font-size:20px">'+icon+'</div>' +
 '<div style="flex:1">' +
 '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">' +
 '<div style="font-size:14px;font-weight:'+(isWorkout?'800':'600')+';color:'+labelColor+'">'+label+'</div>' +
@@ -899,7 +899,7 @@ else{lines.push('&#128203; '+doneCnt+'/'+list.length+' habits done. Still to go:
 }
 if(activeGoals.length){lines.push('&#127919; Working towards: <em>'+activeGoals[0].text+'</em>. Every session is a step closer. Don\'t let today be a step back.');}
 if(!lines.length){lines.push('&#128170; Stay consistent with your program. Small daily efforts compound into the results you\'re chasing.');}
-return '<div style="background:linear-gradient(135deg,rgba(99,102,241,.1),rgba(236,72,153,.06));border:1px solid rgba(99,102,241,.25);border-radius:16px;padding:16px;margin-top:6px">' +
+return '<div style="background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.06));border:1px solid rgba(37,99,235,.25);border-radius:16px;padding:16px;margin-top:6px">' +
 '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--acc);margin-bottom:10px">&#129504; COACH AI &bull; DAILY INSIGHT</div>' +
 '<div style="display:flex;flex-direction:column;gap:7px">' +
 lines.map(function(line){return '<div style="font-size:12px;color:var(--m1);line-height:1.7;padding:9px 11px;background:rgba(255,255,255,.03);border-radius:9px">'+line+'</div>';}).join('')+
@@ -917,7 +917,7 @@ var summaryHtml='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;
 '<div style="font-size:10px;color:var(--m2);margin-top:3px;letter-spacing:.5px">SESSIONS DONE</div>' +
 '</div>' +
 '<div style="background:var(--c1);border:1px solid var(--bdr);border-radius:12px;padding:12px;text-align:center">' +
-'<div style="font-size:28px;font-weight:900;color:'+(balance<=0?'var(--amber)':'#818cf8')+'">'+Math.max(0,balance)+'</div>' +
+'<div style="font-size:28px;font-weight:900;color:'+(balance<=0?'var(--amber)':'var(--acc-l)')+'">'+Math.max(0,balance)+'</div>' +
 '<div style="font-size:10px;color:var(--m2);margin-top:3px;letter-spacing:.5px">SESSIONS LEFT</div>' +
 '</div>' +
 '</div>';
@@ -942,7 +942,7 @@ out+='<div style="background:var(--c1);border:1px solid var(--bdr);border-left:3
 '<div style="font-size:9px;color:'+whenColor+';font-weight:800;letter-spacing:1.5px;margin-bottom:5px">'+when.toUpperCase()+'</div>' +
 '<div style="font-size:20px;font-weight:900;color:#fff;letter-spacing:-.5px;margin-bottom:3px">'+fmtD(s.date)+'</div>' +
 '<div style="font-size:12px;color:var(--m1)">'+(s.time||'Time TBD')+(s.note?' &bull; '+s.note:'')+'</div>' +
-(s.workoutName?'<div style="margin-top:6px;display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);border-radius:8px"><span style="font-size:11px">&#128170;</span><span style="font-size:11px;font-weight:700;color:#818cf8">'+s.workoutName+'</span></div>':'')+
+(s.workoutName?'<div style="margin-top:6px;display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.25);border-radius:8px"><span style="font-size:11px">&#128170;</span><span style="font-size:11px;font-weight:700;color:var(--acc-l)">'+s.workoutName+'</span></div>':'')+
 '</div>' +
 '<div style="width:46px;height:46px;border-radius:13px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center;font-size:24px">&#127947;</div>' +
 '</div></div>';
@@ -989,7 +989,7 @@ return '<div class="hdr"><div class="hdr-top">' +
 '<div style="position:relative;display:inline-block">' +
 (photo
 ? '<img src="'+photo+'" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid var(--acc);display:block">'
-: '<div style="width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--pink));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#fff;border:3px solid var(--acc)">'+initials+'</div>') +
+: '<div style="width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#fff;border:3px solid var(--acc)">'+initials+'</div>') +
 '<label for="prof_photo_inp" style="position:absolute;bottom:2px;right:2px;width:26px;height:26px;border-radius:50%;background:var(--c2);border:2px solid var(--bdr);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px">&#128247;</label>' +
 '<input type="file" id="prof_photo_inp" accept="image/*" style="display:none" onchange="handleProfilePhotoUpload(event)">' +
 '</div>' +
@@ -1055,7 +1055,7 @@ else if(bal<=2)msgEl.textContent='Only '+bal+' session'+(bal===1?'':'s')+' left 
 else msgEl.textContent='You have '+bal+' session'+(bal===1?'':'s')+' with Ahmed';
 }
 var sessions=Object.values(DB.get('sessions_'+S.cid)||{}).filter(function(s){return s.status==='upcoming';}).sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
-if(nextEl&&sessions.length>0){var s=sessions[0];nextEl.innerHTML='<div style="padding:13px;background:rgba(236,72,153,.06);border:1px solid rgba(236,72,153,.15);border-radius:13px;text-align:center;margin-bottom:14px"><div style="font-size:10px;color:var(--pink);font-weight:700;letter-spacing:1px;margin-bottom:6px">NEXT SESSION</div><div style="font-size:20px;font-weight:800;color:#fff">'+fmtD(s.date)+(s.time?' at '+s.time:'')+'</div><div style="font-size:12px;color:var(--m1);margin-top:4px">'+(s.type==='online'?'Online':'In Person')+(s.note?' - '+s.note:'')+'</div></div>';}
+if(nextEl&&sessions.length>0){var s=sessions[0];nextEl.innerHTML='<div style="padding:13px;background:rgba(37,99,235,.06);border:1px solid rgba(37,99,235,.15);border-radius:13px;text-align:center;margin-bottom:14px"><div style="font-size:10px;color:var(--acc);font-weight:700;letter-spacing:1px;margin-bottom:6px">NEXT SESSION</div><div style="font-size:20px;font-weight:800;color:#fff">'+fmtD(s.date)+(s.time?' at '+s.time:'')+'</div><div style="font-size:12px;color:var(--m1);margin-top:4px">'+(s.type==='online'?'Online':'In Person')+(s.note?' - '+s.note:'')+'</div></div>';}
 var pays=Object.values(DB.get('payments_'+S.cid)||{}).sort(function(a,b){return b.ts-a.ts;});
 if(payEl){
 if(!pays.length){payEl.innerHTML='<div class="empty">No payment receipts yet.</div>';}
@@ -1181,7 +1181,7 @@ function renderWaterDots(water){
 var h='<div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:center">';
 for(var i=0;i<8;i++){
 var filled=i<water;
-h+='<div onclick="doLogWater('+(i+1)+')" style="width:32px;height:40px;border-radius:6px 6px 10px 10px;border:2px solid '+(filled?'var(--blue)':'rgba(255,255,255,.15)')+';background:'+(filled?'rgba(99,102,241,.25)':'transparent')+';cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">'+(filled?'&#128167;':'')+'</div>';
+h+='<div onclick="doLogWater('+(i+1)+')" style="width:32px;height:40px;border-radius:6px 6px 10px 10px;border:2px solid '+(filled?'var(--acc)':'rgba(255,255,255,.15)')+';background:'+(filled?'rgba(37,99,235,.25)':'transparent')+';cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px">'+(filled?'&#128167;':'')+'</div>';
 }
 return h+'</div>';
 }
@@ -1210,7 +1210,7 @@ return '<div style="display:flex;justify-content:space-between;align-items:cente
 '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+item.name+'</div>'+
 '<div style="font-size:10px;color:var(--m2);margin-top:1px">'+item.calories+'kcal &#183; P:'+item.protein+'g C:'+item.carbs+'g F:'+item.fat+'g</div></div>'+
 '<div style="display:flex;gap:4px;flex-shrink:0;margin-left:8px">'+
-'<button onclick="openEditFood(\''+meal+'\','+idx+')" style="width:22px;height:22px;border-radius:6px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);color:#818cf8;font-size:11px;cursor:pointer">&#9998;</button>'+
+'<button onclick="openEditFood(\''+meal+'\','+idx+')" style="width:22px;height:22px;border-radius:6px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);color:var(--acc-l);font-size:11px;cursor:pointer">&#9998;</button>'+
 '<button onclick="doDeleteFood(\''+meal+'\','+idx+')" style="width:22px;height:22px;border-radius:6px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);color:#f87171;font-size:12px;cursor:pointer">&#215;</button>'+
 '</div>'+
 '</div>';
@@ -1231,7 +1231,7 @@ showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" o
 '<div><div class="lbl">Carbs (g)</div><input class="inp" id="af_c" type="number" inputmode="decimal" placeholder="0" style="margin-bottom:0"></div>'+
 '<div><div class="lbl">Fat (g)</div><input class="inp" id="af_f" type="number" inputmode="decimal" placeholder="5" style="margin-bottom:0"></div>'+
 '</div>'+
-'<button class="btn btn-green" onclick="doAddFood()">ADD &#10003;</button>'+
+'<button class="btn btn-acc" onclick="doAddFood()">ADD &#10003;</button>'+
 '<button class="btn btn-ghost" onclick="closeModal()">Cancel</button>'+
 '</div></div>');
 setTimeout(function(){var el=document.getElementById('af_name');if(el)el.focus();},100);
@@ -1312,7 +1312,7 @@ var isToday=date===today();
 var coachNote=(DB.get('nutr_notes_'+S.cid)||{})[date]||'';
 return '<div class="hdr"><div class="hdr-top">'+
 '<div><div class="hdr-sub">Ahmed PT</div><div class="hdr-title">Nutrition</div></div>'+
-'<button onclick="openMacroCalc()" style="padding:5px 10px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);border-radius:8px;color:var(--acc);font-size:10px;font-weight:700;cursor:pointer">&#128200; Targets</button>'+
+'<button onclick="openMacroCalc()" style="padding:5px 10px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);border-radius:8px;color:var(--acc);font-size:10px;font-weight:700;cursor:pointer">&#128200; Targets</button>'+
 '</div></div>'+
 '<div class="page">'+
 '<div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:14px">'+
@@ -1324,7 +1324,7 @@ return '<div class="hdr"><div class="hdr-top">'+
 '<div style="display:flex;align-items:center;gap:16px;margin-bottom:14px">'+
 renderCalRing(totals.calories,targets.calories,'var(--green)')+
 '<div style="flex:1">'+
-renderMacroBar('Protein',totals.protein,targets.protein,'#818cf8')+
+renderMacroBar('Protein',totals.protein,targets.protein,'var(--acc-l)')+
 renderMacroBar('Carbs',totals.carbs,targets.carbs,'#34d399')+
 renderMacroBar('Fat',totals.fat,targets.fat,'#f59e0b')+
 '</div></div>'+
@@ -1333,11 +1333,11 @@ renderMacroBar('Fat',totals.fat,targets.fat,'#f59e0b')+
 renderWaterDots(data.water||0)+
 '<div style="font-size:10px;color:var(--m2);text-align:center;margin-top:6px">'+(data.water||0)+' / 8 glasses</div>'+
 '</div></div></div>'+
-(coachNote?'<div style="padding:10px 14px;background:rgba(99,102,241,.06);border-left:3px solid var(--blue);border-radius:0 10px 10px 0;margin-bottom:14px">'+
-'<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--blue);margin-bottom:4px">AHMED&#39;S NOTE</div>'+
+(coachNote?'<div style="padding:10px 14px;background:rgba(37,99,235,.06);border-left:3px solid var(--acc);border-radius:0 10px 10px 0;margin-bottom:14px">'+
+'<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--acc);margin-bottom:4px">AHMED&#39;S NOTE</div>'+
 '<div style="font-size:12px;color:var(--m1);line-height:1.6">'+coachNote+'</div></div>':'')+
 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">'+
-'<button onclick="openDescribeFood(null)" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(99,102,241,.08);border:1px dashed rgba(99,102,241,.3);border-radius:12px;color:var(--acc);font-size:12px;font-weight:700;cursor:pointer">'+
+'<button onclick="openDescribeFood(null)" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(37,99,235,.08);border:1px dashed rgba(37,99,235,.3);border-radius:12px;color:var(--acc);font-size:12px;font-weight:700;cursor:pointer">'+
 '<span style="font-size:20px">&#129302;</span><div style="text-align:left"><div>Describe Food</div><div style="font-size:9px;color:var(--m2);font-weight:400;margin-top:1px">AI estimates calories</div></div></button>'+
 '<button onclick="openPhotoCalorie()" style="display:flex;align-items:center;gap:8px;padding:12px;background:rgba(16,185,129,.06);border:1px dashed rgba(16,185,129,.25);border-radius:12px;color:var(--green);font-size:12px;font-weight:700;cursor:pointer">'+
 '<span style="font-size:20px">&#128248;</span><div style="text-align:left"><div>Photo Calories</div><div style="font-size:9px;color:var(--m2);font-weight:400;margin-top:1px">AI photo analysis</div></div></button>'+
@@ -1411,7 +1411,7 @@ res.innerHTML='<div style="background:var(--c2);border-radius:12px;padding:14px;
 '<div style="font-size:10px;color:var(--m2)">TDEE '+tdee+' &#183; '+(goal==='cut'?'-300 cut':goal==='bulk'?'+300 bulk':'maintain')+'&nbsp;&mdash;&nbsp;adjust below to customise</div></div>'+
 '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">'+
 '<div style="text-align:center;padding:10px 6px;background:rgba(129,140,248,.1);border-radius:10px">'+
-'<input id="mc_adj_p" type="number" inputmode="decimal" value="'+protein+'" oninput="recalcMacroCals()" style="width:100%;background:none;border:none;font-size:20px;font-weight:900;color:#818cf8;text-align:center;padding:0">'+
+'<input id="mc_adj_p" type="number" inputmode="decimal" value="'+protein+'" oninput="recalcMacroCals()" style="width:100%;background:none;border:none;font-size:20px;font-weight:900;color:var(--acc-l);text-align:center;padding:0">'+
 '<div style="font-size:9px;color:var(--m2);margin-top:2px">PROTEIN (g)</div></div>'+
 '<div style="text-align:center;padding:10px 6px;background:rgba(52,211,153,.1);border-radius:10px">'+
 '<input id="mc_adj_c" type="number" inputmode="decimal" value="'+carbs+'" oninput="recalcMacroCals()" style="width:100%;background:none;border:none;font-size:20px;font-weight:900;color:#34d399;text-align:center;padding:0">'+
@@ -1420,7 +1420,7 @@ res.innerHTML='<div style="background:var(--c2);border-radius:12px;padding:14px;
 '<input id="mc_adj_f" type="number" inputmode="decimal" value="'+fat+'" oninput="recalcMacroCals()" style="width:100%;background:none;border:none;font-size:20px;font-weight:900;color:var(--amber);text-align:center;padding:0">'+
 '<div style="font-size:9px;color:var(--m2);margin-top:2px">FAT (g)</div></div>'+
 '</div>'+
-'<button class="btn btn-green" onclick="applyAdjMacros()" style="margin-top:4px">APPLY AS TARGET &#10003;</button>'+
+'<button class="btn btn-acc" onclick="applyAdjMacros()" style="margin-top:4px">APPLY AS TARGET &#10003;</button>'+
 '</div>';
 }
 }
@@ -1617,7 +1617,7 @@ return '<div class="hdr"><div class="hdr-top">'+
 '</div></div>'+
 '<div class="page">'+
 (!todayRec?
-'<div style="background:var(--c1);border:1.5px solid rgba(99,102,241,.3);border-radius:14px;padding:18px;margin-bottom:14px;text-align:center">'+
+'<div style="background:var(--c1);border:1.5px solid rgba(37,99,235,.3);border-radius:14px;padding:18px;margin-bottom:14px;text-align:center">'+
 '<div style="font-size:36px;margin-bottom:8px">&#128526;</div>'+
 '<div style="font-size:16px;font-weight:800;color:#fff;margin-bottom:4px">Morning Check-In</div>'+
 '<div style="font-size:12px;color:var(--m1);margin-bottom:16px">How are you feeling today?</div>'+
@@ -1626,7 +1626,7 @@ return '<div class="hdr"><div class="hdr-top">'+
 '<div style="background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.2);border-radius:14px;padding:14px;margin-bottom:14px">'+
 '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--green);margin-bottom:12px">TODAY&#39;S CHECK-IN &#10003;</div>'+
 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
-'<div style="text-align:center;padding:10px;background:rgba(255,255,255,.03);border-radius:10px"><div style="font-size:22px;margin-bottom:4px">&#128564;</div><div style="font-size:11px;color:var(--m2);margin-bottom:3px">Sleep</div><div style="font-size:28px;font-weight:900;color:var(--blue)">'+todayRec.sleep+'</div><div style="font-size:9px;color:var(--m2)">/10</div></div>'+
+'<div style="text-align:center;padding:10px;background:rgba(255,255,255,.03);border-radius:10px"><div style="font-size:22px;margin-bottom:4px">&#128564;</div><div style="font-size:11px;color:var(--m2);margin-bottom:3px">Sleep</div><div style="font-size:28px;font-weight:900;color:var(--acc)">'+todayRec.sleep+'</div><div style="font-size:9px;color:var(--m2)">/10</div></div>'+
 '<div style="text-align:center;padding:10px;background:rgba(255,255,255,.03);border-radius:10px"><div style="font-size:22px;margin-bottom:4px">&#128137;</div><div style="font-size:11px;color:var(--m2);margin-bottom:3px">Soreness</div><div style="font-size:28px;font-weight:900;color:var(--red)">'+todayRec.soreness+'</div><div style="font-size:9px;color:var(--m2)">/10</div></div>'+
 '<div style="text-align:center;padding:10px;background:rgba(255,255,255,.03);border-radius:10px"><div style="font-size:22px;margin-bottom:4px">&#9889;</div><div style="font-size:11px;color:var(--m2);margin-bottom:3px">Energy</div><div style="font-size:28px;font-weight:900;color:var(--amber)">'+todayRec.energy+'</div><div style="font-size:9px;color:var(--m2)">/10</div></div>'+
 '<div style="text-align:center;padding:10px;background:rgba(255,255,255,.03);border-radius:10px"><div style="font-size:22px;margin-bottom:4px">&#128512;</div><div style="font-size:11px;color:var(--m2);margin-bottom:3px">Mood</div><div style="font-size:28px;font-weight:900;color:var(--green)">'+todayRec.mood+'</div><div style="font-size:9px;color:var(--m2)">/10</div></div>'+
@@ -1656,7 +1656,7 @@ showModal('<div class="modal-bg" onclick="closeModal()"><div class="modal-box" o
 '<div class="modal-title">Morning Check-In <button onclick="closeModal()" style="font-size:22px;color:var(--m1);cursor:pointer">&#215;</button></div>'+
 '<div style="font-size:12px;color:var(--m1);margin-bottom:16px">Rate 1 (poor) to 10 (excellent)</div>'+
 '<div style="margin-bottom:16px">'+
-'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-size:13px;font-weight:700;color:#fff">&#128564; Sleep Quality</div><span id="ci_sleep_v" style="font-size:16px;font-weight:900;color:var(--blue)">5</span></div>'+
+'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-size:13px;font-weight:700;color:#fff">&#128564; Sleep Quality</div><span id="ci_sleep_v" style="font-size:16px;font-weight:900;color:var(--acc)">5</span></div>'+
 '<input type="range" id="ci_sleep" min="1" max="10" value="5" oninput="sliderUpd(this,\'ci_sleep_v\',\'#3b82f6\')" style="width:100%;background:linear-gradient(to right,#3b82f6 44.4%,rgba(255,255,255,.15) 44.4%)">'+
 '<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--m2);margin-top:3px"><span>1</span><span>5</span><span>10</span></div>'+
 '</div>'+
@@ -1797,7 +1797,7 @@ return '<div class="sect" style="margin-top:0">TODAY&#39;S NUTRITION &#8212; '+c
 '<div class="card"><div class="card-p">'+
 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'+
 '<div style="text-align:center;padding:10px;background:rgba(255,255,255,.03);border-radius:10px"><div style="font-size:20px;font-weight:900;color:var(--green)">'+todayTotals.calories+'</div><div style="font-size:9px;color:var(--m2)">Calories</div>'+(targets?'<div style="font-size:9px;color:var(--m2)">/ '+targets.calories+' target</div>':'')+'</div>'+
-'<div style="text-align:center;padding:10px;background:rgba(255,255,255,.03);border-radius:10px"><div style="font-size:20px;font-weight:900;color:#818cf8">'+todayTotals.protein+'g</div><div style="font-size:9px;color:var(--m2)">Protein</div>'+(targets?'<div style="font-size:9px;color:var(--m2)">/ '+targets.protein+'g target</div>':'')+'</div>'+
+'<div style="text-align:center;padding:10px;background:rgba(255,255,255,.03);border-radius:10px"><div style="font-size:20px;font-weight:900;color:var(--acc-l)">'+todayTotals.protein+'g</div><div style="font-size:9px;color:var(--m2)">Protein</div>'+(targets?'<div style="font-size:9px;color:var(--m2)">/ '+targets.protein+'g target</div>':'')+'</div>'+
 '</div>'+
 '<div class="lbl">SEND NUTRITION NOTE TO '+c.name.toUpperCase()+'</div>'+
 '<textarea class="inp" id="nn_txt" rows="3" placeholder="e.g. Great macros today! Try to add more protein at breakfast...">'+existingNote+'</textarea>'+
@@ -1807,7 +1807,7 @@ return '<div class="sect" style="margin-top:0">TODAY&#39;S NUTRITION &#8212; '+c
 '<div class="card"><div class="card-p">'+
 '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px">'+
 '<div style="text-align:center"><div style="font-size:16px;font-weight:900;color:var(--green)">'+targets.calories+'</div><div style="font-size:9px;color:var(--m2)">kcal</div></div>'+
-'<div style="text-align:center"><div style="font-size:16px;font-weight:900;color:#818cf8">'+targets.protein+'g</div><div style="font-size:9px;color:var(--m2)">protein</div></div>'+
+'<div style="text-align:center"><div style="font-size:16px;font-weight:900;color:var(--acc-l)">'+targets.protein+'g</div><div style="font-size:9px;color:var(--m2)">protein</div></div>'+
 '<div style="text-align:center"><div style="font-size:16px;font-weight:900;color:#34d399">'+targets.carbs+'g</div><div style="font-size:9px;color:var(--m2)">carbs</div></div>'+
 '<div style="text-align:center"><div style="font-size:16px;font-weight:900;color:var(--amber)">'+targets.fat+'g</div><div style="font-size:9px;color:var(--m2)">fat</div></div>'+
 '</div></div></div>':
@@ -1820,7 +1820,7 @@ var typ=['breakfast','lunch','dinner','snacks'];
 for(var i=0;i<typ.length;i++){var it=(dd.meals&&dd.meals[typ[i]])||[];for(var j=0;j<it.length;j++){dc.calories+=it[j].calories||0;dc.protein+=it[j].protein||0;}}
 return '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--c1);border:1px solid var(--bdr);border-radius:10px;margin-bottom:6px">'+
 '<div style="font-size:12px;color:var(--m1)">'+fmtD(d)+'</div>'+
-'<div style="display:flex;gap:12px"><span style="font-size:12px;font-weight:700;color:var(--green)">'+dc.calories+' kcal</span><span style="font-size:12px;color:#818cf8">'+dc.protein+'g protein</span></div>'+
+'<div style="display:flex;gap:12px"><span style="font-size:12px;font-weight:700;color:var(--green)">'+dc.calories+' kcal</span><span style="font-size:12px;color:var(--acc-l)">'+dc.protein+'g protein</span></div>'+
 '</div>';
 }).join(''):
 '<div class="empty">No nutrition logs yet.</div>');
@@ -1919,11 +1919,11 @@ resultEl.innerHTML = '<div style="background:var(--c2);border-radius:12px;paddin
 '<div style="font-size:15px;font-weight:800;color:#fff;margin-bottom:8px">' + (result.foodName||'Food') + '</div>' +
 '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:10px">' +
 ['calories','protein','carbs','fat'].map(function(k) {
-var cols={calories:'var(--green)',protein:'#6366f1',carbs:'#10b981',fat:'var(--amber)'};
+var cols={calories:'var(--green)',protein:'var(--acc)',carbs:'#10b981',fat:'var(--amber)'};
 return '<div style="text-align:center;background:var(--c1);border-radius:8px;padding:8px 4px"><div style="font-size:16px;font-weight:800;color:'+cols[k]+'">'+(result[k]||0)+'</div><div style="font-size:8px;color:var(--m2)">'+(k==='calories'?'kcal':'g')+'</div><div style="font-size:8px;color:var(--m2)">'+k+'</div></div>';
 }).join('') + '</div>' +
 '<div style="padding:8px;background:rgba(245,158,11,.06);border-radius:8px;font-size:10px;color:var(--amber)">Confidence: '+(result.confidence||'?')+' &bull; '+(result.notes||'')+'</div></div>' +
-'<button class="btn btn-green" style="margin-bottom:0" onclick="addPhotoMeal()">Add to Log</button>';
+'<button class="btn btn-acc" style="margin-bottom:0" onclick="addPhotoMeal()">Add to Log</button>';
 }
 } catch(e) {
 if (resultEl) resultEl.innerHTML='<div style="color:var(--red);font-size:12px">Could not parse result. Try again.</div>';
@@ -2003,7 +2003,7 @@ if (result.type === 'question') {
 S._aiFood.phase = 'question';
 S._aiFood.question = result.question;
 if (area) area.innerHTML =
-'<div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.25);border-radius:10px;padding:12px;margin-bottom:10px">' +
+'<div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.25);border-radius:10px;padding:12px;margin-bottom:10px">' +
 '<div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--acc);margin-bottom:6px">&#129302; QUICK QUESTION</div>' +
 '<div style="font-size:13px;color:#fff;margin-bottom:10px">' + result.question + '</div>' +
 '<textarea class="inp" id="ai_food_answer" rows="2" placeholder="e.g. No oil, just grilled dry"></textarea>' +
@@ -2060,7 +2060,7 @@ function showNutritionResult(result, area, btn) {
 S._aiFood = S._aiFood || {};
 S._aiFood.phase = 'result';
 S._aiFood.result = result;
-var cols = {calories:'var(--green)',protein:'#6366f1',carbs:'#10b981',fat:'var(--amber)'};
+var cols = {calories:'var(--green)',protein:'var(--acc)',carbs:'#10b981',fat:'var(--amber)'};
 var macroBoxes = ['calories','protein','carbs','fat'].map(function(k) {
 return '<div style="text-align:center;background:var(--c1);border-radius:8px;padding:8px 4px">' +
 '<div style="font-size:16px;font-weight:800;color:'+cols[k]+'">'+(result[k]||0)+'</div>' +
@@ -2145,7 +2145,7 @@ return d.toISOString().split('T')[0];
 
 
 function renderPhotoCalButton() {
-return '<button onclick="openPhotoCalorie()" style="display:flex;align-items:center;gap:8px;width:100%;padding:12px;background:rgba(99,102,241,.08);border:1px dashed rgba(99,102,241,.3);border-radius:12px;color:var(--acc);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:14px">' +
+return '<button onclick="openPhotoCalorie()" style="display:flex;align-items:center;gap:8px;width:100%;padding:12px;background:rgba(37,99,235,.08);border:1px dashed rgba(37,99,235,.3);border-radius:12px;color:var(--acc);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:14px">' +
 '<span style="font-size:20px">&#128248;</span>' +
 '<div style="text-align:left"><div>Count Calories from Photo</div>' +
 '<div style="font-size:10px;color:var(--m2);font-weight:400;margin-top:1px">AI estimate &bull; results may vary</div></div></button>';
